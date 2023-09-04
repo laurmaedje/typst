@@ -484,12 +484,14 @@ impl Eval for ast::Expr<'_> {
             Self::FieldAccess(v) => v.eval(vm),
             Self::FuncCall(v) => v.eval(vm),
             Self::Closure(v) => v.eval(vm),
+            Self::TypeDef(v) => v.eval(vm),
             Self::Unary(v) => v.eval(vm),
             Self::Binary(v) => v.eval(vm),
             Self::Let(v) => v.eval(vm),
             Self::DestructAssign(v) => v.eval(vm),
             Self::Set(_) => bail!(forbidden("set")),
             Self::Show(_) => bail!(forbidden("show")),
+            Self::Contextual(v) => v.eval(vm),
             Self::Conditional(v) => v.eval(vm),
             Self::While(v) => v.eval(vm),
             Self::For(v) => v.eval(vm),
@@ -1310,6 +1312,15 @@ impl Eval for ast::Closure<'_> {
     }
 }
 
+impl Eval for ast::TypeDef<'_> {
+    type Output = Value;
+
+    #[tracing::instrument(name = "TypeDef::eval", skip_all)]
+    fn eval(self, _: &mut Vm) -> SourceResult<Self::Output> {
+        todo!()
+    }
+}
+
 /// Destruct the value into the pattern by binding.
 fn define_pattern(vm: &mut Vm, pattern: ast::Pattern, value: Value) -> SourceResult<()> {
     destructure(vm, pattern, value, |vm, expr, value| match expr {
@@ -1371,8 +1382,8 @@ where
         match p {
             ast::DestructuringKind::Normal(expr) => {
                 let Ok(v) = value.at(i as i64, None) else {
-                        bail!(expr.span(), "not enough elements to destructure");
-                    };
+                    bail!(expr.span(), "not enough elements to destructure");
+                };
                 f(vm, expr, v)?;
                 i += 1;
             }
@@ -1536,6 +1547,16 @@ impl Eval for ast::ShowRule<'_> {
         };
 
         Ok(Recipe { span, selector, transform })
+    }
+}
+
+impl Eval for ast::Contextual<'_> {
+    type Output = Value;
+
+    #[tracing::instrument(name = "Contextual::eval", skip_all)]
+    fn eval(self, vm: &mut Vm) -> SourceResult<Self::Output> {
+        // TODO: Implement context thing.
+        self.body().eval(vm)
     }
 }
 

@@ -1,6 +1,8 @@
-use crate::syntax::{ast, LinkedNode, SyntaxKind, SyntaxNode};
+use crate::{ast, LinkedNode, SyntaxKind, SyntaxNode};
 
 /// A syntax highlighting tag.
+///
+/// Basically a broader version of `SyntaxKind` which groups related things.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Tag {
     /// A line or block comment.
@@ -104,7 +106,7 @@ impl Tag {
     }
 }
 
-/// Determine the highlight tag of a linked syntax node.
+/// Determine the highlighting tag of a linked syntax node.
 ///
 /// Returns `None` if the node should not be highlighted.
 pub fn highlight(node: &LinkedNode) -> Option<Tag> {
@@ -203,6 +205,7 @@ pub fn highlight(node: &LinkedNode) -> Option<Tag> {
         SyntaxKind::Let => Some(Tag::Keyword),
         SyntaxKind::Set => Some(Tag::Keyword),
         SyntaxKind::Show => Some(Tag::Keyword),
+        SyntaxKind::Context => Some(Tag::Keyword),
         SyntaxKind::If => Some(Tag::Keyword),
         SyntaxKind::Else => Some(Tag::Keyword),
         SyntaxKind::For => Some(Tag::Keyword),
@@ -211,6 +214,8 @@ pub fn highlight(node: &LinkedNode) -> Option<Tag> {
         SyntaxKind::Break => Some(Tag::Keyword),
         SyntaxKind::Continue => Some(Tag::Keyword),
         SyntaxKind::Return => Some(Tag::Keyword),
+        SyntaxKind::Type => Some(Tag::Keyword),
+        SyntaxKind::Field => Some(Tag::Keyword),
         SyntaxKind::Import => Some(Tag::Keyword),
         SyntaxKind::Include => Some(Tag::Keyword),
         SyntaxKind::As => Some(Tag::Keyword),
@@ -237,9 +242,12 @@ pub fn highlight(node: &LinkedNode) -> Option<Tag> {
         SyntaxKind::Spread => None,
         SyntaxKind::Closure => None,
         SyntaxKind::Params => None,
+        SyntaxKind::TypeDef => None,
+        SyntaxKind::FieldDef => None,
         SyntaxKind::LetBinding => None,
         SyntaxKind::SetRule => None,
         SyntaxKind::ShowRule => None,
+        SyntaxKind::Contextual => None,
         SyntaxKind::Conditional => None,
         SyntaxKind::WhileLoop => None,
         SyntaxKind::ForLoop => None,
@@ -328,7 +336,9 @@ fn is_ident(node: &LinkedNode) -> bool {
     matches!(node.kind(), SyntaxKind::Ident | SyntaxKind::MathIdent)
 }
 
-/// Highlight a node to an HTML `code` element.
+/// Highlight a node to HTML.
+///
+/// Does not wrap in `<code>` or `<pre>`.
 ///
 /// This uses these [CSS classes for categories](Tag::css_class).
 pub fn highlight_html(root: &SyntaxNode) -> String {
@@ -379,7 +389,7 @@ mod tests {
     use std::ops::Range;
 
     use super::*;
-    use crate::syntax::Source;
+    use crate::Source;
 
     #[test]
     fn test_highlighting() {

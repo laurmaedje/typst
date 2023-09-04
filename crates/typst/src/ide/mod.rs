@@ -2,13 +2,11 @@
 
 mod analyze;
 mod complete;
-mod highlight;
 mod jump;
 mod tooltip;
 
 pub use self::analyze::analyze_labels;
 pub use self::complete::{autocomplete, Completion, CompletionKind};
-pub use self::highlight::{highlight, highlight_html, Tag};
 pub use self::jump::{jump_from_click, jump_from_cursor, Jump};
 pub use self::tooltip::{tooltip, Tooltip};
 

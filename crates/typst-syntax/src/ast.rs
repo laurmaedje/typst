@@ -179,6 +179,8 @@ pub enum Expr<'a> {
     FuncCall(FuncCall<'a>),
     /// A closure: `(x, y) => z`.
     Closure(Closure<'a>),
+    /// A type definition: `type foo { .. }`.
+    TypeDef(TypeDef<'a>),
     /// A let binding: `let x = 1`.
     Let(LetBinding<'a>),
     //// A destructuring assignment: `(x, y) = (1, 2)`.
@@ -187,6 +189,8 @@ pub enum Expr<'a> {
     Set(SetRule<'a>),
     /// A show rule: `show heading: it => emph(it.body)`.
     Show(ShowRule<'a>),
+    /// A contextual expression: `context text.fill`.
+    Contextual(Contextual<'a>),
     /// An if-else conditional: `if x { y } else { z }`.
     Conditional(Conditional<'a>),
     /// A while loop: `while x { y }`.
@@ -260,10 +264,12 @@ impl<'a> AstNode<'a> for Expr<'a> {
             SyntaxKind::FieldAccess => node.cast().map(Self::FieldAccess),
             SyntaxKind::FuncCall => node.cast().map(Self::FuncCall),
             SyntaxKind::Closure => node.cast().map(Self::Closure),
+            SyntaxKind::TypeDef => node.cast().map(Self::TypeDef),
             SyntaxKind::LetBinding => node.cast().map(Self::Let),
             SyntaxKind::DestructAssignment => node.cast().map(Self::DestructAssign),
             SyntaxKind::SetRule => node.cast().map(Self::Set),
             SyntaxKind::ShowRule => node.cast().map(Self::Show),
+            SyntaxKind::Contextual => node.cast().map(Self::Contextual),
             SyntaxKind::Conditional => node.cast().map(Self::Conditional),
             SyntaxKind::WhileLoop => node.cast().map(Self::While),
             SyntaxKind::ForLoop => node.cast().map(Self::For),
@@ -322,10 +328,12 @@ impl<'a> AstNode<'a> for Expr<'a> {
             Self::FieldAccess(v) => v.to_untyped(),
             Self::FuncCall(v) => v.to_untyped(),
             Self::Closure(v) => v.to_untyped(),
+            Self::TypeDef(v) => v.to_untyped(),
             Self::Let(v) => v.to_untyped(),
             Self::DestructAssign(v) => v.to_untyped(),
             Self::Set(v) => v.to_untyped(),
             Self::Show(v) => v.to_untyped(),
+            Self::Contextual(v) => v.to_untyped(),
             Self::Conditional(v) => v.to_untyped(),
             Self::While(v) => v.to_untyped(),
             Self::For(v) => v.to_untyped(),
@@ -361,6 +369,7 @@ impl Expr<'_> {
                 | Self::Let(_)
                 | Self::Set(_)
                 | Self::Show(_)
+                | Self::Contextual(_)
                 | Self::Conditional(_)
                 | Self::While(_)
                 | Self::For(_)
@@ -369,6 +378,7 @@ impl Expr<'_> {
                 | Self::Break(_)
                 | Self::Continue(_)
                 | Self::Return(_)
+                | Self::TypeDef(_)
         )
     }
 
@@ -1688,6 +1698,11 @@ impl<'a> AstNode<'a> for Param<'a> {
 }
 
 node! {
+    /// A type definition: `type foo { .. }`.
+    TypeDef
+}
+
+node! {
     /// A destructuring pattern: `x` or `(x, _, ..y)`.
     Destructuring
 }
@@ -1897,6 +1912,18 @@ impl<'a> ShowRule<'a> {
     /// The transformation recipe.
     pub fn transform(self) -> Expr<'a> {
         self.0.cast_last_match().unwrap_or_default()
+    }
+}
+
+node! {
+    /// A contextual expression: `context text.fill`.
+    Contextual
+}
+
+impl<'a> Contextual<'a> {
+    /// The condition which depends on the context.
+    pub fn body(self) -> Expr<'a> {
+        self.0.cast_first_match().unwrap_or_default()
     }
 }
 

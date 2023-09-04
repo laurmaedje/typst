@@ -739,6 +739,7 @@ fn code_primary(p: &mut Parser, atomic: bool, allow_destructuring: bool) {
         SyntaxKind::Let => let_binding(p),
         SyntaxKind::Set => set_rule(p),
         SyntaxKind::Show => show_rule(p),
+        SyntaxKind::Context => contextual(p),
         SyntaxKind::If => conditional(p),
         SyntaxKind::While => while_loop(p),
         SyntaxKind::For => for_loop(p),
@@ -747,6 +748,8 @@ fn code_primary(p: &mut Parser, atomic: bool, allow_destructuring: bool) {
         SyntaxKind::Break => break_stmt(p),
         SyntaxKind::Continue => continue_stmt(p),
         SyntaxKind::Return => return_stmt(p),
+        SyntaxKind::Type => type_def(p),
+        SyntaxKind::Field => field_def(p),
 
         SyntaxKind::None
         | SyntaxKind::Auto
@@ -1092,6 +1095,13 @@ fn show_rule(p: &mut Parser) {
     p.wrap(m, SyntaxKind::ShowRule);
 }
 
+fn contextual(p: &mut Parser) {
+    let m = p.marker();
+    p.assert(SyntaxKind::Context);
+    code_expr(p);
+    p.wrap(m, SyntaxKind::Contextual);
+}
+
 fn conditional(p: &mut Parser) {
     let m = p.marker();
     p.assert(SyntaxKind::If);
@@ -1184,6 +1194,23 @@ fn return_stmt(p: &mut Parser) {
         code_expr(p);
     }
     p.wrap(m, SyntaxKind::FuncReturn);
+}
+
+fn type_def(p: &mut Parser) {
+    let m = p.marker();
+    p.assert(SyntaxKind::Type);
+    p.expect(SyntaxKind::Ident);
+    code_block(p);
+    p.wrap(m, SyntaxKind::TypeDef);
+}
+
+fn field_def(p: &mut Parser) {
+    let m = p.marker();
+    p.assert(SyntaxKind::Field);
+    p.expect(SyntaxKind::Ident);
+    p.expect(SyntaxKind::Eq);
+    code_expr(p);
+    p.wrap(m, SyntaxKind::FieldDef);
 }
 
 fn validate_parenthesized_at(p: &mut Parser, m: Marker) {
