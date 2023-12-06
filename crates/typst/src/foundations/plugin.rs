@@ -3,7 +3,7 @@ use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 
 use ecow::{eco_format, EcoString};
-use wasmi::{AsContext, AsContextMut};
+use js_sys::wasm_bindgen::JsValue;
 
 use crate::diag::{bail, At, SourceResult, StrResult};
 use crate::engine::Engine;
@@ -139,6 +139,7 @@ struct MemoryError {
     length: u32,
     write: bool,
 }
+
 /// The persistent store data used for communication between store and host.
 #[derive(Default)]
 struct StoreData {
@@ -168,25 +169,29 @@ impl Plugin {
     /// Create a new plugin from raw WebAssembly bytes.
     #[comemo::memoize]
     pub fn new(bytes: Bytes) -> StrResult<Self> {
-        let engine = wasmi::Engine::default();
-        let module = wasmi::Module::new(&engine, bytes.as_slice())
-            .map_err(|err| format!("failed to load WebAssembly module ({err})"))?;
+        let data = js_sys::Uint8Array::from(bytes.as_slice());
+        let module = js_sys::WebAssembly::Module::new(&data)
+            .map_err(|err| format!("failed to load WebAssembly module ({err:?})"))?;
 
-        let mut linker = wasmi::Linker::new(&engine);
-        linker
-            .func_wrap(
-                "typst_env",
-                "wasm_minimal_protocol_send_result_to_host",
-                wasm_minimal_protocol_send_result_to_host,
-            )
-            .unwrap();
-        linker
-            .func_wrap(
-                "typst_env",
-                "wasm_minimal_protocol_write_args_to_buffer",
-                wasm_minimal_protocol_write_args_to_buffer,
-            )
-            .unwrap();
+        let typst_env = js_sys::Object::new();
+        js_sys::Reflect::set(
+            &typst_env,
+            &"wasm_minimal_protocol_send_result_to_host".into(),
+            &JsValue::NULL,
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &typst_env,
+            &"wasm_minimal_protocol_write_args_to_buffer".into(),
+            &JsValue::NULL,
+        )
+        .unwrap();
+
+        let imports = js_sys::Object::new();
+        js_sys::Reflect::set(&imports, &"typst_env".into(), &typst_env).unwrap();
+
+        let instance = js_sys::WebAssembly::Instance::new(&module, &imports)
+            .map_err(|err| format!("failed to create WebAssembly instance ({err:?})"))?;
 
         let mut store = Store::new(&engine, StoreData::default());
         let instance = linker
@@ -194,22 +199,27 @@ impl Plugin {
             .and_then(|pre_instance| pre_instance.start(&mut store))
             .map_err(|e| eco_format!("{e}"))?;
 
-        // Ensure that the plugin exports its memory.
-        if !matches!(
-            instance.get_export(&store, "memory"),
-            Some(wasmi::Extern::Memory(_))
-        ) {
-            bail!("plugin does not export its memory");
+        let exports = js_sys::WebAssembly::Module::exports(&module);
+        for export in exports.iter() {
+            log::debug!("{:?}", export);
         }
 
+        // // Ensure that the plugin exports its memory.
+        // if !matches!(
+        //     instance.get_export(&store, "memory"),
+        //     Some(wasmi::Extern::Memory(_))
+        // ) {
+        //     bail!("plugin does not export its memory");
+        // }
+
         // Collect exported functions.
-        let functions = instance
-            .exports(&store)
-            .filter_map(|export| {
-                let name = export.name().into();
-                export.into_func().map(|func| (name, func))
-            })
-            .collect();
+        // let functions = instance
+        //     .exports(&store)
+        //     .filter_map(|export| {
+        //         let name = export.name().into();
+        //         export.into_func().map(|func| (name, func))
+        //     })
+        //     .collect();
 
         Ok(Plugin(Arc::new(Repr { bytes, functions, store: Mutex::new(store) })))
     }

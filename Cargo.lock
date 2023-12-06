@@ -551,12 +551,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "downcast-rs"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
-
-[[package]]
 name = "ecow"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1090,12 +1084,6 @@ dependencies = [
  "rayon",
  "serde",
 ]
-
-[[package]]
-name = "indexmap-nostd"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e04e2fd2b8188ea827b32ef11de88377086d690286ab35747ef7f9bf3ccb590"
 
 [[package]]
 name = "inferno"
@@ -2662,6 +2650,7 @@ dependencies = [
  "icu_segmenter",
  "image",
  "indexmap 2.1.0",
+ "js-sys",
  "kurbo",
  "lipsum",
  "log",
@@ -2690,7 +2679,6 @@ dependencies = [
  "unicode-script",
  "unicode-segmentation",
  "usvg",
- "wasmi",
 ]
 
 [[package]]
@@ -3210,46 +3198,6 @@ name = "wasm-bindgen-shared"
 version = "0.2.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ab9b36309365056cd639da3134bf87fa8f3d86008abf99e612384a6eecd459f"
-
-[[package]]
-name = "wasmi"
-version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f341edb80021141d4ae6468cbeefc50798716a347d4085c3811900049ea8945"
-dependencies = [
- "smallvec",
- "spin",
- "wasmi_arena",
- "wasmi_core",
- "wasmparser-nostd",
-]
-
-[[package]]
-name = "wasmi_arena"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "401c1f35e413fac1846d4843745589d9ec678977ab35a384db8ae7830525d468"
-
-[[package]]
-name = "wasmi_core"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcf1a7db34bff95b85c261002720c00c3a6168256dcb93041d3fa2054d19856a"
-dependencies = [
- "downcast-rs",
- "libm",
- "num-traits",
- "paste",
-]
-
-[[package]]
-name = "wasmparser-nostd"
-version = "0.100.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9157cab83003221bfd385833ab587a039f5d6fa7304854042ba358a3b09e0724"
-dependencies = [
- "indexmap-nostd",
-]
 
 [[package]]
 name = "webpki-roots"
