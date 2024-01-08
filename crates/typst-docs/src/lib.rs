@@ -20,15 +20,16 @@ use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde_yaml as yaml;
 use typst::diag::{bail, StrResult};
+use typst::foundations::Str;
 use typst::foundations::{
-    CastInfo, Category, Func, Module, ParamInfo, Repr, Scope, Smart, Type, Value,
-    FOUNDATIONS,
+    CastInfo, Category, Func, Module, ParamInfo, Repr, Scope, Smart, Type, FOUNDATIONS,
 };
 use typst::introspection::INTROSPECTION;
 use typst::layout::{Abs, Frame, Margin, PageElem, LAYOUT};
 use typst::loading::DATA_LOADING;
 use typst::math::MATH;
 use typst::model::MODEL;
+use typst::symbols::Symbol;
 use typst::symbols::SYMBOLS;
 use typst::text::{Font, FontBook, TEXT};
 use typst::visualize::VISUALIZE;
@@ -46,7 +47,7 @@ static GROUPS: Lazy<Vec<GroupData>> = Lazy::new(|| {
                 .module()
                 .scope()
                 .iter()
-                .filter(|(_, v)| matches!(v, Value::Func(_)))
+                .filter(|(_, v)| v.is::<Func>())
                 .map(|(k, _)| k.clone())
                 .collect();
         }
@@ -257,30 +258,25 @@ fn category_page(resolver: &dyn Resolver, category: Category) -> PageModel {
             }
         }
 
-        match value {
-            Value::Func(func) => {
-                let name = func.name().unwrap();
-
-                let subpage = func_page(resolver, &route, func, path);
-                items.push(CategoryItem {
-                    name: name.into(),
-                    route: subpage.route.clone(),
-                    oneliner: oneliner(func.docs().unwrap_or_default()).into(),
-                    code: true,
-                });
-                children.push(subpage);
-            }
-            Value::Type(ty) => {
-                let subpage = type_page(resolver, &route, ty);
-                items.push(CategoryItem {
-                    name: ty.short_name().into(),
-                    route: subpage.route.clone(),
-                    oneliner: oneliner(ty.docs()).into(),
-                    code: true,
-                });
-                children.push(subpage);
-            }
-            _ => {}
+        if let Some(func) = value.to::<Func>() {
+            let name = func.name().unwrap();
+            let subpage = func_page(resolver, &route, func, path);
+            items.push(CategoryItem {
+                name: name.into(),
+                route: subpage.route.clone(),
+                oneliner: oneliner(func.docs().unwrap_or_default()).into(),
+                code: true,
+            });
+            children.push(subpage);
+        } else if let Some(ty) = value.to::<Type>() {
+            let subpage = type_page(resolver, &route, ty);
+            items.push(CategoryItem {
+                name: ty.short_name().into(),
+                route: subpage.route.clone(),
+                oneliner: oneliner(ty.docs()).into(),
+                code: true,
+            });
+            children.push(subpage);
         }
     }
 
@@ -435,11 +431,14 @@ fn casts(
 ) {
     match info {
         CastInfo::Any => types.push("any"),
-        CastInfo::Value(Value::Str(string), docs) => strings.push(StrParam {
-            string: string.clone().into(),
-            details: Html::markdown(resolver, docs, None),
-        }),
-        CastInfo::Value(..) => {}
+        CastInfo::Value(value, docs) => {
+            if let Some(string) = value.to::<Str>() {
+                strings.push(StrParam {
+                    string: string.clone().into(),
+                    details: Html::markdown(resolver, docs, None),
+                })
+            }
+        }
         CastInfo::Type(ty) => types.push(ty.short_name()),
         CastInfo::Union(options) => {
             for option in options {
@@ -454,8 +453,7 @@ fn scope_models(resolver: &dyn Resolver, name: &str, scope: &Scope) -> Vec<FuncM
     scope
         .iter()
         .filter_map(|(_, value)| {
-            let Value::Func(func) = value else { return None };
-            Some(func_model(resolver, func, &[name], true))
+            Some(func_model(resolver, value.to::<Func>()?, &[name], true))
         })
         .collect()
 }
@@ -532,7 +530,7 @@ fn group_page(
     let mut outline_items = vec![];
     for name in &group.filter {
         let value = group.module().scope().get(name).unwrap();
-        let Value::Func(func) = value else { panic!("not a function") };
+        let func = value.to::<Func>().expect("a function");
         let func = func_model(resolver, func, &path, true);
         let id_base = urlify(&eco_format!("functions-{}", func.name));
         let children = func_outline(&func, &id_base);
@@ -640,7 +638,7 @@ fn symbols_page(resolver: &dyn Resolver, parent: &str, group: &GroupData) -> Pag
 fn symbols_model(resolver: &dyn Resolver, group: &GroupData) -> SymbolsModel {
     let mut list = vec![];
     for (name, value) in group.module().scope().iter() {
-        let Value::Symbol(symbol) = value else { continue };
+        let Some(symbol) = value.to::<Symbol>() else { continue };
         let complete = |variant: &str| {
             if variant.is_empty() {
                 name.clone()
@@ -682,10 +680,13 @@ fn symbols_model(resolver: &dyn Resolver, group: &GroupData) -> SymbolsModel {
 /// Extract a module from another module.
 #[track_caller]
 fn get_module<'a>(parent: &'a Module, name: &str) -> StrResult<&'a Module> {
-    match parent.scope().get(name) {
-        Some(Value::Module(module)) => Ok(module),
-        _ => bail!("module doesn't contain module `{name}`"),
+    if let Some(value) = parent.scope().get(name) {
+        if let Some(module) = value.to::<Module>() {
+            return Ok(module);
+        }
     }
+
+    bail!("module doesn't contain module `{name}`")
 }
 
 /// Load YAML from a path.

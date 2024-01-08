@@ -6,8 +6,8 @@ use std::str::FromStr;
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, AutoValue, Cast, Content, Dict, Fold, Func, NativeElement, Packed,
-    Resolve, Smart, StyleChain, Value,
+    cast, elem, AutoValue, Cast, Content, Dict, Fold, Func, NativeElement, NoneValue,
+    Packed, Resolve, Smart, StyleChain, Value,
 };
 use crate::introspection::{Counter, CounterKey, ManualPageCounter, Meta};
 use crate::layout::{
@@ -561,7 +561,7 @@ cast! {
         let mut dict = Dict::new();
         let mut handle = |key: &str, component: Value| {
             let value = component.into_value();
-            if value != Value::None {
+            if !value.is::<NoneValue>() {
                 dict.insert(key.into(), value);
             }
         };
@@ -576,7 +576,7 @@ cast! {
             handle("right", self.sides.right.into_value());
         }
 
-        Value::Dict(dict)
+        dict.into_value()
     },
     _: AutoValue => Self::splat(Some(Smart::Auto)),
     v: Rel<Length> => Self::splat(Some(Smart::Custom(v))),

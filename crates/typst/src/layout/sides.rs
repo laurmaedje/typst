@@ -3,7 +3,8 @@ use std::ops::Add;
 
 use crate::diag::{bail, StrResult};
 use crate::foundations::{
-    cast, CastInfo, Dict, Fold, FromValue, IntoValue, Reflect, Resolve, StyleChain, Value,
+    cast, CastInfo, Dict, Fold, FromValue, IntoValue, NoneValue, Reflect, Resolve,
+    StyleChain, Value,
 };
 use crate::layout::{Abs, Alignment, Axes, Axis, Corner, Rel, Size};
 use crate::util::Get;
@@ -171,7 +172,7 @@ where
         let mut dict = Dict::new();
         let mut handle = |key: &str, component: T| {
             let value = component.into_value();
-            if value != Value::None {
+            if !value.is::<NoneValue>() {
                 dict.insert(key.into(), value);
             }
         };
@@ -181,7 +182,7 @@ where
         handle("right", self.right);
         handle("bottom", self.bottom);
 
-        Value::Dict(dict)
+        dict.into_value()
     }
 }
 
@@ -191,7 +192,7 @@ where
 {
     fn from_value(mut value: Value) -> StrResult<Self> {
         let keys = ["left", "top", "right", "bottom", "x", "y", "rest"];
-        if let Value::Dict(dict) = &mut value {
+        if let Some(dict) = value.to_mut::<Dict>() {
             if dict.iter().any(|(key, _)| keys.contains(&key.as_str())) {
                 let mut take = |key| dict.take(key).ok().map(T::from_value).transpose();
                 let rest = take("rest")?;

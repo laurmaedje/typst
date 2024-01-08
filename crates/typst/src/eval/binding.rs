@@ -2,19 +2,20 @@ use std::collections::HashSet;
 
 use crate::diag::{bail, At, SourceResult};
 use crate::eval::{Access, Eval, Vm};
-use crate::foundations::{Array, Dict, Value};
+use crate::foundations::{Array, Dict, IntoValue, NoneValue, Value};
 use crate::syntax::ast::{self, AstNode};
 
 impl Eval for ast::LetBinding<'_> {
-    type Output = Value;
+    type Output = NoneValue;
 
     fn eval(self, vm: &mut Vm) -> SourceResult<Self::Output> {
         let value = match self.init() {
             Some(expr) => expr.eval(vm)?,
-            None => Value::None,
+            None => NoneValue.into_value(),
         };
+
         if vm.flow.is_some() {
-            return Ok(Value::None);
+            return Ok(NoneValue);
         }
 
         match self.kind() {
@@ -22,12 +23,12 @@ impl Eval for ast::LetBinding<'_> {
             ast::LetBindingKind::Closure(ident) => vm.define(ident, value),
         }
 
-        Ok(Value::None)
+        Ok(NoneValue)
     }
 }
 
 impl Eval for ast::DestructAssignment<'_> {
-    type Output = Value;
+    type Output = NoneValue;
 
     fn eval(self, vm: &mut Vm) -> SourceResult<Self::Output> {
         let value = self.value().eval(vm)?;
@@ -36,7 +37,7 @@ impl Eval for ast::DestructAssignment<'_> {
             *location = value;
             Ok(())
         })?;
-        Ok(Value::None)
+        Ok(NoneValue)
     }
 }
 
@@ -70,11 +71,17 @@ where
             f(vm, expr, value)?;
         }
         ast::Pattern::Placeholder(_) => {}
-        ast::Pattern::Destructuring(destruct) => match value {
-            Value::Array(value) => destructure_array(vm, pattern, value, f, destruct)?,
-            Value::Dict(value) => destructure_dict(vm, value, f, destruct)?,
-            _ => bail!(pattern.span(), "cannot destructure {}", value.ty()),
-        },
+        ast::Pattern::Destructuring(destruct) => {
+            if value.is::<Array>() {
+                let array = value.unpack::<Array>().unwrap();
+                destructure_array(vm, pattern, array, f, destruct)?;
+            } else if value.is::<Dict>() {
+                let dict = value.unpack::<Dict>().unwrap();
+                destructure_dict(vm, dict, f, destruct)?;
+            } else {
+                bail!(pattern.span(), "cannot destructure {}", value.ty());
+            }
+        }
     }
     Ok(())
 }
@@ -105,7 +112,7 @@ where
                 let sink = sink_size.and_then(|s| value.as_slice().get(i..i + s));
                 if let (Some(sink_size), Some(sink)) = (sink_size, sink) {
                     if let Some(expr) = spread.expr() {
-                        f(vm, expr, Value::Array(sink.into()))?;
+                        f(vm, expr, Array::from(sink).into_value())?;
                     }
                     i += sink_size;
                 } else {
@@ -170,7 +177,7 @@ where
                 sink.insert(key, value);
             }
         }
-        f(vm, expr, Value::Dict(sink))?;
+        f(vm, expr, sink.into_value())?;
     }
 
     Ok(())

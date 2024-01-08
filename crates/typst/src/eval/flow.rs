@@ -2,7 +2,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::diag::{bail, error, At, SourceDiagnostic, SourceResult};
 use crate::eval::{destructure, ops, Eval, Vm};
-use crate::foundations::{IntoValue, Value};
+use crate::foundations::{Array, Dict, IntoValue, NoneValue, Str, Value};
 use crate::syntax::ast::{self, AstNode};
 use crate::syntax::{Span, SyntaxKind, SyntaxNode};
 
@@ -48,7 +48,7 @@ impl Eval for ast::Conditional<'_> {
         } else if let Some(else_body) = self.else_body() {
             else_body.eval(vm)
         } else {
-            Ok(Value::None)
+            Ok(NoneValue.into_value())
         }
     }
 }
@@ -59,7 +59,7 @@ impl Eval for ast::WhileLoop<'_> {
     #[typst_macros::time(name = "while loop", span = self.span())]
     fn eval(self, vm: &mut Vm) -> SourceResult<Self::Output> {
         let flow = vm.flow.take();
-        let mut output = Value::None;
+        let mut output = NoneValue.into_value();
         let mut i = 0;
 
         let condition = self.condition();
@@ -105,7 +105,7 @@ impl Eval for ast::ForLoop<'_> {
     #[typst_macros::time(name = "for loop", span = self.span())]
     fn eval(self, vm: &mut Vm) -> SourceResult<Self::Output> {
         let flow = vm.flow.take();
-        let mut output = Value::None;
+        let mut output = NoneValue.into_value();
 
         macro_rules! iter {
             (for $pat:ident in $iter:expr) => {{
@@ -137,26 +137,19 @@ impl Eval for ast::ForLoop<'_> {
         let iter = self.iter().eval(vm)?;
         let pattern = self.pattern();
 
-        match (&pattern, iter.clone()) {
-            (ast::Pattern::Normal(_), Value::Str(string)) => {
-                // Iterate over graphemes of string.
-                iter!(for pattern in string.as_str().graphemes(true));
-            }
-            (_, Value::Dict(dict)) => {
-                // Iterate over pairs of dict.
-                iter!(for pattern in dict.pairs());
-            }
-            (_, Value::Array(array)) => {
-                // Iterate over values of array.
-                iter!(for pattern in array);
-            }
-            (ast::Pattern::Normal(_), _) => {
-                bail!(self.iter().span(), "cannot loop over {}", iter.ty());
-            }
-            (_, _) => {
-                bail!(pattern.span(), "cannot destructure values of {}", iter.ty())
-            }
-        }
+        if let Some(string) = iter.to::<Str>() {
+            // Iterate over graphemes of string.
+            iter!(for pattern in string.as_str().graphemes(true));
+        } else if let Some(dict) = iter.to::<Dict>() {
+            // Iterate over pairs of dict.
+            iter!(for pattern in dict.pairs());
+        } else if iter.is::<Array>() {
+            // Iterate over values of array.
+            let array = iter.unpack::<Array>().unwrap();
+            iter!(for pattern in array);
+        } else {
+            bail!(self.iter().span(), "cannot loop over {}", iter.ty());
+        };
 
         if flow.is_some() {
             vm.flow = flow;
@@ -167,36 +160,36 @@ impl Eval for ast::ForLoop<'_> {
 }
 
 impl Eval for ast::LoopBreak<'_> {
-    type Output = Value;
+    type Output = NoneValue;
 
     fn eval(self, vm: &mut Vm) -> SourceResult<Self::Output> {
         if vm.flow.is_none() {
             vm.flow = Some(FlowEvent::Break(self.span()));
         }
-        Ok(Value::None)
+        Ok(NoneValue)
     }
 }
 
 impl Eval for ast::LoopContinue<'_> {
-    type Output = Value;
+    type Output = NoneValue;
 
     fn eval(self, vm: &mut Vm) -> SourceResult<Self::Output> {
         if vm.flow.is_none() {
             vm.flow = Some(FlowEvent::Continue(self.span()));
         }
-        Ok(Value::None)
+        Ok(NoneValue)
     }
 }
 
 impl Eval for ast::FuncReturn<'_> {
-    type Output = Value;
+    type Output = NoneValue;
 
     fn eval(self, vm: &mut Vm) -> SourceResult<Self::Output> {
         let value = self.body().map(|body| body.eval(vm)).transpose()?;
         if vm.flow.is_none() {
             vm.flow = Some(FlowEvent::Return(self.span(), value));
         }
-        Ok(Value::None)
+        Ok(NoneValue)
     }
 }
 

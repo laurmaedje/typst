@@ -608,7 +608,7 @@ impl CounterState {
 
 cast! {
     CounterState,
-    self => Value::Array(self.0.into_iter().map(IntoValue::into_value).collect()),
+    self => self.0.into_iter().map(IntoValue::into_value).collect::<Array>().into_value(),
     num: usize => Self(smallvec![num]),
     array: Array => Self(array
         .into_iter()

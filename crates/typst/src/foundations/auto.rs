@@ -3,8 +3,7 @@ use std::fmt::{self, Debug, Formatter};
 
 use crate::diag::StrResult;
 use crate::foundations::{
-    ty, CastInfo, Fold, FromValue, IntoValue, Reflect, Repr, Resolve, StyleChain, Type,
-    Value,
+    ty, CastInfo, Fold, FromValue, IntoValue, Reflect, Repr, Resolve, StyleChain, Value,
 };
 
 /// A value that indicates a smart default.
@@ -18,35 +17,6 @@ use crate::foundations::{
 #[ty(cast, name = "auto")]
 #[derive(Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct AutoValue;
-
-impl IntoValue for AutoValue {
-    fn into_value(self) -> Value {
-        Value::Auto
-    }
-}
-
-impl FromValue for AutoValue {
-    fn from_value(value: Value) -> StrResult<Self> {
-        match value {
-            Value::Auto => Ok(Self),
-            _ => Err(Self::error(&value)),
-        }
-    }
-}
-
-impl Reflect for AutoValue {
-    fn input() -> CastInfo {
-        CastInfo::Type(Type::of::<Self>())
-    }
-
-    fn output() -> CastInfo {
-        CastInfo::Type(Type::of::<Self>())
-    }
-
-    fn castable(value: &Value) -> bool {
-        matches!(value, Value::Auto)
-    }
-}
 
 impl Debug for AutoValue {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -216,17 +186,19 @@ impl<T: IntoValue> IntoValue for Smart<T> {
     fn into_value(self) -> Value {
         match self {
             Smart::Custom(v) => v.into_value(),
-            Smart::Auto => Value::Auto,
+            Smart::Auto => AutoValue.into_value(),
         }
     }
 }
 
 impl<T: FromValue> FromValue for Smart<T> {
     fn from_value(value: Value) -> StrResult<Self> {
-        match value {
-            Value::Auto => Ok(Self::Auto),
-            v if T::castable(&v) => Ok(Self::Custom(T::from_value(v)?)),
-            _ => Err(Self::error(&value)),
+        if value.is::<AutoValue>() {
+            Ok(Self::Auto)
+        } else if T::castable(&value) {
+            Ok(Self::Custom(T::from_value(value)?))
+        } else {
+            Err(Self::error(&value))
         }
     }
 }

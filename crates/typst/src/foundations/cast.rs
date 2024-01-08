@@ -9,7 +9,7 @@ use smallvec::SmallVec;
 use unicode_math_class::MathClass;
 
 use crate::diag::{At, SourceResult, StrResult};
-use crate::foundations::{repr, NativeElement, Packed, Repr, Type, Value};
+use crate::foundations::{repr, Content, NativeElement, Packed, Repr, Type, Value};
 use crate::syntax::{Span, Spanned};
 
 #[rustfmt::skip]
@@ -190,7 +190,7 @@ impl<T: IntoValue + Clone> IntoValue for Cow<'_, T> {
 
 impl<T: NativeElement + IntoValue> IntoValue for Packed<T> {
     fn into_value(self) -> Value {
-        Value::Content(self.pack())
+        self.pack().into_value()
     }
 }
 
@@ -255,10 +255,10 @@ impl FromValue for Value {
 
 impl<T: NativeElement + FromValue> FromValue for Packed<T> {
     fn from_value(mut value: Value) -> StrResult<Self> {
-        if let Value::Content(content) = value {
-            match content.to_packed::<T>() {
+        if let Some(content) = value.to::<Content>() {
+            match content.clone().to_packed::<T>() {
                 Ok(packed) => return Ok(packed),
-                Err(content) => value = Value::Content(content),
+                Err(content) => {}
             }
         }
         let val = T::from_value(value)?;
@@ -329,7 +329,7 @@ impl CastInfo {
             write!(msg, "{}", found.ty()).unwrap();
         }
 
-        if let Value::Int(i) = found {
+        if let Some(&i) = found.to::<i64>() {
             if parts.iter().any(|p| p == "length") && !matching_type {
                 write!(msg, ": a length needs a unit - did you mean {i}pt?").unwrap();
             }

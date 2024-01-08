@@ -27,6 +27,7 @@ use comemo::{Track, Tracked, TrackedMut};
 
 use crate::diag::{bail, SourceResult};
 use crate::engine::{Engine, Route};
+use crate::foundations::IntoValue;
 use crate::foundations::{Cast, Module, NativeElement, Scope, Scopes, Value};
 use crate::introspection::{Introspector, Locator};
 use crate::math::EquationElem;
@@ -136,13 +137,14 @@ pub fn eval_string(
     let output = match mode {
         EvalMode::Code => root.cast::<ast::Code>().unwrap().eval(&mut vm)?,
         EvalMode::Markup => {
-            Value::Content(root.cast::<ast::Markup>().unwrap().eval(&mut vm)?)
+            root.cast::<ast::Markup>().unwrap().eval(&mut vm)?.into_value()
         }
-        EvalMode::Math => Value::Content(
+        EvalMode::Math => {
             EquationElem::new(root.cast::<ast::Math>().unwrap().eval(&mut vm)?)
                 .with_block(false)
-                .pack(),
-        ),
+                .pack()
+                .into_value()
+        }
     };
 
     // Handle control flow.

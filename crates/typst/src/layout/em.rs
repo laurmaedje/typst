@@ -4,8 +4,8 @@ use std::ops::{Add, Div, Mul, Neg};
 
 use ecow::EcoString;
 
-use crate::foundations::{cast, repr, Repr, Resolve, StyleChain, Value};
-use crate::layout::Abs;
+use crate::foundations::{cast, repr, Repr, Resolve, StyleChain};
+use crate::layout::{Abs, Length};
 use crate::text::TextElem;
 use crate::util::{Numeric, Scalar};
 
@@ -152,7 +152,7 @@ impl Sum for Em {
 
 cast! {
      Em,
-     self => Value::Length(self.into()),
+     self => Length::from(self).into_value(),
 }
 
 impl Resolve for Em {

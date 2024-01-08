@@ -2,7 +2,7 @@ use ecow::{eco_format, EcoString};
 
 use crate::diag::{bail, At, SourceResult};
 use crate::engine::Engine;
-use crate::foundations::{cast, func, scope, Array, Dict, IntoValue, Type, Value};
+use crate::foundations::{cast, func, scope, Array, Dict, IntoValue, Type};
 use crate::loading::Readable;
 use crate::syntax::Spanned;
 use crate::World;
@@ -113,8 +113,10 @@ impl csv {
                 }
                 dict.into_value()
             } else {
-                let sub = row.into_iter().map(|field| field.into_value()).collect();
-                Value::Array(sub)
+                row.into_iter()
+                    .map(|field| field.into_value())
+                    .collect::<Array>()
+                    .into_value()
             };
             array.push(item);
         }

@@ -1,6 +1,6 @@
 use crate::diag::{warning, SourceResult};
 use crate::eval::{Eval, Vm};
-use crate::foundations::{Content, Label, NativeElement, Smart, Unlabellable, Value};
+use crate::foundations::{Content, Label, NativeElement, Smart, Unlabellable};
 use crate::math::EquationElem;
 use crate::model::{
     EmphElem, EnumItem, HeadingElem, LinkElem, ListItem, ParbreakElem, RefElem,
@@ -45,16 +45,18 @@ fn eval_markup<'a>(
                 let tail = eval_markup(vm, exprs)?;
                 seq.push(tail.styled_with_recipe(&mut vm.engine, recipe)?)
             }
-            expr => match expr.eval(vm)? {
-                Value::Label(label) => {
+            expr => {
+                let value = expr.eval(vm)?;
+                if let Some(&label) = value.to::<Label>() {
                     if let Some(elem) =
                         seq.iter_mut().rev().find(|node| !node.can::<dyn Unlabellable>())
                     {
                         *elem = std::mem::take(elem).labelled(label);
                     }
+                } else {
+                    seq.push(value.display().spanned(expr.span()))
                 }
-                value => seq.push(value.display().spanned(expr.span())),
-            },
+            }
         }
 
         if vm.flow.is_some() {
@@ -102,18 +104,18 @@ impl Eval for ast::Parbreak<'_> {
 }
 
 impl Eval for ast::Escape<'_> {
-    type Output = Value;
+    type Output = Symbol;
 
     fn eval(self, _: &mut Vm) -> SourceResult<Self::Output> {
-        Ok(Value::Symbol(Symbol::single(self.get())))
+        Ok(Symbol::single(self.get()))
     }
 }
 
 impl Eval for ast::Shorthand<'_> {
-    type Output = Value;
+    type Output = Symbol;
 
     fn eval(self, _: &mut Vm) -> SourceResult<Self::Output> {
-        Ok(Value::Symbol(Symbol::single(self.get())))
+        Ok(Symbol::single(self.get()))
     }
 }
 
@@ -182,10 +184,10 @@ impl Eval for ast::Link<'_> {
 }
 
 impl Eval for ast::Label<'_> {
-    type Output = Value;
+    type Output = Label;
 
     fn eval(self, _: &mut Vm) -> SourceResult<Self::Output> {
-        Ok(Value::Label(Label::new(self.get())))
+        Ok(Label::new(self.get()))
     }
 }
 

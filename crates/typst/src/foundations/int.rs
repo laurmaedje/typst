@@ -2,7 +2,7 @@ use std::num::{NonZeroI64, NonZeroIsize, NonZeroU64, NonZeroUsize, ParseIntError
 
 use ecow::{eco_format, EcoString};
 
-use crate::foundations::{cast, func, repr, scope, ty, Repr, Str, Value};
+use crate::foundations::{cast, func, repr, scope, ty, Repr, Str};
 
 /// A whole number.
 ///
@@ -100,7 +100,7 @@ macro_rules! signed_int {
     ($($ty:ty)*) => {
         $(cast! {
             $ty,
-            self => Value::Int(self as _),
+            self => (self as i64).into_value(),
             v: i64 => v.try_into().map_err(|_| "number too large")?,
         })*
     }
@@ -110,7 +110,7 @@ macro_rules! unsigned_int {
     ($($ty:ty)*) => {
         $(cast! {
             $ty,
-            self => Value::Int(self as _),
+            self => (self as i64).into_value(),
             v: i64 => v.try_into().map_err(|_| {
                 if v < 0 {
                     "number must be at least zero"
@@ -127,7 +127,7 @@ unsigned_int! { u8 u16 u32 u64 usize }
 
 cast! {
     NonZeroI64,
-    self => Value::Int(self.get() as _),
+    self => (self.get() as i64).into_value(),
     v: i64 => v.try_into()
         .map_err(|_| if v == 0 {
             "number must not be zero"
@@ -138,7 +138,7 @@ cast! {
 
 cast! {
     NonZeroIsize,
-    self => Value::Int(self.get() as _),
+    self => (self.get() as i64).into_value(),
     v: i64 => v
         .try_into()
         .and_then(|v: isize| v.try_into())
@@ -151,7 +151,7 @@ cast! {
 
 cast! {
     NonZeroU64,
-    self => Value::Int(self.get() as _),
+    self => (self.get() as i64).into_value(),
     v: i64 => v
         .try_into()
         .and_then(|v: u64| v.try_into())
@@ -164,7 +164,7 @@ cast! {
 
 cast! {
     NonZeroUsize,
-    self => Value::Int(self.get() as _),
+    self => (self.get() as i64).into_value(),
     v: i64 => v
         .try_into()
         .and_then(|v: usize| v.try_into())

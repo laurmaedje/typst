@@ -17,45 +17,41 @@ pub(crate) fn field(value: &Value, field: &str) -> StrResult<Value> {
     let missing = || Err(missing_field(ty, field));
 
     // Special cases, such as module and dict, are handled by Value itself
-    let result = match value {
-        Value::Version(version) => match version.component(field) {
+    let result = if let Some(version) = value.to::<Version>() {
+        match version.component(field) {
             Ok(i) => i.into_value(),
             Err(_) => return missing(),
-        },
-        Value::Length(length) => match field {
+        }
+    } else if let Some(length) = value.to::<Length>() {
+        match field {
             "em" => length.em.get().into_value(),
             "abs" => length.abs.into_value(),
             _ => return missing(),
-        },
-        Value::Relative(rel) => match field {
+        }
+    } else if let Some(rel) = value.to::<Rel>() {
+        match field {
             "ratio" => rel.rel.into_value(),
             "length" => rel.abs.into_value(),
             _ => return missing(),
-        },
-        Value::Dyn(dynamic) => {
-            if let Some(stroke) = dynamic.downcast::<Stroke>() {
-                match field {
-                    "paint" => stroke.paint.clone().into_value(),
-                    "thickness" => stroke.thickness.into_value(),
-                    "cap" => stroke.cap.into_value(),
-                    "join" => stroke.join.into_value(),
-                    "dash" => stroke.dash.clone().into_value(),
-                    "miter-limit" => {
-                        stroke.miter_limit.map(|limit| limit.get()).into_value()
-                    }
-                    _ => return missing(),
-                }
-            } else if let Some(align) = dynamic.downcast::<Alignment>() {
-                match field {
-                    "x" => align.x().into_value(),
-                    "y" => align.y().into_value(),
-                    _ => return missing(),
-                }
-            } else {
-                return nope();
-            }
         }
-        _ => return nope(),
+    } else if let Some(stroke) = value.to::<Stroke>() {
+        match field {
+            "paint" => stroke.paint.clone().into_value(),
+            "thickness" => stroke.thickness.into_value(),
+            "cap" => stroke.cap.into_value(),
+            "join" => stroke.join.into_value(),
+            "dash" => stroke.dash.clone().into_value(),
+            "miter-limit" => stroke.miter_limit.map(|limit| limit.get()).into_value(),
+            _ => return missing(),
+        }
+    } else if let Some(align) = value.to::<Alignment>() {
+        match field {
+            "x" => align.x().into_value(),
+            "y" => align.y().into_value(),
+            _ => return missing(),
+        }
+    } else {
+        return nope();
     };
 
     Ok(result)

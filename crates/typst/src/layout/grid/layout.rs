@@ -71,13 +71,21 @@ impl<T: IntoValue> IntoValue for Celled<T> {
 
 impl<T: FromValue> FromValue for Celled<T> {
     fn from_value(value: Value) -> StrResult<Self> {
-        match value {
-            Value::Func(v) => Ok(Self::Func(v)),
-            Value::Array(array) => Ok(Self::Array(
-                array.into_iter().map(T::from_value).collect::<StrResult<_>>()?,
-            )),
-            v if T::castable(&v) => Ok(Self::Value(T::from_value(v)?)),
-            v => Err(Self::error(&v)),
+        if value.is::<Func>() {
+            Ok(Self::Func(value.unpack::<Func>().unwrap()))
+        } else if value.is::<Array>() {
+            Ok(Self::Array(
+                value
+                    .unpack::<Array>()
+                    .unwrap()
+                    .into_iter()
+                    .map(T::from_value)
+                    .collect::<StrResult<_>>()?,
+            ))
+        } else if T::castable(&value) {
+            Ok(Self::Value(T::from_value(value)?))
+        } else {
+            Err(Self::error(&value))
         }
     }
 }

@@ -1,7 +1,9 @@
 use unicode_math_class::MathClass;
 
 use crate::diag::{bail, SourceResult};
-use crate::foundations::{cast, elem, Content, Packed, Resolve, Smart, Value};
+use crate::foundations::{
+    cast, elem, Content, IntoValue, NativeElement, Packed, Resolve, Smart, Str,
+};
 use crate::layout::{Em, Frame, Length, Point, Rel, Size};
 use crate::math::{
     FrameFragment, GlyphFragment, LayoutMath, MathContext, MathFragment, Scaled,
@@ -139,7 +141,7 @@ cast! {
     self => self.0.into_value(),
     v: char => Self::new(v),
     v: Content => match v.to::<TextElem>() {
-        Some(elem) => Value::Str(elem.text().clone().into()).cast()?,
+        Some(elem) => Str::from(elem.text().clone()).into_value().cast()?,
         None => bail!("expected text"),
     },
 }

@@ -10,8 +10,8 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::diag::{bail, At, SourceResult, StrResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, dict, func, repr, scope, ty, Array, Bytes, Dict, Func, IntoValue, Label, Repr,
-    Type, Value, Version,
+    cast, dict, func, repr, scope, ty, Array, Bytes, Dict, Func, IntoValue, Label,
+    NoneValue, Repr, Type, Value, Version,
 };
 use crate::layout::Alignment;
 use crate::syntax::{Span, Spanned};
@@ -242,13 +242,16 @@ impl Str {
     /// Returns the grapheme clusters of the string as an array of substrings.
     #[func]
     pub fn clusters(&self) -> Array {
-        self.as_str().graphemes(true).map(|s| Value::Str(s.into())).collect()
+        self.as_str()
+            .graphemes(true)
+            .map(|s| Str::from(s).into_value())
+            .collect()
     }
 
     /// Returns the Unicode codepoints of the string as an array of substrings.
     #[func]
     pub fn codepoints(&self) -> Array {
-        self.chars().map(|c| Value::Str(c.into())).collect()
+        self.chars().map(|c| Str::from(c).into_value()).collect()
     }
 
     /// Converts a character into its corresponding code point.
@@ -406,12 +409,12 @@ impl Str {
                 .0
                 .match_indices(pat.as_str())
                 .map(match_to_dict)
-                .map(Value::Dict)
+                .map(IntoValue::into_value)
                 .collect(),
             StrPattern::Regex(re) => re
                 .captures_iter(self)
                 .map(captures_to_dict)
-                .map(Value::Dict)
+                .map(IntoValue::into_value)
                 .collect(),
         }
     }
@@ -577,12 +580,12 @@ impl Str {
     ) -> Array {
         let s = self.as_str();
         match pattern {
-            None => s.split_whitespace().map(|v| Value::Str(v.into())).collect(),
+            None => s.split_whitespace().map(|v| Str::from(v).into_value()).collect(),
             Some(StrPattern::Str(pat)) => {
-                s.split(pat.as_str()).map(|v| Value::Str(v.into())).collect()
+                s.split(pat.as_str()).map(|v| Str::from(v).into_value()).collect()
             }
             Some(StrPattern::Regex(re)) => {
-                re.split(s).map(|v| Value::Str(v.into())).collect()
+                re.split(s).map(|v| Str::from(v).into_value()).collect()
             }
         }
     }
@@ -724,7 +727,7 @@ impl From<Str> for String {
 
 cast! {
     char,
-    self => Value::Str(self.into()),
+    self => Str::from(self).into_value(),
     string: Str => {
         let mut chars = string.chars();
         match (chars.next(), chars.next()) {
@@ -736,18 +739,18 @@ cast! {
 
 cast! {
     &str,
-    self => Value::Str(self.into()),
+    self => Str::from(self).into_value(),
 }
 
 cast! {
     EcoString,
-    self => Value::Str(self.into()),
+    self => Str::from(self).into_value(),
     v: Str => v.into(),
 }
 
 cast! {
     String,
-    self => Value::Str(self.into()),
+    self => Str::from(self).into_value(),
     v: Str => v.into(),
 }
 
@@ -793,7 +796,7 @@ fn captures_to_dict(cap: regex::Captures) -> Dict {
         "text" => m.as_str(),
         "captures" =>  cap.iter()
             .skip(1)
-            .map(|opt| opt.map_or(Value::None, |m| m.as_str().into_value()))
+            .map(|opt| opt.map_or_else(|| NoneValue.into_value(), |m| m.as_str().into_value()))
             .collect::<Array>(),
     }
 }

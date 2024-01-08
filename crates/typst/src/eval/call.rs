@@ -5,8 +5,9 @@ use crate::diag::{bail, error, At, HintedStrResult, SourceResult, Trace, Tracepo
 use crate::engine::Engine;
 use crate::eval::{Access, Eval, FlowEvent, Route, Tracer, Vm};
 use crate::foundations::{
-    call_method_mut, is_mutating_method, Arg, Args, Bytes, Closure, Content, Func,
-    IntoValue, NativeElement, Scope, Scopes, Value,
+    call_method_mut, is_mutating_method, Arg, Args, Array, Bytes, Closure, Content, Dict,
+    Func, IntoValue, Module, NativeElement, NoneValue, Plugin, Scope, Scopes, Type,
+    Value,
 };
 use crate::introspection::{Introspector, Locator};
 use crate::math::{Accent, AccentElem, LrElem};
@@ -43,7 +44,7 @@ impl Eval for ast::FuncCall<'_> {
                 let target = target.access(vm)?;
 
                 // Only arrays and dictionaries have mutable methods.
-                if matches!(target, Value::Array(_) | Value::Dict(_)) {
+                if target.is::<Array>() || target.is::<Dict>() {
                     args.span = span;
                     let point = || Tracepoint::Call(Some(field.get().clone()));
                     return call_method_mut(target, &field, args, span).trace(
@@ -61,7 +62,7 @@ impl Eval for ast::FuncCall<'_> {
             let mut args = args.eval(vm)?;
 
             // Handle plugins.
-            if let Value::Plugin(plugin) = &target {
+            if let Some(plugin) = target.to::<Plugin>() {
                 let bytes = args.all::<Bytes>()?;
                 args.finish()?;
                 return Ok(plugin.call(&field, bytes).at(span)?.into_value());
@@ -85,10 +86,11 @@ impl Eval for ast::FuncCall<'_> {
                 args.span = span;
                 args.items.insert(0, this);
                 (callee.clone(), args)
-            } else if matches!(
-                target,
-                Value::Symbol(_) | Value::Func(_) | Value::Type(_) | Value::Module(_)
-            ) {
+            } else if target.is::<Symbol>()
+                || target.is::<Func>()
+                || target.is::<Type>()
+                || target.is::<Module>()
+            {
                 (target.field(&field).at(field_span)?, args)
             } else {
                 let mut error = error!(
@@ -98,28 +100,19 @@ impl Eval for ast::FuncCall<'_> {
                     field.as_str()
                 );
 
-                let mut field_hint = || {
-                    if target.field(&field).is_ok() {
-                        error.hint(eco_format!(
-                            "did you mean to access the field `{}`?",
-                            field.as_str()
-                        ));
-                    }
-                };
-
-                match target {
-                    Value::Dict(ref dict) => {
-                        if matches!(dict.get(&field), Ok(Value::Func(_))) {
-                            error.hint(eco_format!(
-                                "to call the function stored in the dictionary, surround \
-                                 the field access with parentheses, e.g. `(dict.{})(..)`",
-                               field.as_str(),
-                            ));
-                        } else {
-                            field_hint();
-                        }
-                    }
-                    _ => field_hint(),
+                if target.to::<Dict>().map_or(false, |dict| {
+                    dict.get(&field).map_or(false, |field| field.is::<Func>())
+                }) {
+                    error.hint(eco_format!(
+                        "to call the function stored in the dictionary, surround \
+                         the field access with parentheses, e.g. `(dict.{})(..)`",
+                        field.as_str(),
+                    ));
+                } else if target.field(&field).is_ok() {
+                    error.hint(eco_format!(
+                        "did you mean to access the field `{}`?",
+                        field.as_str()
+                    ));
                 }
 
                 bail!(error);
@@ -131,8 +124,8 @@ impl Eval for ast::FuncCall<'_> {
         // Handle math special cases for non-functions:
         // Combining accent symbols apply themselves while everything else
         // simply displays the arguments verbatim.
-        if in_math && !matches!(callee, Value::Func(_)) {
-            if let Value::Symbol(sym) = &callee {
+        if in_math && !callee.is::<Func>() {
+            if let Some(sym) = callee.to::<Symbol>() {
                 let c = sym.get();
                 if let Some(accent) = Symbol::combining_accent(c) {
                     let base = args.expect("base")?;
@@ -142,7 +135,7 @@ impl Eval for ast::FuncCall<'_> {
                     if let Some(size) = size {
                         accent = accent.with_size(size);
                     }
-                    return Ok(Value::Content(accent.pack()));
+                    return Ok(accent.pack().into_value());
                 }
             }
             let mut body = Content::empty();
@@ -155,11 +148,10 @@ impl Eval for ast::FuncCall<'_> {
             if trailing_comma {
                 body += TextElem::packed(',');
             }
-            return Ok(Value::Content(
-                callee.display().spanned(callee_span)
-                    + LrElem::new(TextElem::packed('(') + body + TextElem::packed(')'))
-                        .pack(),
-            ));
+            return Ok((callee.display().spanned(callee_span)
+                + LrElem::new(TextElem::packed('(') + body + TextElem::packed(')'))
+                    .pack())
+            .into_value());
         }
 
         let callee = callee.cast::<Func>().at(callee_span)?;
@@ -198,25 +190,29 @@ impl Eval for ast::Args<'_> {
                         value: Spanned::new(named.expr().eval(vm)?, named.expr().span()),
                     });
                 }
-                ast::Arg::Spread(expr) => match expr.eval(vm)? {
-                    Value::None => {}
-                    Value::Array(array) => {
+                ast::Arg::Spread(expr) => {
+                    let value = expr.eval(vm)?;
+                    if value.is::<Array>() {
+                        let array = value.unpack::<Array>().unwrap();
                         items.extend(array.into_iter().map(|value| Arg {
                             span,
                             name: None,
                             value: Spanned::new(value, span),
                         }));
-                    }
-                    Value::Dict(dict) => {
+                    } else if value.is::<Dict>() {
+                        let dict = value.unpack::<Dict>().unwrap();
                         items.extend(dict.into_iter().map(|(key, value)| Arg {
                             span,
                             name: Some(key),
                             value: Spanned::new(value, span),
                         }));
+                    } else if value.is::<Args>() {
+                        let args = value.unpack::<Args>().unwrap();
+                        items.extend(args.items);
+                    } else if !value.is::<NoneValue>() {
+                        bail!(expr.span(), "cannot spread {}", value.ty())
                     }
-                    Value::Args(args) => items.extend(args.items),
-                    v => bail!(expr.span(), "cannot spread {}", v.ty()),
-                },
+                }
             }
         }
 
@@ -225,7 +221,7 @@ impl Eval for ast::Args<'_> {
 }
 
 impl Eval for ast::Closure<'_> {
-    type Output = Value;
+    type Output = Func;
 
     fn eval(self, vm: &mut Vm) -> SourceResult<Self::Output> {
         // Evaluate default values of named parameters.
@@ -250,7 +246,7 @@ impl Eval for ast::Closure<'_> {
             captured,
         };
 
-        Ok(Value::Func(Func::from(closure).spanned(self.params().span())))
+        Ok(Func::from(closure).spanned(self.params().span()))
     }
 }
 
@@ -289,7 +285,7 @@ pub(crate) fn call_closure(
 
     // Provide the closure itself for recursive calls.
     if let Some(name) = node.name() {
-        vm.define(name, Value::Func(func.clone()));
+        vm.define(name, func.clone().into_value());
     }
 
     // Parse the arguments according to the parameter list.
@@ -507,7 +503,7 @@ impl<'a> CapturesVisitor<'a> {
 
     /// Bind a new internal variable.
     fn bind(&mut self, ident: ast::Ident) {
-        self.internal.top.define(ident.get().clone(), Value::None);
+        self.internal.top.define(ident.get().clone(), NoneValue);
     }
 
     /// Capture a variable if it isn't internal.
@@ -517,10 +513,11 @@ impl<'a> CapturesVisitor<'a> {
         getter: impl FnOnce(&'a Scopes<'a>, &str) -> HintedStrResult<&'a Value>,
     ) {
         if self.internal.get(ident).is_err() {
+            static NONE: Value = Value::inline(NoneValue);
             let Some(value) = self
                 .external
                 .map(|external| getter(external, ident).ok())
-                .unwrap_or(Some(&Value::None))
+                .unwrap_or(Some(&NONE))
             else {
                 return;
             };

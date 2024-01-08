@@ -5,10 +5,11 @@ use ecow::{eco_format, EcoString};
 use if_chain::if_chain;
 use serde::{Deserialize, Serialize};
 use typst::foundations::{
-    fields_on, format_str, mutable_methods_on, repr, AutoValue, CastInfo, Func, Label,
-    NoneValue, Repr, Scope, Type, Value,
+    fields_on, format_str, mutable_methods_on, repr, AutoValue, CastInfo, Content, Dict,
+    Func, IntoValue, Label, Module, NoneValue, Plugin, Repr, Scope, Type, Value,
 };
 use typst::model::Document;
+use typst::symbols::Symbol;
 use typst::syntax::{
     ast, is_id_continue, is_id_start, is_ident, LinkedNode, Source, SyntaxKind,
 };
@@ -398,40 +399,34 @@ fn field_access_completions(ctx: &mut CompletionContext, value: &Value) {
         );
     }
 
-    match value {
-        Value::Symbol(symbol) => {
-            for modifier in symbol.modifiers() {
-                if let Ok(modified) = symbol.clone().modified(modifier) {
-                    ctx.completions.push(Completion {
-                        kind: CompletionKind::Symbol(modified.get()),
-                        label: modifier.into(),
-                        apply: None,
-                        detail: None,
-                    });
-                }
-            }
-        }
-        Value::Content(content) => {
-            for (name, value) in content.fields() {
-                ctx.value_completion(Some(name.into()), &value, false, None);
-            }
-        }
-        Value::Dict(dict) => {
-            for (name, value) in dict.iter() {
-                ctx.value_completion(Some(name.clone().into()), value, false, None);
-            }
-        }
-        Value::Plugin(plugin) => {
-            for name in plugin.iter() {
+    if let Some(symbol) = value.to::<Symbol>() {
+        for modifier in symbol.modifiers() {
+            if let Ok(modified) = symbol.clone().modified(modifier) {
                 ctx.completions.push(Completion {
-                    kind: CompletionKind::Func,
-                    label: name.clone(),
+                    kind: CompletionKind::Symbol(modified.get()),
+                    label: modifier.into(),
                     apply: None,
                     detail: None,
-                })
+                });
             }
         }
-        _ => {}
+    } else if let Some(content) = value.to::<Content>() {
+        for (name, value) in content.fields() {
+            ctx.value_completion(Some(name.into()), &value, false, None);
+        }
+    } else if let Some(dict) = value.to::<Dict>() {
+        for (name, value) in dict.iter() {
+            ctx.value_completion(Some(name.clone().into()), value, false, None);
+        }
+    } else if let Some(plugin) = value.to::<Plugin>() {
+        for name in plugin.iter() {
+            ctx.completions.push(Completion {
+                kind: CompletionKind::Func,
+                label: name.clone(),
+                apply: None,
+                detail: None,
+            })
+        }
     }
 }
 
@@ -563,22 +558,16 @@ fn complete_rules(ctx: &mut CompletionContext) -> bool {
 /// Add completions for all functions from the global scope.
 fn set_rule_completions(ctx: &mut CompletionContext) {
     ctx.scope_completions(true, |value| {
-        matches!(
-            value,
-            Value::Func(func) if func.params()
-                .unwrap_or_default()
-                .iter()
-                .any(|param| param.settable),
-        )
+        let Some(func) = value.to::<Func>() else { return false };
+        func.params().unwrap_or_default().iter().any(|param| param.settable)
     });
 }
 
 /// Add completions for selectors.
 fn show_rule_selector_completions(ctx: &mut CompletionContext) {
-    ctx.scope_completions(
-        false,
-        |value| matches!(value, Value::Func(func) if func.element().is_some()),
-    );
+    ctx.scope_completions(false, |value| {
+        value.to::<Func>().map_or(false, |func| func.element().is_some())
+    });
 
     ctx.enrich("", ": ");
 
@@ -615,7 +604,7 @@ fn show_rule_recipe_completions(ctx: &mut CompletionContext) {
         "Transform the element with a function.",
     );
 
-    ctx.scope_completions(false, |value| matches!(value, Value::Func(_)));
+    ctx.scope_completions(false, |value| value.is::<Func>());
 }
 
 /// Complete call and set rule parameters.
@@ -762,20 +751,23 @@ fn resolve_global_callee<'a>(
     let value = match callee {
         ast::Expr::Ident(ident) => ctx.global.get(&ident)?,
         ast::Expr::FieldAccess(access) => match access.target() {
-            ast::Expr::Ident(target) => match ctx.global.get(&target)? {
-                Value::Module(module) => module.field(&access.field()).ok()?,
-                Value::Func(func) => func.field(&access.field()).ok()?,
-                _ => return None,
-            },
+            ast::Expr::Ident(target) => {
+                let value = ctx.global.get(&target)?;
+                if let Some(module) = value.to::<Module>() {
+                    module.field(&access.field()).ok()?
+                } else if let Some(func) = value.to::<Func>() {
+                    func.field(&access.field()).ok()?
+                } else {
+                    return None;
+                }
+            }
+
             _ => return None,
         },
         _ => return None,
     };
 
-    match value {
-        Value::Func(func) => Some(func),
-        _ => None,
-    }
+    value.to::<Func>()
 }
 
 /// Complete in code mode.
@@ -822,8 +814,12 @@ fn complete_code(ctx: &mut CompletionContext) -> bool {
 /// Add completions for expression snippets.
 #[rustfmt::skip]
 fn code_completions(ctx: &mut CompletionContext, hash: bool) {
-    ctx.scope_completions(true, |value| !hash || {
-        matches!(value, Value::Symbol(_) | Value::Func(_) | Value::Type(_) | Value::Module(_))
+    ctx.scope_completions(true, |value| {
+        !hash
+            || value.is::<Symbol>()
+            || value.is::<Func>()
+            || value.is::<Type>()
+            || value.is::<Module>()
     });
 
     ctx.snippet_completion(
@@ -1049,7 +1045,7 @@ impl<'a> CompletionContext<'a> {
             if !equation || family.contains("Math") {
                 self.value_completion(
                     None,
-                    &Value::Str(family.into()),
+                    &family.into_value(),
                     false,
                     Some(detail.as_str()),
                 );
@@ -1067,7 +1063,7 @@ impl<'a> CompletionContext<'a> {
         for (package, description) in packages {
             self.value_completion(
                 None,
-                &Value::Str(format_str!("{package}")),
+                &format_str!("{package}").into_value(),
                 false,
                 description.as_deref(),
             );
@@ -1143,27 +1139,28 @@ impl<'a> CompletionContext<'a> {
         let at = label.as_deref().map_or(false, |field| !is_ident(field));
         let label = label.unwrap_or_else(|| value.repr());
 
-        let detail = docs.map(Into::into).or_else(|| match value {
-            Value::Symbol(_) => None,
-            Value::Func(func) => func.docs().map(plain_docs_sentence),
-            Value::Type(ty) => Some(plain_docs_sentence(ty.docs())),
-            v => {
-                let repr = v.repr();
+        let detail = docs.map(Into::into).or_else(|| {
+            if value.is::<Symbol>() {
+                None
+            } else if let Some(func) = value.to::<Func>() {
+                func.docs().map(plain_docs_sentence)
+            } else if let Some(ty) = value.to::<Type>() {
+                Some(plain_docs_sentence(ty.docs()))
+            } else {
+                let repr = value.repr();
                 (repr.as_str() != label).then_some(repr)
             }
         });
 
         let mut apply = None;
-        if parens && matches!(value, Value::Func(_)) {
-            if let Value::Func(func) = value {
-                if func
-                    .params()
-                    .is_some_and(|params| params.iter().all(|param| param.name == "self"))
-                {
-                    apply = Some(eco_format!("{label}()${{}}"));
-                } else {
-                    apply = Some(eco_format!("{label}(${{}})"));
-                }
+        if let Some(func) = value.to::<Func>().filter(|_| parens) {
+            if func
+                .params()
+                .is_some_and(|params| params.iter().all(|param| param.name == "self"))
+            {
+                apply = Some(eco_format!("{label}()${{}}"));
+            } else {
+                apply = Some(eco_format!("{label}(${{}})"));
             }
         } else if at {
             apply = Some(eco_format!("at(\"{label}\")"));
@@ -1174,11 +1171,14 @@ impl<'a> CompletionContext<'a> {
         }
 
         self.completions.push(Completion {
-            kind: match value {
-                Value::Func(_) => CompletionKind::Func,
-                Value::Type(_) => CompletionKind::Type,
-                Value::Symbol(s) => CompletionKind::Symbol(s.get()),
-                _ => CompletionKind::Constant,
+            kind: if value.is::<Func>() {
+                CompletionKind::Func
+            } else if value.is::<Type>() {
+                CompletionKind::Type
+            } else if let Some(s) = value.to::<Symbol>() {
+                CompletionKind::Symbol(s.get())
+            } else {
+                CompletionKind::Constant
             },
             label,
             apply,

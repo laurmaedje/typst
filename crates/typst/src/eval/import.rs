@@ -6,13 +6,13 @@ use crate::diag::{
     bail, error, warning, At, FileError, SourceResult, StrResult, Trace, Tracepoint,
 };
 use crate::eval::{eval, Eval, Vm};
-use crate::foundations::{Content, Module, Value};
+use crate::foundations::{Content, Func, IntoValue, Module, NoneValue, Str, Type, Value};
 use crate::syntax::ast::{self, AstNode};
 use crate::syntax::{FileId, PackageSpec, PackageVersion, Span, VirtualPath};
 use crate::World;
 
 impl Eval for ast::ModuleImport<'_> {
-    type Output = Value;
+    type Output = NoneValue;
 
     fn eval(self, vm: &mut Vm) -> SourceResult<Self::Output> {
         let source = self.source();
@@ -21,16 +21,10 @@ impl Eval for ast::ModuleImport<'_> {
         let new_name = self.new_name();
         let imports = self.imports();
 
-        match &source {
-            Value::Func(func) => {
-                if func.scope().is_none() {
-                    bail!(source_span, "cannot import from user-defined functions");
-                }
-            }
-            Value::Type(_) => {}
-            other => {
-                source = Value::Module(import(vm, other.clone(), source_span, true)?);
-            }
+        if source.to::<Func>().map_or(false, |func| func.scope().is_none()) {
+            bail!(source_span, "cannot import from user-defined functions");
+        } else if !source.is::<Type>() {
+            source = import(vm, source, source_span, true)?.into_value();
         }
 
         if let Some(new_name) = &new_name {
@@ -90,7 +84,7 @@ impl Eval for ast::ModuleImport<'_> {
             }
         }
 
-        Ok(Value::None)
+        Ok(NoneValue)
     }
 }
 
@@ -112,13 +106,20 @@ pub fn import(
     span: Span,
     allow_scopes: bool,
 ) -> SourceResult<Module> {
-    let path = match source {
-        Value::Str(path) => path,
-        Value::Module(module) => return Ok(module),
-        v if allow_scopes => {
-            bail!(span, "expected path, module, function, or type, found {}", v.ty())
+    if source.is::<Module>() {
+        return Ok(source.unpack::<Module>().unwrap());
+    }
+
+    let Some(path) = source.to::<Str>() else {
+        if allow_scopes {
+            bail!(
+                span,
+                "expected path, module, function, or type, found {}",
+                source.ty()
+            );
+        } else {
+            bail!(span, "expected path or module, found {}", source.ty());
         }
-        v => bail!(span, "expected path or module, found {}", v.ty()),
     };
 
     // Handle package and file imports.

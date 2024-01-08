@@ -1,7 +1,8 @@
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, scope, Array, Content, Fold, Func, Packed, Smart, StyleChain, Value,
+    cast, elem, scope, Array, Content, Fold, Func, NativeElement, NoneValue, Packed,
+    Smart, StyleChain, Value,
 };
 use crate::layout::{
     Axes, BlockElem, Cell, CellGrid, Em, Fragment, GridLayouter, HAlignment, Layout,
@@ -244,7 +245,7 @@ struct Depth;
 
 cast! {
     Depth,
-    self => Value::None,
+    self => NoneValue.into_value(),
     _: Value => Self,
 }
 

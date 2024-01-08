@@ -6,7 +6,7 @@ use ecow::{eco_format, EcoString, EcoVec};
 
 use crate::diag::SourceResult;
 use crate::engine::Engine;
-use crate::foundations::{cast, func, Func, Str, Value};
+use crate::foundations::{cast, func, Func, IntoValue, Str, Value};
 use crate::layout::{PdfPageLabel, PdfPageLabelStyle};
 use crate::text::Case;
 
@@ -84,7 +84,7 @@ impl Numbering {
     /// Apply the pattern to the given numbers.
     pub fn apply(&self, engine: &mut Engine, numbers: &[usize]) -> SourceResult<Value> {
         Ok(match self {
-            Self::Pattern(pattern) => Value::Str(pattern.apply(numbers).into()),
+            Self::Pattern(pattern) => pattern.apply(numbers).into_value(),
             Self::Func(func) => func.call(engine, numbers.iter().copied())?,
         })
     }

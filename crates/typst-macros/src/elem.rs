@@ -353,7 +353,7 @@ fn create(element: &Elem) -> Result<TokenStream> {
 
         impl #foundations::IntoValue for #ident {
             fn into_value(self) -> #foundations::Value {
-                #foundations::Value::Content(#foundations::Content::new(self))
+                todo!()
             }
         }
     })

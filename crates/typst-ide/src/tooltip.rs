@@ -3,7 +3,7 @@ use std::fmt::Write;
 use ecow::{eco_format, EcoString};
 use if_chain::if_chain;
 use typst::eval::{CapturesVisitor, Tracer};
-use typst::foundations::{repr, CastInfo, Repr, Value};
+use typst::foundations::{repr, CastInfo, Func, Repr, Str};
 use typst::layout::Length;
 use typst::model::Document;
 use typst::syntax::{ast, LinkedNode, Source, SyntaxKind};
@@ -64,7 +64,7 @@ fn expr_tooltip(world: &dyn World, leaf: &LinkedNode) -> Option<Tooltip> {
             return Some(Tooltip::Text(plain_docs_sentence(docs)));
         }
 
-        if let &Value::Length(length) = value {
+        if let Some(&length) = value.to::<Length>() {
             if let Some(tooltip) = length_tooltip(length) {
                 return Some(tooltip);
             }
@@ -184,7 +184,8 @@ fn named_param_tooltip(world: &dyn World, leaf: &LinkedNode) -> Option<Tooltip> 
         };
 
         // Find metadata about the function.
-        if let Some(Value::Func(func)) = world.library().global.scope().get(&callee);
+        if let Some(value) = world.library().global.scope().get(&callee);
+        if let Some(func) = value.to::<Func>();
         then { (func, named) }
         else { return None; }
     };
@@ -215,7 +216,11 @@ fn named_param_tooltip(world: &dyn World, leaf: &LinkedNode) -> Option<Tooltip> 
 /// Find documentation for a castable string.
 fn find_string_doc(info: &CastInfo, string: &str) -> Option<&'static str> {
     match info {
-        CastInfo::Value(Value::Str(s), docs) if s.as_str() == string => Some(docs),
+        CastInfo::Value(value, docs)
+            if value.to::<Str>().map_or(false, |s| s.as_str() == string) =>
+        {
+            Some(docs)
+        }
         CastInfo::Union(options) => {
             options.iter().find_map(|option| find_string_doc(option, string))
         }

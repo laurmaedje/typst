@@ -9,9 +9,7 @@ use time::{format_description, Month, PrimitiveDateTime};
 
 use crate::diag::{bail, StrResult};
 use crate::engine::Engine;
-use crate::foundations::{
-    cast, func, repr, scope, ty, Dict, Duration, Repr, Smart, Str, Value,
-};
+use crate::foundations::{cast, func, repr, scope, ty, Dict, Duration, Repr, Smart, Str};
 use crate::World;
 
 /// Represents a date, a time, or a combination of both.
@@ -158,9 +156,7 @@ impl Datetime {
             return None;
         }
 
-        let Ok(Value::Str(string)) = dict.get("$__toml_private_datetime") else {
-            return None;
-        };
+        let string = dict.get("$__toml_private_datetime").ok()?.to::<Str>()?;
 
         if let Ok(d) = time::PrimitiveDateTime::parse(
             string,

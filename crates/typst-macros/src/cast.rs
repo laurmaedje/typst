@@ -209,30 +209,7 @@ fn create_castable_body(input: &CastInput) -> TokenStream {
         }
     }
 
-    let dynamic_check = input.dynamic.then(|| {
-        quote! {
-            if let #foundations::Value::Dyn(dynamic) = &value {
-                if dynamic.is::<Self>() {
-                    return true;
-                }
-            }
-        }
-    });
-
-    let str_check = (!strings.is_empty()).then(|| {
-        quote! {
-            if let #foundations::Value::Str(string) = &value {
-                match string.as_str() {
-                    #(#strings,)*
-                    _ => {}
-                }
-            }
-        }
-    });
-
     quote! {
-        #dynamic_check
-        #str_check
         #(#casts)*
         false
     }
@@ -281,7 +258,7 @@ fn create_into_value_body(input: &CastInput) -> TokenStream {
     if let Some(expr) = &input.into_value {
         quote! { #expr }
     } else {
-        quote! { #foundations::Value::dynamic(self) }
+        quote! { todo!() }
     }
 }
 
@@ -306,30 +283,7 @@ fn create_from_value_body(input: &CastInput) -> TokenStream {
         }
     }
 
-    let dynamic_check = input.dynamic.then(|| {
-        quote! {
-            if let #foundations::Value::Dyn(dynamic) = &value {
-                if let Some(concrete) = dynamic.downcast::<Self>() {
-                    return Ok(concrete.clone());
-                }
-            }
-        }
-    });
-
-    let str_check = (!string_arms.is_empty()).then(|| {
-        quote! {
-            if let #foundations::Value::Str(string) = &value {
-                match string.as_str() {
-                    #(#string_arms,)*
-                    _ => {}
-                }
-            }
-        }
-    });
-
     quote! {
-        #dynamic_check
-        #str_check
         #(#cast_checks)*
         Err(<Self as #foundations::Reflect>::error(&value))
     }

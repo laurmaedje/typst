@@ -5,7 +5,7 @@ use serde::{Serialize, Serializer};
 
 use crate::diag::StrResult;
 use crate::foundations::{
-    cast, ty, CastInfo, FromValue, IntoValue, Reflect, Repr, Type, Value,
+    cast, ty, CastInfo, FromValue, IntoValue, Reflect, Repr, Value,
 };
 
 /// A value that indicates the absence of any other value.
@@ -23,35 +23,6 @@ use crate::foundations::{
 #[ty(cast, name = "none")]
 #[derive(Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct NoneValue;
-
-impl Reflect for NoneValue {
-    fn input() -> CastInfo {
-        CastInfo::Type(Type::of::<Self>())
-    }
-
-    fn output() -> CastInfo {
-        CastInfo::Type(Type::of::<Self>())
-    }
-
-    fn castable(value: &Value) -> bool {
-        matches!(value, Value::None)
-    }
-}
-
-impl IntoValue for NoneValue {
-    fn into_value(self) -> Value {
-        Value::None
-    }
-}
-
-impl FromValue for NoneValue {
-    fn from_value(value: Value) -> StrResult<Self> {
-        match value {
-            Value::None => Ok(Self),
-            _ => Err(Self::error(&value)),
-        }
-    }
-}
 
 impl Debug for NoneValue {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -76,7 +47,7 @@ impl Serialize for NoneValue {
 
 cast! {
     (),
-    self => Value::None,
+    self => NoneValue.into_value(),
     _: NoneValue => (),
 }
 
@@ -98,17 +69,19 @@ impl<T: IntoValue> IntoValue for Option<T> {
     fn into_value(self) -> Value {
         match self {
             Some(v) => v.into_value(),
-            None => Value::None,
+            None => NoneValue.into_value(),
         }
     }
 }
 
 impl<T: FromValue> FromValue for Option<T> {
     fn from_value(value: Value) -> StrResult<Self> {
-        match value {
-            Value::None => Ok(None),
-            v if T::castable(&v) => Ok(Some(T::from_value(v)?)),
-            _ => Err(Self::error(&value)),
+        if value.is::<NoneValue>() {
+            Ok(None)
+        } else if T::castable(&value) {
+            Ok(Some(T::from_value(value)?))
+        } else {
+            Err(Self::error(&value))
         }
     }
 }

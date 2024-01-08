@@ -1,7 +1,7 @@
 //! Handles special built-in methods on values.
 
 use crate::diag::{At, SourceResult};
-use crate::foundations::{Args, Array, Dict, Str, Type, Value};
+use crate::foundations::{Args, Array, Dict, IntoValue, NoneValue, Str, Type, Value};
 use crate::syntax::Span;
 
 /// List the available methods for a type and whether they take arguments.
@@ -42,10 +42,10 @@ pub(crate) fn call_method_mut(
 ) -> SourceResult<Value> {
     let ty = value.ty();
     let missing = || Err(missing_method(ty, method)).at(span);
-    let mut output = Value::None;
+    let mut output = NoneValue.into_value();
 
-    match value {
-        Value::Array(array) => match method {
+    if let Some(array) = value.to_mut::<Array>() {
+        match method {
             "push" => array.push(args.expect("value")?),
             "pop" => output = array.pop().at(span)?,
             "insert" => {
@@ -57,18 +57,18 @@ pub(crate) fn call_method_mut(
                     .at(span)?
             }
             _ => return missing(),
-        },
-
-        Value::Dict(dict) => match method {
+        }
+    } else if let Some(dict) = value.to_mut::<Dict>() {
+        match method {
             "insert" => dict.insert(args.expect::<Str>("key")?, args.expect("value")?),
             "remove" => {
                 output =
                     dict.remove(args.expect("key")?, args.named("default")?).at(span)?
             }
             _ => return missing(),
-        },
-
-        _ => return missing(),
+        }
+    } else {
+        return missing();
     }
 
     args.finish()?;
@@ -85,18 +85,22 @@ pub(crate) fn call_method_access<'a>(
     let ty = value.ty();
     let missing = || Err(missing_method(ty, method)).at(span);
 
-    let slot = match value {
-        Value::Array(array) => match method {
+    let slot = if value.is::<Array>() {
+        let array = value.to_mut::<Array>().unwrap();
+        match method {
             "first" => array.first_mut().at(span)?,
             "last" => array.last_mut().at(span)?,
             "at" => array.at_mut(args.expect("index")?).at(span)?,
             _ => return missing(),
-        },
-        Value::Dict(dict) => match method {
+        }
+    } else if value.is::<Dict>() {
+        let dict = value.to_mut::<Dict>().unwrap();
+        match method {
             "at" => dict.at_mut(&args.expect::<Str>("key")?).at(span)?,
             _ => return missing(),
-        },
-        _ => return missing(),
+        }
+    } else {
+        return missing();
     };
 
     args.finish()?;

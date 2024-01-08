@@ -8,8 +8,8 @@ use once_cell::sync::Lazy;
 use crate::diag::{bail, SourceResult, StrResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, repr, scope, ty, Args, CastInfo, Content, Element, IntoArgs, Scope, Selector,
-    Type, Value,
+    cast, repr, scope, ty, Args, CastInfo, Content, Element, IntoArgs, IntoValue, Scope,
+    Selector, Type, Value,
 };
 use crate::syntax::{ast, Span, SyntaxNode};
 use crate::util::Static;
@@ -264,9 +264,9 @@ impl Func {
                 Ok(value)
             }
             Repr::Element(func) => {
-                let value = func.construct(engine, &mut args)?;
+                let content = func.construct(engine, &mut args)?;
                 args.finish()?;
-                Ok(Value::Content(value))
+                Ok(content.into_value())
             }
             Repr::Closure(closure) => crate::eval::call_closure(
                 self,
@@ -491,5 +491,5 @@ impl From<Closure> for Func {
 
 cast! {
     Closure,
-    self => Value::Func(self.into()),
+    self => Func::from(self).into_value(),
 }

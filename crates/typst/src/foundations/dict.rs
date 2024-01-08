@@ -8,7 +8,9 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::diag::StrResult;
-use crate::foundations::{array, func, repr, scope, ty, Array, Repr, Str, Value};
+use crate::foundations::{
+    array, func, repr, scope, ty, Array, IntoValue, Repr, Str, Value,
+};
 use crate::syntax::is_ident;
 use crate::util::ArcExt;
 
@@ -186,7 +188,7 @@ impl Dict {
     /// Returns the keys of the dictionary as an array in insertion order.
     #[func]
     pub fn keys(&self) -> Array {
-        self.0.keys().cloned().map(Value::Str).collect()
+        self.0.keys().cloned().map(IntoValue::into_value).collect()
     }
 
     /// Returns the values of the dictionary as an array in insertion order.
@@ -201,7 +203,7 @@ impl Dict {
     pub fn pairs(&self) -> Array {
         self.0
             .iter()
-            .map(|(k, v)| Value::Array(array![k.clone(), v.clone()]))
+            .map(|(k, v)| array![k.clone(), v.clone()].into_value())
             .collect()
     }
 }

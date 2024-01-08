@@ -12,8 +12,8 @@ use palette::{
 
 use crate::diag::{bail, At, SourceResult, StrResult};
 use crate::foundations::{
-    array, cast, func, repr, scope, ty, Args, Array, IntoValue, Module, Repr, Scope, Str,
-    Value,
+    array, cast, func, repr, scope, ty, Args, Array, Func, IntoValue, Module, Repr,
+    Scope, Str, Value,
 };
 use crate::layout::{Angle, Ratio};
 use crate::syntax::{Span, Spanned};
@@ -1742,7 +1742,7 @@ impl WeightedColor {
 
 cast! {
     WeightedColor,
-    self => array![self.color, Value::Float(self.weight as _)].into_value(),
+    self => array![self.color, self.weight.into_value()].into_value(),
     color: Color => Self { color, weight: 1.0 },
     v: Array => {
         let mut iter = v.into_iter();
@@ -1812,27 +1812,27 @@ cast! {
     }.into_value(),
     v: Value => {
         let expected = "expected `rgb`, `luma`, `cmyk`, `oklab`, `oklch`, `color.linear-rgb`, `color.hsl`, or `color.hsv`";
-        let Value::Func(func) = v else {
+        let Some(func) = v.to::<Func>() else {
             bail!("{expected}, found {}", v.ty());
         };
 
         // Here comparing the function pointer since it's `Eq`
         // whereas the `NativeFuncData` is not.
-        if func == Color::oklab_data() {
+        if *func == Color::oklab_data() {
             Self::Oklab
-        } else if func == Color::oklch_data() {
+        } else if *func == Color::oklch_data() {
             Self::Oklch
-        } else if func == Color::rgb_data() {
+        } else if *func == Color::rgb_data() {
             Self::Srgb
-        } else if func == Color::luma_data() {
+        } else if *func == Color::luma_data() {
             Self::D65Gray
-        } else if func == Color::linear_rgb_data() {
+        } else if *func == Color::linear_rgb_data() {
             Self::LinearRgb
-        } else if func == Color::hsl_data() {
+        } else if *func == Color::hsl_data() {
             Self::Hsl
-        } else if func == Color::hsv_data() {
+        } else if *func == Color::hsv_data() {
             Self::Hsv
-        } else if func == Color::cmyk_data() {
+        } else if *func == Color::cmyk_data() {
             Self::Cmyk
         } else {
             bail!("{expected}");

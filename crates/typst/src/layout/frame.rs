@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use ecow::{eco_format, EcoString};
 
-use crate::foundations::{cast, dict, Dict, Repr, StyleChain, Value};
+use crate::foundations::{cast, dict, Dict, Repr, StyleChain};
 use crate::introspection::{Meta, MetaElem};
 use crate::layout::{
     Abs, Axes, Corners, FixedAlign, Length, Point, Rel, Sides, Size, Transform,
@@ -521,7 +521,7 @@ pub struct Position {
 
 cast! {
     Position,
-    self => Value::Dict(self.into()),
+    self => Dict::from(self).into_value(),
     mut dict: Dict => {
         let page = dict.take("page")?.cast()?;
         let x: Length = dict.take("x")?.cast()?;

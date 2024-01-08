@@ -2,7 +2,8 @@ use std::fmt::{self, Debug, Formatter};
 
 use crate::diag::StrResult;
 use crate::foundations::{
-    CastInfo, Dict, Fold, FromValue, IntoValue, Reflect, Resolve, StyleChain, Value,
+    CastInfo, Dict, Fold, FromValue, IntoValue, NoneValue, Reflect, Resolve, StyleChain,
+    Value,
 };
 use crate::layout::Side;
 use crate::util::Get;
@@ -145,7 +146,7 @@ where
         let mut dict = Dict::new();
         let mut handle = |key: &str, component: T| {
             let value = component.into_value();
-            if value != Value::None {
+            if !value.is::<NoneValue>() {
                 dict.insert(key.into(), value);
             }
         };
@@ -155,7 +156,7 @@ where
         handle("bottom-right", self.bottom_right);
         handle("bottom-left", self.bottom_left);
 
-        Value::Dict(dict)
+        dict.into_value()
     }
 }
 
@@ -176,7 +177,7 @@ where
             "rest",
         ];
 
-        if let Value::Dict(dict) = &mut value {
+        if let Some(dict) = value.to_mut::<Dict>() {
             if dict.iter().any(|(key, _)| keys.contains(&key.as_str())) {
                 let mut take = |key| dict.take(key).ok().map(T::from_value).transpose();
                 let rest = take("rest")?;

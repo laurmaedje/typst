@@ -4,14 +4,13 @@ use std::cmp::Ordering;
 
 use ecow::eco_format;
 
-use crate::diag::{bail, At, SourceResult, StrResult};
+use crate::diag::{At, SourceResult, StrResult};
 use crate::eval::{access_dict, Access, Eval, Vm};
-use crate::foundations::{format_str, Datetime, IntoValue, Regex, Repr, Value};
-use crate::layout::{Alignment, Length, Rel};
+use crate::foundations::{
+    format_str, Datetime, IntoValue, NoneValue, Regex, Repr, Value,
+};
+use crate::layout::{Length, Rel};
 use crate::syntax::ast::{self, AstNode};
-use crate::text::TextElem;
-use crate::util::Numeric;
-use crate::visualize::Stroke;
 
 impl Eval for ast::Unary<'_> {
     type Output = Value;
@@ -89,14 +88,14 @@ fn apply_assignment(
         if let ast::Expr::FieldAccess(access) = lhs {
             let dict = access_dict(vm, access)?;
             dict.insert(access.field().get().clone().into(), rhs);
-            return Ok(Value::None);
+            return Ok(NoneValue.into_value());
         }
     }
 
     let location = binary.lhs().access(vm)?;
     let lhs = std::mem::take(&mut *location);
     *location = op(lhs, rhs).at(binary.span())?;
-    Ok(Value::None)
+    Ok(NoneValue.into_value())
 }
 
 /// Bail with a type mismatch error.
@@ -108,300 +107,42 @@ macro_rules! mismatch {
 
 /// Join a value with another value.
 pub fn join(lhs: Value, rhs: Value) -> StrResult<Value> {
-    use Value::*;
-    Ok(match (lhs, rhs) {
-        (a, None) => a,
-        (None, b) => b,
-        (Symbol(a), Symbol(b)) => Str(format_str!("{a}{b}")),
-        (Str(a), Str(b)) => Str(a + b),
-        (Str(a), Symbol(b)) => Str(format_str!("{a}{b}")),
-        (Symbol(a), Str(b)) => Str(format_str!("{a}{b}")),
-        (Bytes(a), Bytes(b)) => Bytes(a + b),
-        (Content(a), Content(b)) => Content(a + b),
-        (Content(a), Symbol(b)) => Content(a + TextElem::packed(b.get())),
-        (Content(a), Str(b)) => Content(a + TextElem::packed(b)),
-        (Str(a), Content(b)) => Content(TextElem::packed(a) + b),
-        (Symbol(a), Content(b)) => Content(TextElem::packed(a.get()) + b),
-        (Array(a), Array(b)) => Array(a + b),
-        (Dict(a), Dict(b)) => Dict(a + b),
-
-        // Type compatibility.
-        (Type(a), Str(b)) => Str(format_str!("{a}{b}")),
-        (Str(a), Type(b)) => Str(format_str!("{a}{b}")),
-
-        (a, b) => mismatch!("cannot join {} with {}", a, b),
-    })
+    todo!()
 }
 
 /// Apply the unary plus operator to a value.
 pub fn pos(value: Value) -> StrResult<Value> {
-    use Value::*;
-    Ok(match value {
-        Int(v) => Int(v),
-        Float(v) => Float(v),
-        Length(v) => Length(v),
-        Angle(v) => Angle(v),
-        Ratio(v) => Ratio(v),
-        Relative(v) => Relative(v),
-        Fraction(v) => Fraction(v),
-        Symbol(_) | Str(_) | Bytes(_) | Content(_) | Array(_) | Dict(_) | Datetime(_) => {
-            mismatch!("cannot apply unary '+' to {}", value)
-        }
-        Dyn(d) => {
-            if d.is::<Alignment>() {
-                mismatch!("cannot apply unary '+' to {}", d)
-            } else {
-                mismatch!("cannot apply '+' to {}", d)
-            }
-        }
-        v => mismatch!("cannot apply '+' to {}", v),
-    })
+    todo!()
 }
 
 /// Compute the negation of a value.
 pub fn neg(value: Value) -> StrResult<Value> {
-    use Value::*;
-    Ok(match value {
-        Int(v) => Int(v.checked_neg().ok_or_else(too_large)?),
-        Float(v) => Float(-v),
-        Length(v) => Length(-v),
-        Angle(v) => Angle(-v),
-        Ratio(v) => Ratio(-v),
-        Relative(v) => Relative(-v),
-        Fraction(v) => Fraction(-v),
-        Duration(v) => Duration(-v),
-        Datetime(_) => mismatch!("cannot apply unary '-' to {}", value),
-        v => mismatch!("cannot apply '-' to {}", v),
-    })
+    todo!()
 }
 
 /// Compute the sum of two values.
 pub fn add(lhs: Value, rhs: Value) -> StrResult<Value> {
-    use Value::*;
-    Ok(match (lhs, rhs) {
-        (a, None) => a,
-        (None, b) => b,
-
-        (Int(a), Int(b)) => Int(a.checked_add(b).ok_or_else(too_large)?),
-        (Int(a), Float(b)) => Float(a as f64 + b),
-        (Float(a), Int(b)) => Float(a + b as f64),
-        (Float(a), Float(b)) => Float(a + b),
-
-        (Angle(a), Angle(b)) => Angle(a + b),
-
-        (Length(a), Length(b)) => Length(a + b),
-        (Length(a), Ratio(b)) => Relative(b + a),
-        (Length(a), Relative(b)) => Relative(b + a),
-
-        (Ratio(a), Length(b)) => Relative(a + b),
-        (Ratio(a), Ratio(b)) => Ratio(a + b),
-        (Ratio(a), Relative(b)) => Relative(b + a),
-
-        (Relative(a), Length(b)) => Relative(a + b),
-        (Relative(a), Ratio(b)) => Relative(a + b),
-        (Relative(a), Relative(b)) => Relative(a + b),
-
-        (Fraction(a), Fraction(b)) => Fraction(a + b),
-
-        (Symbol(a), Symbol(b)) => Str(format_str!("{a}{b}")),
-        (Str(a), Str(b)) => Str(a + b),
-        (Str(a), Symbol(b)) => Str(format_str!("{a}{b}")),
-        (Symbol(a), Str(b)) => Str(format_str!("{a}{b}")),
-        (Bytes(a), Bytes(b)) => Bytes(a + b),
-        (Content(a), Content(b)) => Content(a + b),
-        (Content(a), Symbol(b)) => Content(a + TextElem::packed(b.get())),
-        (Content(a), Str(b)) => Content(a + TextElem::packed(b)),
-        (Str(a), Content(b)) => Content(TextElem::packed(a) + b),
-        (Symbol(a), Content(b)) => Content(TextElem::packed(a.get()) + b),
-
-        (Array(a), Array(b)) => Array(a + b),
-        (Dict(a), Dict(b)) => Dict(a + b),
-
-        (Color(color), Length(thickness)) | (Length(thickness), Color(color)) => {
-            Stroke::from_pair(color, thickness).into_value()
-        }
-        (Gradient(gradient), Length(thickness))
-        | (Length(thickness), Gradient(gradient)) => {
-            Stroke::from_pair(gradient, thickness).into_value()
-        }
-        (Pattern(pattern), Length(thickness)) | (Length(thickness), Pattern(pattern)) => {
-            Stroke::from_pair(pattern, thickness).into_value()
-        }
-
-        (Duration(a), Duration(b)) => Duration(a + b),
-        (Datetime(a), Duration(b)) => Datetime(a + b),
-        (Duration(a), Datetime(b)) => Datetime(b + a),
-
-        // Type compatibility.
-        (Type(a), Str(b)) => Str(format_str!("{a}{b}")),
-        (Str(a), Type(b)) => Str(format_str!("{a}{b}")),
-
-        (Dyn(a), Dyn(b)) => {
-            // Alignments can be summed.
-            if let (Some(&a), Some(&b)) =
-                (a.downcast::<Alignment>(), b.downcast::<Alignment>())
-            {
-                return Ok((a + b)?.into_value());
-            }
-
-            mismatch!("cannot add {} and {}", a, b);
-        }
-
-        (a, b) => mismatch!("cannot add {} and {}", a, b),
-    })
+    todo!()
 }
 
 /// Compute the difference of two values.
 pub fn sub(lhs: Value, rhs: Value) -> StrResult<Value> {
-    use Value::*;
-    Ok(match (lhs, rhs) {
-        (Int(a), Int(b)) => Int(a.checked_sub(b).ok_or_else(too_large)?),
-        (Int(a), Float(b)) => Float(a as f64 - b),
-        (Float(a), Int(b)) => Float(a - b as f64),
-        (Float(a), Float(b)) => Float(a - b),
-
-        (Angle(a), Angle(b)) => Angle(a - b),
-
-        (Length(a), Length(b)) => Length(a - b),
-        (Length(a), Ratio(b)) => Relative(-b + a),
-        (Length(a), Relative(b)) => Relative(-b + a),
-
-        (Ratio(a), Length(b)) => Relative(a + -b),
-        (Ratio(a), Ratio(b)) => Ratio(a - b),
-        (Ratio(a), Relative(b)) => Relative(-b + a),
-
-        (Relative(a), Length(b)) => Relative(a + -b),
-        (Relative(a), Ratio(b)) => Relative(a + -b),
-        (Relative(a), Relative(b)) => Relative(a - b),
-
-        (Fraction(a), Fraction(b)) => Fraction(a - b),
-
-        (Duration(a), Duration(b)) => Duration(a - b),
-        (Datetime(a), Duration(b)) => Datetime(a - b),
-        (Datetime(a), Datetime(b)) => Duration((a - b)?),
-
-        (a, b) => mismatch!("cannot subtract {1} from {0}", a, b),
-    })
+    todo!()
 }
 
 /// Compute the product of two values.
 pub fn mul(lhs: Value, rhs: Value) -> StrResult<Value> {
-    use Value::*;
-    Ok(match (lhs, rhs) {
-        (Int(a), Int(b)) => Int(a.checked_mul(b).ok_or_else(too_large)?),
-        (Int(a), Float(b)) => Float(a as f64 * b),
-        (Float(a), Int(b)) => Float(a * b as f64),
-        (Float(a), Float(b)) => Float(a * b),
-
-        (Length(a), Int(b)) => Length(a * b as f64),
-        (Length(a), Float(b)) => Length(a * b),
-        (Length(a), Ratio(b)) => Length(a * b.get()),
-        (Int(a), Length(b)) => Length(b * a as f64),
-        (Float(a), Length(b)) => Length(b * a),
-        (Ratio(a), Length(b)) => Length(b * a.get()),
-
-        (Angle(a), Int(b)) => Angle(a * b as f64),
-        (Angle(a), Float(b)) => Angle(a * b),
-        (Angle(a), Ratio(b)) => Angle(a * b.get()),
-        (Int(a), Angle(b)) => Angle(a as f64 * b),
-        (Float(a), Angle(b)) => Angle(a * b),
-        (Ratio(a), Angle(b)) => Angle(a.get() * b),
-
-        (Ratio(a), Ratio(b)) => Ratio(a * b),
-        (Ratio(a), Int(b)) => Ratio(a * b as f64),
-        (Ratio(a), Float(b)) => Ratio(a * b),
-        (Int(a), Ratio(b)) => Ratio(a as f64 * b),
-        (Float(a), Ratio(b)) => Ratio(a * b),
-
-        (Relative(a), Int(b)) => Relative(a * b as f64),
-        (Relative(a), Float(b)) => Relative(a * b),
-        (Relative(a), Ratio(b)) => Relative(a * b.get()),
-        (Int(a), Relative(b)) => Relative(a as f64 * b),
-        (Float(a), Relative(b)) => Relative(a * b),
-        (Ratio(a), Relative(b)) => Relative(a.get() * b),
-
-        (Fraction(a), Int(b)) => Fraction(a * b as f64),
-        (Fraction(a), Float(b)) => Fraction(a * b),
-        (Fraction(a), Ratio(b)) => Fraction(a * b.get()),
-        (Int(a), Fraction(b)) => Fraction(a as f64 * b),
-        (Float(a), Fraction(b)) => Fraction(a * b),
-        (Ratio(a), Fraction(b)) => Fraction(a.get() * b),
-
-        (Str(a), Int(b)) => Str(a.repeat(Value::Int(b).cast()?)?),
-        (Int(a), Str(b)) => Str(b.repeat(Value::Int(a).cast()?)?),
-        (Array(a), Int(b)) => Array(a.repeat(Value::Int(b).cast()?)?),
-        (Int(a), Array(b)) => Array(b.repeat(Value::Int(a).cast()?)?),
-        (Content(a), b @ Int(_)) => Content(a.repeat(b.cast()?)),
-        (a @ Int(_), Content(b)) => Content(b.repeat(a.cast()?)),
-
-        (Int(a), Duration(b)) => Duration(b * (a as f64)),
-        (Float(a), Duration(b)) => Duration(b * a),
-        (Duration(a), Int(b)) => Duration(a * (b as f64)),
-        (Duration(a), Float(b)) => Duration(a * b),
-
-        (a, b) => mismatch!("cannot multiply {} with {}", a, b),
-    })
+    todo!()
 }
 
 /// Compute the quotient of two values.
 pub fn div(lhs: Value, rhs: Value) -> StrResult<Value> {
-    use Value::*;
-    if is_zero(&rhs) {
-        bail!("cannot divide by zero");
-    }
-
-    Ok(match (lhs, rhs) {
-        (Int(a), Int(b)) => Float(a as f64 / b as f64),
-        (Int(a), Float(b)) => Float(a as f64 / b),
-        (Float(a), Int(b)) => Float(a / b as f64),
-        (Float(a), Float(b)) => Float(a / b),
-
-        (Length(a), Int(b)) => Length(a / b as f64),
-        (Length(a), Float(b)) => Length(a / b),
-        (Length(a), Length(b)) => Float(try_div_length(a, b)?),
-        (Length(a), Relative(b)) if b.rel.is_zero() => Float(try_div_length(a, b.abs)?),
-
-        (Angle(a), Int(b)) => Angle(a / b as f64),
-        (Angle(a), Float(b)) => Angle(a / b),
-        (Angle(a), Angle(b)) => Float(a / b),
-
-        (Ratio(a), Int(b)) => Ratio(a / b as f64),
-        (Ratio(a), Float(b)) => Ratio(a / b),
-        (Ratio(a), Ratio(b)) => Float(a / b),
-        (Ratio(a), Relative(b)) if b.abs.is_zero() => Float(a / b.rel),
-
-        (Relative(a), Int(b)) => Relative(a / b as f64),
-        (Relative(a), Float(b)) => Relative(a / b),
-        (Relative(a), Length(b)) if a.rel.is_zero() => Float(try_div_length(a.abs, b)?),
-        (Relative(a), Ratio(b)) if a.abs.is_zero() => Float(a.rel / b),
-        (Relative(a), Relative(b)) => Float(try_div_relative(a, b)?),
-
-        (Fraction(a), Int(b)) => Fraction(a / b as f64),
-        (Fraction(a), Float(b)) => Fraction(a / b),
-        (Fraction(a), Fraction(b)) => Float(a / b),
-
-        (Duration(a), Int(b)) => Duration(a / (b as f64)),
-        (Duration(a), Float(b)) => Duration(a / b),
-        (Duration(a), Duration(b)) => Float(a / b),
-
-        (a, b) => mismatch!("cannot divide {} by {}", a, b),
-    })
+    todo!()
 }
 
 /// Whether a value is a numeric zero.
 fn is_zero(v: &Value) -> bool {
-    use Value::*;
-    match *v {
-        Int(v) => v == 0,
-        Float(v) => v == 0.0,
-        Length(v) => v.is_zero(),
-        Angle(v) => v.is_zero(),
-        Ratio(v) => v.is_zero(),
-        Relative(v) => v.is_zero(),
-        Fraction(v) => v.is_zero(),
-        Duration(v) => v.is_zero(),
-        _ => false,
-    }
+    todo!()
 }
 
 /// Try to divide two lengths.
@@ -417,44 +158,34 @@ fn try_div_relative(a: Rel<Length>, b: Rel<Length>) -> StrResult<f64> {
 
 /// Compute the logical "not" of a value.
 pub fn not(value: Value) -> StrResult<Value> {
-    match value {
-        Value::Bool(b) => Ok(Value::Bool(!b)),
-        v => mismatch!("cannot apply 'not' to {}", v),
-    }
+    todo!()
 }
 
 /// Compute the logical "and" of two values.
 pub fn and(lhs: Value, rhs: Value) -> StrResult<Value> {
-    match (lhs, rhs) {
-        (Value::Bool(a), Value::Bool(b)) => Ok(Value::Bool(a && b)),
-        (a, b) => mismatch!("cannot apply 'and' to {} and {}", a, b),
-    }
+    todo!()
 }
 
 /// Compute the logical "or" of two values.
 pub fn or(lhs: Value, rhs: Value) -> StrResult<Value> {
-    match (lhs, rhs) {
-        (Value::Bool(a), Value::Bool(b)) => Ok(Value::Bool(a || b)),
-        (a, b) => mismatch!("cannot apply 'or' to {} and {}", a, b),
-    }
+    todo!()
 }
 
 /// Compute whether two values are equal.
 pub fn eq(lhs: Value, rhs: Value) -> StrResult<Value> {
-    Ok(Value::Bool(equal(&lhs, &rhs)))
+    Ok(equal(&lhs, &rhs).into_value())
 }
 
 /// Compute whether two values are unequal.
 pub fn neq(lhs: Value, rhs: Value) -> StrResult<Value> {
-    Ok(Value::Bool(!equal(&lhs, &rhs)))
+    Ok((!equal(&lhs, &rhs)).into_value())
 }
 
 macro_rules! comparison {
     ($name:ident, $op:tt, $($pat:tt)*) => {
         /// Compute how a value compares with another value.
         pub fn $name(lhs: Value, rhs: Value) -> StrResult<Value> {
-            let ordering = compare(&lhs, &rhs)?;
-            Ok(Value::Bool(matches!(ordering, $($pat)*)))
+            todo!()
         }
     };
 }
@@ -466,82 +197,12 @@ comparison!(geq, ">=", Ordering::Greater | Ordering::Equal);
 
 /// Determine whether two values are equal.
 pub fn equal(lhs: &Value, rhs: &Value) -> bool {
-    use Value::*;
-    match (lhs, rhs) {
-        // Compare reflexively.
-        (None, None) => true,
-        (Auto, Auto) => true,
-        (Bool(a), Bool(b)) => a == b,
-        (Int(a), Int(b)) => a == b,
-        (Float(a), Float(b)) => a == b,
-        (Length(a), Length(b)) => a == b,
-        (Angle(a), Angle(b)) => a == b,
-        (Ratio(a), Ratio(b)) => a == b,
-        (Relative(a), Relative(b)) => a == b,
-        (Fraction(a), Fraction(b)) => a == b,
-        (Color(a), Color(b)) => a == b,
-        (Symbol(a), Symbol(b)) => a == b,
-        (Version(a), Version(b)) => a == b,
-        (Str(a), Str(b)) => a == b,
-        (Bytes(a), Bytes(b)) => a == b,
-        (Label(a), Label(b)) => a == b,
-        (Content(a), Content(b)) => a == b,
-        (Array(a), Array(b)) => a == b,
-        (Dict(a), Dict(b)) => a == b,
-        (Func(a), Func(b)) => a == b,
-        (Args(a), Args(b)) => a == b,
-        (Type(a), Type(b)) => a == b,
-        (Module(a), Module(b)) => a == b,
-        (Plugin(a), Plugin(b)) => a == b,
-        (Datetime(a), Datetime(b)) => a == b,
-        (Duration(a), Duration(b)) => a == b,
-        (Dyn(a), Dyn(b)) => a == b,
-
-        // Some technically different things should compare equal.
-        (&Int(a), &Float(b)) => a as f64 == b,
-        (&Float(a), &Int(b)) => a == b as f64,
-        (&Length(a), &Relative(b)) => a == b.abs && b.rel.is_zero(),
-        (&Ratio(a), &Relative(b)) => a == b.rel && b.abs.is_zero(),
-        (&Relative(a), &Length(b)) => a.abs == b && a.rel.is_zero(),
-        (&Relative(a), &Ratio(b)) => a.rel == b && a.abs.is_zero(),
-
-        // Type compatibility.
-        (Type(a), Str(b)) => a.compat_name() == b.as_str(),
-        (Str(a), Type(b)) => a.as_str() == b.compat_name(),
-
-        _ => false,
-    }
+    todo!()
 }
 
 /// Compare two values.
 pub fn compare(lhs: &Value, rhs: &Value) -> StrResult<Ordering> {
-    use Value::*;
-    Ok(match (lhs, rhs) {
-        (Bool(a), Bool(b)) => a.cmp(b),
-        (Int(a), Int(b)) => a.cmp(b),
-        (Float(a), Float(b)) => try_cmp_values(a, b)?,
-        (Length(a), Length(b)) => try_cmp_values(a, b)?,
-        (Angle(a), Angle(b)) => a.cmp(b),
-        (Ratio(a), Ratio(b)) => a.cmp(b),
-        (Relative(a), Relative(b)) => try_cmp_values(a, b)?,
-        (Fraction(a), Fraction(b)) => a.cmp(b),
-        (Version(a), Version(b)) => a.cmp(b),
-        (Str(a), Str(b)) => a.cmp(b),
-
-        // Some technically different things should be comparable.
-        (Int(a), Float(b)) => try_cmp_values(&(*a as f64), b)?,
-        (Float(a), Int(b)) => try_cmp_values(a, &(*b as f64))?,
-        (Length(a), Relative(b)) if b.rel.is_zero() => try_cmp_values(a, &b.abs)?,
-        (Ratio(a), Relative(b)) if b.abs.is_zero() => a.cmp(&b.rel),
-        (Relative(a), Length(b)) if a.rel.is_zero() => try_cmp_values(&a.abs, b)?,
-        (Relative(a), Ratio(b)) if a.abs.is_zero() => a.rel.cmp(b),
-
-        (Duration(a), Duration(b)) => a.cmp(b),
-        (Datetime(a), Datetime(b)) => try_cmp_datetimes(a, b)?,
-        (Array(a), Array(b)) => try_cmp_arrays(a.as_slice(), b.as_slice())?,
-
-        _ => mismatch!("cannot compare {} and {}", lhs, rhs),
-    })
+    todo!()
 }
 
 /// Try to compare two values.
@@ -579,7 +240,7 @@ fn try_cmp_arrays(a: &[Value], b: &[Value]) -> StrResult<Ordering> {
 /// Test whether one value is "in" another one.
 pub fn in_(lhs: Value, rhs: Value) -> StrResult<Value> {
     if let Some(b) = contains(&lhs, &rhs) {
-        Ok(Value::Bool(b))
+        Ok(b.into_value())
     } else {
         mismatch!("cannot apply 'in' to {} and {}", lhs, rhs)
     }
@@ -588,7 +249,7 @@ pub fn in_(lhs: Value, rhs: Value) -> StrResult<Value> {
 /// Test whether one value is "not in" another one.
 pub fn not_in(lhs: Value, rhs: Value) -> StrResult<Value> {
     if let Some(b) = contains(&lhs, &rhs) {
-        Ok(Value::Bool(!b))
+        Ok((!b).into_value())
     } else {
         mismatch!("cannot apply 'not in' to {} and {}", lhs, rhs)
     }
@@ -596,19 +257,7 @@ pub fn not_in(lhs: Value, rhs: Value) -> StrResult<Value> {
 
 /// Test for containment.
 pub fn contains(lhs: &Value, rhs: &Value) -> Option<bool> {
-    use Value::*;
-    match (lhs, rhs) {
-        (Str(a), Str(b)) => Some(b.as_str().contains(a.as_str())),
-        (Dyn(a), Str(b)) => a.downcast::<Regex>().map(|regex| regex.is_match(b)),
-        (Str(a), Dict(b)) => Some(b.contains(a)),
-        (a, Array(b)) => Some(b.contains(a.clone())),
-
-        // Type compatibility.
-        (Type(a), Str(b)) => Some(b.as_str().contains(a.compat_name())),
-        (Type(a), Dict(b)) => Some(b.contains(a.compat_name())),
-
-        _ => Option::None,
-    }
+    todo!()
 }
 
 #[cold]

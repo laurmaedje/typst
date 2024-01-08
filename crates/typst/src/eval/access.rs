@@ -2,7 +2,10 @@ use ecow::eco_format;
 
 use crate::diag::{bail, At, Hint, SourceResult, Trace, Tracepoint};
 use crate::eval::{Eval, Vm};
-use crate::foundations::{call_method_access, is_accessor_method, Dict, Value};
+use crate::foundations::{
+    call_method_access, is_accessor_method, Content, Dict, Func, Module, Value,
+};
+use crate::symbols::Symbol;
 use crate::syntax::ast::{self, AstNode};
 
 /// Access an expression mutably.
@@ -73,27 +76,30 @@ pub(crate) fn access_dict<'a>(
     vm: &'a mut Vm,
     access: ast::FieldAccess,
 ) -> SourceResult<&'a mut Dict> {
-    match access.target().access(vm)? {
-        Value::Dict(dict) => Ok(dict),
-        value => {
-            let ty = value.ty();
-            let span = access.target().span();
-            if matches!(
-                value, // those types have their own field getters
-                Value::Symbol(_) | Value::Content(_) | Value::Module(_) | Value::Func(_)
-            ) {
-                bail!(span, "cannot mutate fields on {ty}");
-            } else if crate::foundations::fields_on(ty).is_empty() {
-                bail!(span, "{ty} does not have accessible fields");
-            } else {
-                // type supports static fields, which don't yet have
-                // setters
-                Err(eco_format!("fields on {ty} are not yet mutable"))
-                    .hint(eco_format!(
-                        "try creating a new {ty} with the updated field value instead"
-                    ))
-                    .at(span)
-            }
-        }
+    let value = access.target().access(vm)?;
+    if value.is::<Dict>() {
+        return Ok(value.to_mut::<Dict>().unwrap());
+    }
+
+    let ty = value.ty();
+    let span = access.target().span();
+
+    // Those types have their own field getters
+    if value.is::<Symbol>()
+        || value.is::<Content>()
+        || value.is::<Module>()
+        || value.is::<Func>()
+    {
+        bail!(span, "cannot mutate fields on {ty}");
+    } else if crate::foundations::fields_on(ty).is_empty() {
+        bail!(span, "{ty} does not have accessible fields");
+    } else {
+        // type supports static fields, which don't yet have
+        // setters
+        Err(eco_format!("fields on {ty} are not yet mutable"))
+            .hint(eco_format!(
+                "try creating a new {ty} with the updated field value instead"
+            ))
+            .at(span)
     }
 }

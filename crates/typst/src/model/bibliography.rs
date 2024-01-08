@@ -534,26 +534,18 @@ impl Reflect for CslStyle {
     }
 
     fn output() -> CastInfo {
-        EcoString::output()
+        <EcoString as Reflect>::output()
     }
 
     fn castable(value: &Value) -> bool {
-        if let Value::Dyn(dynamic) = &value {
-            if dynamic.is::<Self>() {
-                return true;
-            }
-        }
-
-        false
+        value.is::<Self>()
     }
 }
 
 impl FromValue for CslStyle {
     fn from_value(value: Value) -> StrResult<Self> {
-        if let Value::Dyn(dynamic) = &value {
-            if let Some(concrete) = dynamic.downcast::<Self>() {
-                return Ok(concrete.clone());
-            }
+        if let Some(concrete) = value.to::<Self>() {
+            return Ok(concrete.clone());
         }
 
         Err(<Self as Reflect>::error(&value))
@@ -562,7 +554,7 @@ impl FromValue for CslStyle {
 
 impl IntoValue for CslStyle {
     fn into_value(self) -> Value {
-        Value::dynamic(self)
+        Value::new(self)
     }
 }
 

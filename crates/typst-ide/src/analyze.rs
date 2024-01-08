@@ -2,7 +2,9 @@ use comemo::Track;
 use ecow::{eco_vec, EcoString, EcoVec};
 use typst::engine::{Engine, Route};
 use typst::eval::{Tracer, Vm};
-use typst::foundations::{Label, Scopes, Value};
+use typst::foundations::{
+    AutoValue, Content, IntoValue, Label, NoneValue, Scopes, Value,
+};
 use typst::introspection::{Introspector, Locator};
 use typst::model::{BibliographyElem, Document};
 use typst::syntax::{ast, LinkedNode, Span, SyntaxKind};
@@ -11,13 +13,13 @@ use typst::World;
 /// Try to determine a set of possible values for an expression.
 pub fn analyze_expr(world: &dyn World, node: &LinkedNode) -> EcoVec<Value> {
     match node.cast::<ast::Expr>() {
-        Some(ast::Expr::None(_)) => eco_vec![Value::None],
-        Some(ast::Expr::Auto(_)) => eco_vec![Value::Auto],
-        Some(ast::Expr::Bool(v)) => eco_vec![Value::Bool(v.get())],
-        Some(ast::Expr::Int(v)) => eco_vec![Value::Int(v.get())],
-        Some(ast::Expr::Float(v)) => eco_vec![Value::Float(v.get())],
+        Some(ast::Expr::None(_)) => eco_vec![NoneValue.into_value()],
+        Some(ast::Expr::Auto(_)) => eco_vec![AutoValue.into_value()],
+        Some(ast::Expr::Bool(v)) => eco_vec![v.get().into_value()],
+        Some(ast::Expr::Int(v)) => eco_vec![v.get().into_value()],
+        Some(ast::Expr::Float(v)) => eco_vec![v.get().into_value()],
         Some(ast::Expr::Numeric(v)) => eco_vec![Value::numeric(v.get())],
-        Some(ast::Expr::Str(v)) => eco_vec![Value::Str(v.get().into())],
+        Some(ast::Expr::Str(v)) => eco_vec![v.get().into_value()],
 
         Some(ast::Expr::FieldAccess(access)) => {
             let Some(child) = node.children().next() else { return eco_vec![] };
@@ -65,7 +67,7 @@ pub fn analyze_import(world: &dyn World, source: &LinkedNode) -> Option<Value> {
     let mut vm = Vm::new(engine, Scopes::new(Some(world.library())), Span::detached());
     typst::eval::import(&mut vm, source, Span::detached(), true)
         .ok()
-        .map(Value::Module)
+        .map(IntoValue::into_value)
 }
 
 /// Find all labels and details for them.
@@ -83,10 +85,7 @@ pub fn analyze_labels(document: &Document) -> (Vec<(Label, Option<EcoString>)>, 
         let details = elem
             .get_by_name("caption")
             .or_else(|| elem.get_by_name("body"))
-            .and_then(|field| match field {
-                Value::Content(content) => Some(content),
-                _ => None,
-            })
+            .and_then(|field| field.unpack::<Content>().ok())
             .as_ref()
             .unwrap_or(elem)
             .plain_text();

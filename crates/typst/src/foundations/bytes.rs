@@ -8,7 +8,9 @@ use ecow::{eco_format, EcoString};
 use serde::{Serialize, Serializer};
 
 use crate::diag::{bail, StrResult};
-use crate::foundations::{cast, func, scope, ty, Array, Reflect, Repr, Str, Value};
+use crate::foundations::{
+    cast, func, scope, ty, Array, IntoValue, Reflect, Repr, Str, Value,
+};
 
 /// A sequence of bytes.
 ///
@@ -121,7 +123,7 @@ impl Bytes {
         default: Option<Value>,
     ) -> StrResult<Value> {
         self.locate_opt(index)
-            .and_then(|i| self.0.get(i).map(|&b| Value::Int(b.into())))
+            .and_then(|i| self.0.get(i).map(|&b| b.into_value()))
             .or(default)
             .ok_or_else(|| out_of_bounds_no_default(index, self.len()))
     }
@@ -236,10 +238,15 @@ cast! {
     ToBytes,
     v: Str => Self(v.as_bytes().into()),
     v: Array => Self(v.iter()
-        .map(|item| match item {
-            Value::Int(byte @ 0..=255) => Ok(*byte as u8),
-            Value::Int(_) => bail!("number must be between 0 and 255"),
-            value => Err(<u8 as Reflect>::error(value)),
+        .map(|value| {
+            let Some(&int) = value.to::<i64>() else {
+                return Err(<u8 as Reflect>::error(&value))
+            };
+            if matches!(int, 0..=255) {
+                Ok(int as u8)
+            } else {
+                bail!("number must be between 0 and 255")
+            }
         })
         .collect::<Result<Vec<u8>, _>>()?
         .into()

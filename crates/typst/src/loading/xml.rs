@@ -94,7 +94,7 @@ fn convert_xml(node: roxmltree::Node) -> Value {
 
     let children: Array = node.children().map(convert_xml).collect();
     if node.is_root() {
-        return Value::Array(children);
+        return children.into_value();
     }
 
     let tag: Str = node.tag_name().name().into();
@@ -103,11 +103,12 @@ fn convert_xml(node: roxmltree::Node) -> Value {
         .map(|attr| (attr.name().into(), attr.value().into_value()))
         .collect();
 
-    Value::Dict(dict! {
+    dict! {
         "tag" => tag,
         "attrs" => attrs,
         "children" => children,
-    })
+    }
+    .into_value()
 }
 
 /// Format the user-facing XML error message.

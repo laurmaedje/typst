@@ -14,8 +14,8 @@ use smallvec::smallvec;
 use crate::diag::{SourceResult, StrResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    elem, func, scope, ty, Dict, Element, Fields, Guard, IntoValue, Label, NativeElement,
-    Recipe, Repr, Selector, Str, Style, Styles, Synthesize, Value,
+    elem, func, scope, ty, Array, Dict, Element, Fields, FromValue, Guard, IntoValue,
+    Label, NativeElement, Recipe, Repr, Selector, Str, Style, Styles, Synthesize, Value,
 };
 use crate::introspection::{Locatable, Location, Meta, MetaElem};
 use crate::layout::{AlignElem, Alignment, Axes, Length, MoveElem, PadElem, Rel, Sides};
@@ -431,25 +431,21 @@ impl Content {
     {
         f(self.clone());
 
-        self.inner
-            .elem
-            .fields()
-            .into_iter()
-            .for_each(|(_, value)| walk_value(value, f));
+        for (_, value) in self.inner.elem.fields().iter() {
+            walk_value(value, f);
+        }
 
         /// Walks a given value to find any content that matches the selector.
-        fn walk_value<F>(value: Value, f: &mut F)
+        fn walk_value<F>(value: &Value, f: &mut F)
         where
             F: FnMut(Content),
         {
-            match value {
-                Value::Content(content) => content.traverse(f),
-                Value::Array(array) => {
-                    for value in array {
-                        walk_value(value, f);
-                    }
+            if let Some(content) = value.to::<Content>() {
+                content.traverse(f)
+            } else if let Some(array) = value.to::<Array>() {
+                for value in array {
+                    walk_value(value, f);
                 }
-                _ => {}
             }
         }
     }

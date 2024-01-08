@@ -188,7 +188,7 @@ pub struct MatElem {
         let mut width = 0;
 
         let values = args.all::<Spanned<Value>>()?;
-        if values.iter().any(|spanned| matches!(spanned.v, Value::Array(_))) {
+        if values.iter().any(|spanned| spanned.v.is::<Array>()) {
             for Spanned { v, span } in values {
                 let array = v.cast::<Array>().at(span)?;
                 let row: Vec<_> = array.into_iter().map(Value::display).collect();

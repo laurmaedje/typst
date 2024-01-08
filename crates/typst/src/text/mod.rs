@@ -36,10 +36,10 @@ use ttf_parser::Rect;
 
 use crate::diag::{bail, SourceResult, StrResult};
 use crate::engine::Engine;
-use crate::foundations::Packed;
 use crate::foundations::{
     cast, category, elem, Args, Array, Cast, Category, Construct, Content, Dict, Fold,
-    NativeElement, Never, PlainText, Repr, Resolve, Scope, Set, Smart, StyleChain, Value,
+    NativeElement, Never, NoneValue, Packed, PlainText, Repr, Resolve, Scope, Set, Smart,
+    StyleChain, Value,
 };
 use crate::layout::{Abs, Axis, Dir, Length, Rel};
 use crate::model::ParElem;
@@ -1131,7 +1131,7 @@ pub struct ItalicToggle;
 
 cast! {
     ItalicToggle,
-    self => Value::None,
+    self => NoneValue.into_value(),
     _: Value => Self,
 }
 

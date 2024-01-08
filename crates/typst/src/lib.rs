@@ -34,6 +34,7 @@
 #![allow(clippy::comparison_chain)]
 #![allow(clippy::wildcard_in_or_patterns)]
 #![allow(clippy::manual_range_contains)]
+#![allow(unused)]
 
 extern crate self as typst;
 

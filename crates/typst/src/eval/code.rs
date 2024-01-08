@@ -2,7 +2,9 @@ use ecow::{eco_vec, EcoVec};
 
 use crate::diag::{bail, error, At, SourceDiagnostic, SourceResult};
 use crate::eval::{ops, Eval, Vm};
-use crate::foundations::{Array, Content, Dict, Str, Value};
+use crate::foundations::{
+    Array, AutoValue, Content, Dict, IntoValue, NoneValue, Str, Value,
+};
 use crate::syntax::ast::{self, AstNode};
 
 impl Eval for ast::Code<'_> {
@@ -19,7 +21,7 @@ fn eval_code<'a>(
     exprs: &mut impl Iterator<Item = ast::Expr<'a>>,
 ) -> SourceResult<Value> {
     let flow = vm.flow.take();
-    let mut output = Value::None;
+    let mut output = NoneValue.into_value();
 
     while let Some(expr) = exprs.next() {
         let span = expr.span();
@@ -31,7 +33,7 @@ fn eval_code<'a>(
                 }
 
                 let tail = eval_code(vm, exprs)?.display();
-                Value::Content(tail.styled_with_map(styles))
+                tail.styled_with_map(styles).into_value()
             }
             ast::Expr::Show(show) => {
                 let recipe = show.eval(vm)?;
@@ -40,7 +42,7 @@ fn eval_code<'a>(
                 }
 
                 let tail = eval_code(vm, exprs)?.display();
-                Value::Content(tail.styled_with_recipe(&mut vm.engine, recipe)?)
+                tail.styled_with_recipe(&mut vm.engine, recipe)?.into_value()
             }
             _ => expr.eval(vm)?,
         };
@@ -69,62 +71,62 @@ impl Eval for ast::Expr<'_> {
         };
 
         let v = match self {
-            Self::Text(v) => v.eval(vm).map(Value::Content),
-            Self::Space(v) => v.eval(vm).map(Value::Content),
-            Self::Linebreak(v) => v.eval(vm).map(Value::Content),
-            Self::Parbreak(v) => v.eval(vm).map(Value::Content),
-            Self::Escape(v) => v.eval(vm),
-            Self::Shorthand(v) => v.eval(vm),
-            Self::SmartQuote(v) => v.eval(vm).map(Value::Content),
-            Self::Strong(v) => v.eval(vm).map(Value::Content),
-            Self::Emph(v) => v.eval(vm).map(Value::Content),
-            Self::Raw(v) => v.eval(vm).map(Value::Content),
-            Self::Link(v) => v.eval(vm).map(Value::Content),
-            Self::Label(v) => v.eval(vm),
-            Self::Ref(v) => v.eval(vm).map(Value::Content),
-            Self::Heading(v) => v.eval(vm).map(Value::Content),
-            Self::List(v) => v.eval(vm).map(Value::Content),
-            Self::Enum(v) => v.eval(vm).map(Value::Content),
-            Self::Term(v) => v.eval(vm).map(Value::Content),
-            Self::Equation(v) => v.eval(vm).map(Value::Content),
-            Self::Math(v) => v.eval(vm).map(Value::Content),
-            Self::MathIdent(v) => v.eval(vm),
-            Self::MathAlignPoint(v) => v.eval(vm).map(Value::Content),
-            Self::MathDelimited(v) => v.eval(vm).map(Value::Content),
-            Self::MathAttach(v) => v.eval(vm).map(Value::Content),
-            Self::MathPrimes(v) => v.eval(vm).map(Value::Content),
-            Self::MathFrac(v) => v.eval(vm).map(Value::Content),
-            Self::MathRoot(v) => v.eval(vm).map(Value::Content),
+            Self::Text(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Space(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Linebreak(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Parbreak(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Escape(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Shorthand(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::SmartQuote(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Strong(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Emph(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Raw(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Link(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Label(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Ref(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Heading(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::List(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Enum(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Term(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Equation(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Math(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::MathIdent(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::MathAlignPoint(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::MathDelimited(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::MathAttach(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::MathPrimes(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::MathFrac(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::MathRoot(v) => v.eval(vm).map(IntoValue::into_value),
             Self::Ident(v) => v.eval(vm),
-            Self::None(v) => v.eval(vm),
-            Self::Auto(v) => v.eval(vm),
-            Self::Bool(v) => v.eval(vm),
-            Self::Int(v) => v.eval(vm),
-            Self::Float(v) => v.eval(vm),
+            Self::None(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Auto(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Bool(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Int(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Float(v) => v.eval(vm).map(IntoValue::into_value),
             Self::Numeric(v) => v.eval(vm),
-            Self::Str(v) => v.eval(vm),
+            Self::Str(v) => v.eval(vm).map(IntoValue::into_value),
             Self::Code(v) => v.eval(vm),
-            Self::Content(v) => v.eval(vm).map(Value::Content),
-            Self::Array(v) => v.eval(vm).map(Value::Array),
-            Self::Dict(v) => v.eval(vm).map(Value::Dict),
+            Self::Content(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Array(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Dict(v) => v.eval(vm).map(IntoValue::into_value),
             Self::Parenthesized(v) => v.eval(vm),
             Self::FieldAccess(v) => v.eval(vm),
             Self::FuncCall(v) => v.eval(vm),
-            Self::Closure(v) => v.eval(vm),
+            Self::Closure(v) => v.eval(vm).map(IntoValue::into_value),
             Self::Unary(v) => v.eval(vm),
             Self::Binary(v) => v.eval(vm),
-            Self::Let(v) => v.eval(vm),
-            Self::DestructAssign(v) => v.eval(vm),
+            Self::Let(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::DestructAssign(v) => v.eval(vm).map(IntoValue::into_value),
             Self::Set(_) => bail!(forbidden("set")),
             Self::Show(_) => bail!(forbidden("show")),
             Self::Conditional(v) => v.eval(vm),
             Self::While(v) => v.eval(vm),
             Self::For(v) => v.eval(vm),
-            Self::Import(v) => v.eval(vm),
-            Self::Include(v) => v.eval(vm).map(Value::Content),
-            Self::Break(v) => v.eval(vm),
-            Self::Continue(v) => v.eval(vm),
-            Self::Return(v) => v.eval(vm),
+            Self::Import(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Include(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Break(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Continue(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Return(v) => v.eval(vm).map(IntoValue::into_value),
         }?
         .spanned(span);
 
@@ -145,42 +147,42 @@ impl Eval for ast::Ident<'_> {
 }
 
 impl Eval for ast::None<'_> {
-    type Output = Value;
+    type Output = NoneValue;
 
     fn eval(self, _: &mut Vm) -> SourceResult<Self::Output> {
-        Ok(Value::None)
+        Ok(NoneValue)
     }
 }
 
 impl Eval for ast::Auto<'_> {
-    type Output = Value;
+    type Output = AutoValue;
 
     fn eval(self, _: &mut Vm) -> SourceResult<Self::Output> {
-        Ok(Value::Auto)
+        Ok(AutoValue)
     }
 }
 
 impl Eval for ast::Bool<'_> {
-    type Output = Value;
+    type Output = bool;
 
     fn eval(self, _: &mut Vm) -> SourceResult<Self::Output> {
-        Ok(Value::Bool(self.get()))
+        Ok(self.get())
     }
 }
 
 impl Eval for ast::Int<'_> {
-    type Output = Value;
+    type Output = i64;
 
     fn eval(self, _: &mut Vm) -> SourceResult<Self::Output> {
-        Ok(Value::Int(self.get()))
+        Ok(self.get())
     }
 }
 
 impl Eval for ast::Float<'_> {
-    type Output = Value;
+    type Output = f64;
 
     fn eval(self, _: &mut Vm) -> SourceResult<Self::Output> {
-        Ok(Value::Float(self.get()))
+        Ok(self.get())
     }
 }
 
@@ -193,10 +195,10 @@ impl Eval for ast::Numeric<'_> {
 }
 
 impl Eval for ast::Str<'_> {
-    type Output = Value;
+    type Output = Str;
 
     fn eval(self, _: &mut Vm) -> SourceResult<Self::Output> {
-        Ok(Value::Str(self.get().into()))
+        Ok(self.get().into())
     }
 }
 
@@ -210,11 +212,15 @@ impl Eval for ast::Array<'_> {
         for item in items {
             match item {
                 ast::ArrayItem::Pos(expr) => vec.push(expr.eval(vm)?),
-                ast::ArrayItem::Spread(expr) => match expr.eval(vm)? {
-                    Value::None => {}
-                    Value::Array(array) => vec.extend(array.into_iter()),
-                    v => bail!(expr.span(), "cannot spread {} into array", v.ty()),
-                },
+                ast::ArrayItem::Spread(expr) => {
+                    let value = expr.eval(vm)?;
+                    if value.is::<Array>() {
+                        let array = value.unpack::<Array>().unwrap();
+                        vec.extend(array.into_iter());
+                    } else if !value.is::<NoneValue>() {
+                        bail!(expr.span(), "cannot spread {} into array", value.ty());
+                    }
+                }
             }
         }
 
@@ -245,11 +251,19 @@ impl Eval for ast::Dict<'_> {
                     });
                     map.insert(key, keyed.expr().eval(vm)?);
                 }
-                ast::DictItem::Spread(expr) => match expr.eval(vm)? {
-                    Value::None => {}
-                    Value::Dict(dict) => map.extend(dict.into_iter()),
-                    v => bail!(expr.span(), "cannot spread {} into dictionary", v.ty()),
-                },
+                ast::DictItem::Spread(expr) => {
+                    let value = expr.eval(vm)?;
+                    if value.is::<Dict>() {
+                        let dict = value.unpack::<Dict>().unwrap();
+                        map.extend(dict.into_iter());
+                    } else if !value.is::<NoneValue>() {
+                        bail!(
+                            expr.span(),
+                            "cannot spread {} into dictionary",
+                            value.ty()
+                        );
+                    }
+                }
             }
         }
 

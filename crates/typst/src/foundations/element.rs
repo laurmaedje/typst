@@ -155,7 +155,7 @@ impl PartialOrd for Element {
 
 cast! {
     Element,
-    self => Value::Func(self.into()),
+    self => Func::from(self).into_value(),
     v: Func => v.element().ok_or("expected element")?,
 }
 

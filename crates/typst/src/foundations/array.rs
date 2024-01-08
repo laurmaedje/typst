@@ -616,10 +616,9 @@ impl Array {
     pub fn flatten(self) -> Array {
         let mut flat = EcoVec::with_capacity(self.0.len());
         for item in self {
-            if let Value::Array(nested) = item {
-                flat.extend(nested.flatten());
-            } else {
-                flat.push(item);
+            match item.unpack::<Array>() {
+                Ok(nested) => flat.extend(nested.flatten()),
+                Err(item) => flat.push(item),
             }
         }
         flat.into()
@@ -640,7 +639,7 @@ impl Array {
     ) -> Array {
         self.as_slice()
             .split(|value| *value == at)
-            .map(|subslice| Value::Array(subslice.iter().cloned().collect()))
+            .map(|subslice| subslice.iter().cloned().collect::<Array>().into_value())
             .collect()
     }
 
@@ -656,10 +655,10 @@ impl Array {
         last: Option<Value>,
     ) -> StrResult<Value> {
         let len = self.0.len();
-        let separator = separator.unwrap_or(Value::None);
+        let separator = separator.unwrap_or_default();
 
         let mut last = last;
-        let mut result = Value::None;
+        let mut result = Value::default();
         for (i, value) in self.into_iter().enumerate() {
             if i > 0 {
                 if i + 1 == len && last.is_some() {
@@ -803,9 +802,9 @@ pub struct ToArray(Array);
 
 cast! {
     ToArray,
-    v: Bytes => Self(v.iter().map(|&b| Value::Int(b.into())).collect()),
+    v: Bytes => Self(v.iter().map(|&b| b.into_value()).collect()),
     v: Array => Self(v),
-    v: Version => Self(v.values().iter().map(|&v| Value::Int(v as i64)).collect())
+    v: Version => Self(v.values().iter().map(|&v| v.into_value()).collect())
 }
 
 impl Debug for Array {
@@ -916,13 +915,19 @@ impl<T: Reflect, const N: usize> Reflect for SmallVec<[T; N]> {
 
 impl<T: IntoValue> IntoValue for Vec<T> {
     fn into_value(self) -> Value {
-        Value::Array(self.into_iter().map(IntoValue::into_value).collect())
+        self.into_iter()
+            .map(IntoValue::into_value)
+            .collect::<Array>()
+            .into_value()
     }
 }
 
 impl<T: IntoValue, const N: usize> IntoValue for SmallVec<[T; N]> {
     fn into_value(self) -> Value {
-        Value::Array(self.into_iter().map(IntoValue::into_value).collect())
+        self.into_iter()
+            .map(IntoValue::into_value)
+            .collect::<Array>()
+            .into_value()
     }
 }
 

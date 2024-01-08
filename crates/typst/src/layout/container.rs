@@ -1,7 +1,7 @@
 use crate::diag::SourceResult;
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, AutoValue, Content, Packed, Resolve, Smart, StyleChain, Value,
+    cast, elem, AutoValue, Content, NativeElement, Packed, Resolve, Smart, StyleChain,
 };
 use crate::layout::{
     Abs, Axes, Corners, Em, Fr, Fragment, FrameKind, Layout, Length, Ratio, Regions, Rel,
@@ -499,7 +499,7 @@ impl<T: Into<Spacing>> From<T> for Sizing {
 cast! {
     Sizing,
     self => match self {
-        Self::Auto => Value::Auto,
+        Self::Auto => AutoValue.into_value(),
         Self::Rel(rel) => rel.into_value(),
         Self::Fr(fr) => fr.into_value(),
     },

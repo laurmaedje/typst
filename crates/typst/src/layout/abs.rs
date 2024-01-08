@@ -4,7 +4,8 @@ use std::ops::{Add, Div, Mul, Neg, Rem};
 
 use ecow::EcoString;
 
-use crate::foundations::{cast, repr, Repr, Value};
+use crate::foundations::{cast, repr, Repr};
+use crate::layout::Length;
 use crate::util::{Numeric, Scalar};
 
 /// An absolute length.
@@ -229,7 +230,7 @@ impl<'a> Sum<&'a Self> for Abs {
 
 cast! {
     Abs,
-    self => Value::Length(self.into()),
+    self => Length::from(self).into_value(),
 }
 
 /// Different units of absolute measurement.

@@ -79,11 +79,14 @@ cast! {
     ToAbs,
     v: i64 => Self(v.abs().into_value()),
     v: f64 => Self(v.abs().into_value()),
-    v: Length => Self(Value::Length(v.try_abs()
-        .ok_or("cannot take absolute value of this length")?)),
-    v: Angle => Self(Value::Angle(v.abs())),
-    v: Ratio => Self(Value::Ratio(v.abs())),
-    v: Fr => Self(Value::Fraction(v.abs())),
+    v: Length => Self(
+        v.try_abs()
+            .ok_or("cannot take absolute value of this length")?
+            .into_value()
+    ),
+    v: Angle => Self(v.abs().into_value()),
+    v: Ratio => Self(v.abs().into_value()),
+    v: Fr => Self(v.abs().into_value()),
 }
 
 /// Raises a value to some exponent.
