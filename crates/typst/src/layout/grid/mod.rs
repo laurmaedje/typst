@@ -9,8 +9,7 @@ use smallvec::{smallvec, SmallVec};
 use crate::diag::{SourceResult, StrResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, scope, Array, Content, Fold, NativeElement, Packed, Show, Smart,
-    StyleChain, Value,
+    cast, elem, scope, Array, Fold, Packed, Show, Smart, StyleChain, Value,
 };
 use crate::layout::{
     Abs, AlignElem, Alignment, Axes, Fragment, Layout, Length, Regions, Rel, Sides,
@@ -218,7 +217,7 @@ pub struct GridElem {
 
 #[scope]
 impl GridElem {
-    #[elem]
+    #[ty]
     type GridCell;
 }
 
@@ -294,7 +293,7 @@ cast! {
 pub struct GridCell {
     /// The cell's body.
     #[required]
-    body: Content,
+    body: Value,
 
     /// The cell's fill override.
     fill: Smart<Option<Paint>>,
@@ -306,14 +305,14 @@ pub struct GridCell {
     inset: Smart<Sides<Option<Rel<Length>>>>,
 }
 
-cast! {
-    GridCell,
-    v: Content => v.into(),
-}
+// cast! {
+//     GridCell,
+//     v: Value => v.into(),
+// }
 
 impl Default for GridCell {
     fn default() -> Self {
-        Self::new(Content::default())
+        Self::new(Value::default())
     }
 }
 
@@ -347,13 +346,13 @@ impl ResolvableCell for GridCell {
 }
 
 impl Show for Packed<GridCell> {
-    fn show(&self, _engine: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _engine: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         show_grid_cell(self.body().clone(), self.inset(styles), self.align(styles))
     }
 }
 
-impl From<Content> for GridCell {
-    fn from(value: Content) -> Self {
+impl From<Value> for GridCell {
+    fn from(value: Value) -> Self {
         match value.to_packed::<Self>() {
             Ok(packed) => packed.unpack(),
             Err(v) => Self::new(v),
@@ -363,10 +362,10 @@ impl From<Content> for GridCell {
 
 /// Function with common code to display a grid cell or table cell.
 pub fn show_grid_cell(
-    mut body: Content,
+    mut body: Value,
     inset: Smart<Sides<Option<Rel<Length>>>>,
     align: Smart<Alignment>,
-) -> SourceResult<Content> {
+) -> SourceResult<Value> {
     let inset = inset.unwrap_or_default().map(Option::unwrap_or_default);
 
     if inset != Sides::default() {

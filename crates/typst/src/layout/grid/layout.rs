@@ -1,8 +1,8 @@
 use crate::diag::{bail, At, SourceResult, StrResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    Array, CastInfo, Content, FromValue, Func, IntoValue, Reflect, Resolve, Smart,
-    StyleChain, Value,
+    cast, elem, Array, CastInfo, FromValue, Func, IntoValue, Packed, Reflect, Resolve,
+    Smart, StyleChain, Value,
 };
 use crate::layout::{
     Abs, Alignment, Axes, Dir, Fr, Fragment, Frame, FrameItem, Layout, Length, Point,
@@ -72,12 +72,13 @@ impl<T: IntoValue> IntoValue for Celled<T> {
 impl<T: FromValue> FromValue for Celled<T> {
     fn from_value(value: Value) -> StrResult<Self> {
         if value.is::<Func>() {
-            Ok(Self::Func(value.unpack::<Func>().unwrap()))
+            Ok(Self::Func(value.to_packed::<Func>().unwrap().unpack()))
         } else if value.is::<Array>() {
             Ok(Self::Array(
                 value
-                    .unpack::<Array>()
+                    .to_packed::<Array>()
                     .unwrap()
+                    .unpack()
                     .into_iter()
                     .map(T::from_value)
                     .collect::<StrResult<_>>()?,
@@ -93,14 +94,14 @@ impl<T: FromValue> FromValue for Celled<T> {
 /// Represents a cell in CellGrid, to be laid out by GridLayouter.
 pub struct Cell {
     /// The cell's body.
-    pub body: Content,
+    pub body: Value,
     /// The cell's fill.
     pub fill: Option<Paint>,
 }
 
-impl From<Content> for Cell {
+impl From<Value> for Cell {
     /// Create a simple cell given its body.
-    fn from(body: Content) -> Self {
+    fn from(body: Value) -> Self {
         Self { body, fill: None }
     }
 }

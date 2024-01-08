@@ -3,8 +3,8 @@ use std::num::NonZeroUsize;
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    elem, Content, Finalize, Guard, NativeElement, Packed, Resolve, Show, Smart,
-    StyleChain, Synthesize,
+    elem, Finalize, Guard, NoneValue, Packed, Resolve, Show, Smart, StyleChain,
+    Synthesize, Value,
 };
 use crate::introspection::{Count, Counter, CounterUpdate, Locatable};
 use crate::layout::{
@@ -86,7 +86,7 @@ pub struct EquationElem {
 
     /// The contents of the equation.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Synthesize for Packed<EquationElem> {
@@ -97,7 +97,7 @@ impl Synthesize for Packed<EquationElem> {
     ) -> SourceResult<()> {
         let supplement = match self.as_ref().supplement(styles) {
             Smart::Auto => TextElem::packed(Self::local_name_in(styles)),
-            Smart::Custom(None) => Content::empty(),
+            Smart::Custom(None) => Value::none(),
             Smart::Custom(Some(supplement)) => {
                 supplement.resolve(engine, [self.clone().pack()])?
             }
@@ -114,8 +114,8 @@ impl Synthesize for Packed<EquationElem> {
 
 impl Show for Packed<EquationElem> {
     #[typst_macros::time(name = "math.equation", span = self.span())]
-    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
-        let mut realized = self.clone().pack().guarded(Guard::Base(EquationElem::elem()));
+    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
+        let mut realized = self.clone().pack().guarded(Guard::Base(EquationElem::ty()));
         if self.block(styles) {
             realized = AlignElem::new(realized).pack().spanned(self.span());
         }
@@ -124,9 +124,9 @@ impl Show for Packed<EquationElem> {
 }
 
 impl Finalize for Packed<EquationElem> {
-    fn finalize(&self, realized: Content, style: StyleChain) -> Content {
+    fn finalize(&self, realized: Value, styles: StyleChain) -> Value {
         let mut realized = realized;
-        if self.block(style) {
+        if self.block(styles) {
             realized = realized.styled(AlignElem::set_alignment(Alignment::CENTER));
         }
         realized
@@ -217,7 +217,7 @@ impl Layout for Packed<EquationElem> {
 
         if let Some(numbering) = (**self).numbering(styles) {
             let pod = Regions::one(regions.base(), Axes::splat(false));
-            let counter = Counter::of(EquationElem::elem())
+            let counter = Counter::of(EquationElem::ty())
                 .display(self.span(), Some(numbering), false)
                 .layout(engine, styles, pod)?
                 .into_frame();
@@ -304,16 +304,16 @@ impl LocalName for Packed<EquationElem> {
 }
 
 impl Refable for Packed<EquationElem> {
-    fn supplement(&self) -> Content {
+    fn supplement(&self) -> Value {
         // After synthesis, this should always be custom content.
         match (**self).supplement(StyleChain::default()) {
             Smart::Custom(Some(Supplement::Content(content))) => content,
-            _ => Content::empty(),
+            _ => Value::none(),
         }
     }
 
     fn counter(&self) -> Counter {
-        Counter::of(EquationElem::elem())
+        Counter::of(EquationElem::ty())
     }
 
     fn numbering(&self) -> Option<Numbering> {
@@ -322,7 +322,7 @@ impl Refable for Packed<EquationElem> {
 }
 
 impl Outlinable for Packed<EquationElem> {
-    fn outline(&self, engine: &mut Engine) -> SourceResult<Option<Content>> {
+    fn outline(&self, engine: &mut Engine) -> SourceResult<Option<Value>> {
         if !self.block(StyleChain::default()) {
             return Ok(None);
         }
@@ -333,11 +333,11 @@ impl Outlinable for Packed<EquationElem> {
         // After synthesis, this should always be custom content.
         let mut supplement = match (**self).supplement(StyleChain::default()) {
             Smart::Custom(Some(Supplement::Content(content))) => content,
-            _ => Content::empty(),
+            _ => Value::none(),
         };
 
-        if !supplement.is_empty() {
-            supplement += TextElem::packed("\u{a0}");
+        if !supplement.is::<NoneValue>() {
+            supplement = Value::sequence([supplement, TextElem::packed("\u{a0}")]);
         }
 
         let numbers = self
@@ -345,7 +345,7 @@ impl Outlinable for Packed<EquationElem> {
             .at(engine, self.location().unwrap())?
             .display(engine, &numbering)?;
 
-        Ok(Some(supplement + numbers))
+        Ok(Some(Value::sequence([supplement, numbers])))
     }
 }
 

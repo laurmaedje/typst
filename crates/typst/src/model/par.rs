@@ -3,8 +3,7 @@ use comemo::Prehashed;
 use crate::diag::SourceResult;
 use crate::engine::Engine;
 use crate::foundations::{
-    elem, Args, Cast, Construct, Content, NativeElement, Packed, Set, Smart, StyleChain,
-    Unlabellable,
+    elem, Args, Cast, Construct, Packed, Set, Smart, StyleChain, Unlabellable, Value,
 };
 use crate::layout::{Em, Fragment, Length, Size};
 
@@ -99,22 +98,22 @@ pub struct ParElem {
     /// The contents of the paragraph.
     #[external]
     #[required]
-    pub body: Content,
+    pub body: Value,
 
     /// The paragraph's children.
     #[internal]
     #[variadic]
-    pub children: Vec<Prehashed<Content>>,
+    pub children: Vec<Prehashed<Value>>,
 }
 
 impl Construct for ParElem {
-    fn construct(engine: &mut Engine, args: &mut Args) -> SourceResult<Content> {
+    fn construct(engine: &mut Engine, args: &mut Args) -> SourceResult<Value> {
         // The paragraph constructor is special: It doesn't create a paragraph
         // element. Instead, it just ensures that the passed content lives in a
         // separate paragraph and styles it.
         let styles = Self::set(engine, args)?;
-        let body = args.expect::<Content>("body")?;
-        Ok(Content::sequence([
+        let body = args.expect::<Value>("body")?;
+        Ok(Value::sequence([
             ParbreakElem::new().pack(),
             body.styled_with_map(styles),
             ParbreakElem::new().pack(),

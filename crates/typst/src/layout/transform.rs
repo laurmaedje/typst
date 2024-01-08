@@ -1,6 +1,6 @@
 use crate::diag::SourceResult;
 use crate::engine::Engine;
-use crate::foundations::{elem, Content, Packed, Resolve, StyleChain};
+use crate::foundations::{elem, Packed, Resolve, StyleChain, Value};
 use crate::layout::{
     Abs, Alignment, Angle, Axes, FixedAlign, Fragment, Frame, HAlignment, Layout, Length,
     Point, Ratio, Regions, Rel, Size, VAlignment,
@@ -34,7 +34,7 @@ pub struct MoveElem {
 
     /// The content to move.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Layout for Packed<MoveElem> {
@@ -112,7 +112,7 @@ pub struct RotateElem {
 
     /// The content to rotate.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Layout for Packed<RotateElem> {
@@ -200,7 +200,7 @@ pub struct ScaleElem {
 
     /// The content to scale.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Layout for Packed<ScaleElem> {
@@ -366,7 +366,7 @@ fn measure_and_layout(
     base_size: Size,
     size: Size,
     styles: StyleChain,
-    body: &Content,
+    body: &Value,
     transform: Transform,
     align: Axes<FixedAlign>,
     reflow: bool,

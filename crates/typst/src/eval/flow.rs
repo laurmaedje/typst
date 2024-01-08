@@ -145,7 +145,7 @@ impl Eval for ast::ForLoop<'_> {
             iter!(for pattern in dict.pairs());
         } else if iter.is::<Array>() {
             // Iterate over values of array.
-            let array = iter.unpack::<Array>().unwrap();
+            let array = iter.to_packed::<Array>().unwrap().unpack();
             iter!(for pattern in array);
         } else {
             bail!(self.iter().span(), "cannot loop over {}", iter.ty());

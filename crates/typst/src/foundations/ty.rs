@@ -1,11 +1,16 @@
+use std::any::TypeId;
 use std::cmp::Ordering;
 use std::fmt::{self, Debug, Display, Formatter};
 
 use ecow::{eco_format, EcoString};
 use once_cell::sync::Lazy;
 
-use crate::diag::StrResult;
-use crate::foundations::{cast, func, Func, NativeFuncData, Repr, Scope, Value};
+use crate::diag::{SourceResult, StrResult};
+use crate::engine::Engine;
+use crate::foundations::{
+    cast, func, Args, Dict, Func, NativeFuncData, Repr, Scope, Selector, Styles, Value,
+};
+use crate::text::{Lang, Region};
 use crate::util::Static;
 
 #[rustfmt::skip]
@@ -108,6 +113,42 @@ impl Type {
             .get(field)
             .ok_or_else(|| eco_format!("type {self} does not contain field `{field}`"))
     }
+
+    pub fn select(&self) -> Selector {
+        Selector::Type(*self)
+    }
+
+    pub fn field_id(&self, name: &str) -> Option<u8> {
+        todo!()
+    }
+
+    pub fn field_name(&self, id: u8) -> Option<&'static str> {
+        todo!()
+    }
+
+    /// Execute the set rule for the element and return the resulting style map.
+    pub fn set(self, engine: &mut Engine, mut args: Args) -> SourceResult<Styles> {
+        todo!()
+    }
+
+    /// The element's local name, if any.
+    pub fn local_name(&self, lang: Lang, region: Option<Region>) -> Option<&'static str> {
+        todo!()
+    }
+
+    /// Whether the type has the given capability.
+    pub fn can<C>(self) -> bool
+    where
+        C: ?Sized + 'static,
+    {
+        todo!()
+    }
+
+    /// Whether the type has the given capability where the capability is
+    /// given by a `TypeId`.
+    pub fn can_type_id(self, type_id: TypeId) -> bool {
+        todo!()
+    }
 }
 
 // Type compatibility.
@@ -137,6 +178,34 @@ impl Type {
         value: Value,
     ) -> Type {
         value.ty()
+    }
+
+    /// Returns a selector that filters for elements belonging to this type
+    /// whose fields have the values of the given arguments.
+    #[func]
+    pub fn where_(
+        self,
+        /// The real arguments (the other argument is just for the docs).
+        /// The docs argument cannot be called `args`.
+        args: &mut Args,
+        /// The fields to filter for.
+        #[variadic]
+        #[external]
+        fields: Vec<Args>,
+    ) -> StrResult<Selector> {
+        let fields = args.to_named();
+        args.items.retain(|arg| arg.name.is_none());
+
+        let fields = fields
+            .into_iter()
+            .map(|(key, value)| {
+                self.field_id(&key)
+                    .map(|id| (id, value))
+                    .ok_or_else(|| eco_format!("type {self} does not have field `{key}`"))
+            })
+            .collect::<StrResult<smallvec::SmallVec<_>>>()?;
+
+        Ok(Selector::Where(self, fields))
     }
 }
 
@@ -184,6 +253,29 @@ pub trait NativeType {
 
     // Get the type data for the native Rust type.
     fn data() -> &'static NativeTypeData;
+}
+
+/// Used to cast an element to a trait object for a trait it implements.
+///
+/// # Safety
+/// If the `vtable` function returns `Some(p)`, then `p` must be a valid pointer
+/// to a vtable of `Packed<Self>` w.r.t to the trait `C` where `capability` is
+/// `TypeId::of::<dyn C>()`.
+pub unsafe trait Capable {
+    /// Get the pointer to the vtable for the given capability / trait.
+    fn vtable(capability: TypeId) -> Option<*const ()>;
+}
+
+/// Defines how fields of an element are accessed.
+pub trait Fields {
+    /// Whether the element has the given field set.
+    fn has(&self, id: u8) -> bool;
+
+    /// Get the field with the given field ID.
+    fn field(&self, id: u8) -> Option<Value>;
+
+    /// Get the fields of the element.
+    fn fields(&self) -> Dict;
 }
 
 /// Defines a native type.

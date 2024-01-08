@@ -1,6 +1,6 @@
 use crate::diag::{At, SourceResult};
 use crate::eval::{Eval, Vm};
-use crate::foundations::{Func, Recipe, ShowableSelector, Styles, Transformation};
+use crate::foundations::{Func, Recipe, ShowableSelector, Styles, Transformation, Type};
 use crate::syntax::ast::{self, AstNode};
 
 impl Eval for ast::SetRule<'_> {
@@ -14,15 +14,8 @@ impl Eval for ast::SetRule<'_> {
         }
 
         let target = self.target();
-        let target = target
-            .eval(vm)?
-            .cast::<Func>()
-            .and_then(|func| {
-                func.element().ok_or_else(|| {
-                    "only element functions can be used in set rules".into()
-                })
-            })
-            .at(target.span())?;
+        let target = target.eval(vm)?.cast::<Type>().at(target.span())?;
+
         let args = self.args().eval(vm)?;
         Ok(target.set(&mut vm.engine, args)?.spanned(self.span()))
     }

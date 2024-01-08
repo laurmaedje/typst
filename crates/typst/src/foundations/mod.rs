@@ -10,11 +10,9 @@ mod auto;
 mod bool;
 mod bytes;
 mod cast;
-mod content;
 mod datetime;
 mod dict;
 mod duration;
-mod element;
 mod fields;
 mod float;
 mod func;
@@ -32,16 +30,18 @@ mod ty;
 mod value;
 mod version;
 
+use std::borrow::Cow;
+use std::hash::Hasher;
+use std::sync::Arc;
+
 pub use self::args::*;
 pub use self::array::*;
 pub use self::auto::*;
 pub use self::bytes::*;
 pub use self::cast::*;
-pub use self::content::*;
 pub use self::datetime::*;
 pub use self::dict::*;
 pub use self::duration::*;
-pub use self::element::*;
 pub use self::fields::*;
 pub use self::float::*;
 pub use self::func::*;
@@ -66,13 +66,17 @@ pub use {
     ecow::{eco_format, eco_vec},
     indexmap::IndexMap,
     once_cell::sync::Lazy,
+    typst_macros::elem,
 };
 
+use comemo::Prehashed;
 use ecow::EcoString;
+use typst_syntax::Span;
 
 use crate::diag::{bail, SourceResult, StrResult};
 use crate::engine::Engine;
 use crate::eval::EvalMode;
+use crate::introspection::Location;
 use crate::syntax::Spanned;
 
 /// Foundational types and functions.
@@ -91,7 +95,6 @@ pub(super) fn define(global: &mut Scope, inputs: Dict) {
     global.define_type::<Str>();
     global.define_type::<Label>();
     global.define_type::<Bytes>();
-    global.define_type::<Content>();
     global.define_type::<Array>();
     global.define_type::<Dict>();
     global.define_type::<Func>();
@@ -292,4 +295,160 @@ pub fn eval(
         scope.define(key, value);
     }
     crate::eval::eval_string(engine.world, &text, span, mode, scope)
+}
+
+/// An element's constructor function.
+pub trait Construct {
+    /// Construct an element from the arguments.
+    ///
+    /// This is passed only the arguments that remain after execution of the
+    /// element's set rule.
+    fn construct(engine: &mut Engine, args: &mut Args) -> SourceResult<Value>
+    where
+        Self: Sized;
+}
+
+/// An element's set rule.
+pub trait Set {
+    /// Parse relevant arguments into style properties for this element.
+    fn set(engine: &mut Engine, args: &mut Args) -> SourceResult<Styles>
+    where
+        Self: Sized;
+}
+
+/// Synthesize fields on an element. This happens before execution of any show
+/// rule.
+pub trait Synthesize {
+    /// Prepare the element for show rule application.
+    fn synthesize(&mut self, engine: &mut Engine, styles: StyleChain)
+        -> SourceResult<()>;
+}
+
+/// The base recipe for an element.
+pub trait Show {
+    /// Execute the base recipe for this element.
+    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Value>;
+}
+
+/// Post-process an element after it was realized.
+pub trait Finalize {
+    /// Finalize the fully realized form of the element. Use this for effects
+    /// that should work even in the face of a user-defined show rule.
+    fn finalize(&self, realized: Value, styles: StyleChain) -> Value;
+}
+
+/// How the element interacts with other elements.
+pub trait Behave {
+    /// The element's interaction behaviour.
+    fn behaviour(&self) -> Behaviour;
+
+    /// Whether this weak element is larger than a previous one and thus picked
+    /// as the maximum when the levels are the same.
+    #[allow(unused_variables)]
+    fn larger(
+        &self,
+        prev: &(Cow<Value>, Behaviour, StyleChain),
+        styles: StyleChain,
+    ) -> bool {
+        false
+    }
+}
+
+/// How an element interacts with other elements in a stream.
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum Behaviour {
+    /// A weak element which only survives when a supportive element is before
+    /// and after it. Furthermore, per consecutive run of weak elements, only
+    /// one survives: The one with the lowest weakness level (or the larger one
+    /// if there is a tie).
+    Weak(usize),
+    /// An element that enables adjacent weak elements to exist. The default.
+    Supportive,
+    /// An element that destroys adjacent weak elements.
+    Destructive,
+    /// An element that does not interact at all with other elements, having the
+    /// same effect as if it didn't exist, but has a visual representation.
+    Ignorant,
+    /// An element that does not have a visual representation.
+    Invisible,
+}
+
+/// Guards content against being affected by the same show rule multiple times.
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum Guard {
+    /// The nth recipe from the top of the chain.
+    Nth(usize),
+    /// The [base recipe](Show) for a kind of element.
+    Base(Type),
+}
+
+/// Fields of an element.
+pub trait ElementFields {
+    /// The fields of the element.
+    type Fields;
+}
+
+/// Tries to extract the plain-text representation of the element.
+pub trait PlainText {
+    /// Write this element's plain text into the given buffer.
+    fn plain_text(&self, text: &mut EcoString);
+}
+
+/// Defines the `ElemFunc` for styled elements.
+#[elem(Repr, PartialEq)]
+pub struct StyledElem {
+    #[required]
+    pub child: Prehashed<Value>,
+    #[required]
+    pub styles: Styles,
+}
+
+impl PartialEq for StyledElem {
+    fn eq(&self, other: &Self) -> bool {
+        *self.child == *other.child
+    }
+}
+
+impl Repr for StyledElem {
+    fn repr(&self) -> EcoString {
+        eco_format!("styled(child: {}, ..)", self.child.repr())
+    }
+}
+
+/// Defines the `ElemFunc` for sequences.
+#[elem(Repr, PartialEq)]
+pub struct SequenceElem {
+    #[required]
+    pub children: Vec<Prehashed<Value>>,
+}
+
+impl Default for SequenceElem {
+    fn default() -> Self {
+        Self { children: Default::default() }
+    }
+}
+
+impl PartialEq for SequenceElem {
+    fn eq(&self, other: &Self) -> bool {
+        self.children
+            .iter()
+            .map(|c| &**c)
+            .eq(other.children.iter().map(|c| &**c))
+    }
+}
+
+impl Repr for SequenceElem {
+    fn repr(&self) -> EcoString {
+        if self.children.is_empty() {
+            "[]".into()
+        } else {
+            eco_format!(
+                "[{}]",
+                repr::pretty_array_like(
+                    &self.children.iter().map(|c| c.repr()).collect::<Vec<_>>(),
+                    false
+                )
+            )
+        }
+    }
 }

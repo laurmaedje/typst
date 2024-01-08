@@ -3,8 +3,8 @@ use ecow::eco_format;
 use crate::diag::{bail, At, Hint, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, Content, Func, IntoValue, Label, NativeElement, Packed, Show, Smart,
-    StyleChain, Synthesize,
+    cast, elem, Func, IntoValue, Label, NoneValue, Packed, Show, Smart, StyleChain,
+    Synthesize, Value,
 };
 use crate::introspection::{Counter, Locatable};
 use crate::math::EquationElem;
@@ -133,7 +133,7 @@ pub struct RefElem {
 
     /// The referenced element.
     #[synthesized]
-    pub element: Option<Content>,
+    pub element: Option<Value>,
 }
 
 impl Synthesize for Packed<RefElem> {
@@ -162,7 +162,7 @@ impl Synthesize for Packed<RefElem> {
 
 impl Show for Packed<RefElem> {
     #[typst_macros::time(name = "ref", span = self.span())]
-    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         Ok(engine.delayed(|engine| {
             let target = *self.target();
             let elem = engine.introspector.query_label(target);
@@ -178,7 +178,7 @@ impl Show for Packed<RefElem> {
 
             let elem = elem.at(span)?;
 
-            if elem.func() == FootnoteElem::elem() {
+            if elem.ty() == FootnoteElem::ty() {
                 return Ok(FootnoteElem::with_label(target).pack().spanned(span));
             }
 
@@ -189,10 +189,10 @@ impl Show for Packed<RefElem> {
                     if elem.can::<dyn Figurable>() {
                         eco_format!(
                             "cannot reference {} directly, try putting it into a figure",
-                            elem.func().name()
+                            elem.ty()
                         )
                     } else {
-                        eco_format!("cannot reference {}", elem.func().name())
+                        eco_format!("cannot reference {}", elem.ty())
                     }
                 })
                 .at(span)?;
@@ -200,18 +200,15 @@ impl Show for Packed<RefElem> {
             let numbering = refable
                 .numbering()
                 .ok_or_else(|| {
-                    eco_format!(
-                        "cannot reference {} without numbering",
-                        elem.func().name()
-                    )
+                    eco_format!("cannot reference {} without numbering", elem.ty())
                 })
                 .hint(eco_format!(
                     "you can enable {} numbering with `#set {}(numbering: \"1.\")`",
-                    elem.func().name(),
-                    if elem.func() == EquationElem::elem() {
+                    elem.ty(),
+                    if elem.ty() == EquationElem::ty() {
                         "math.equation"
                     } else {
-                        elem.func().name()
+                        elem.ty().short_name()
                     }
                 ))
                 .at(span)?;
@@ -224,13 +221,14 @@ impl Show for Packed<RefElem> {
 
             let supplement = match self.supplement(styles).as_ref() {
                 Smart::Auto => refable.supplement(),
-                Smart::Custom(None) => Content::empty(),
+                Smart::Custom(None) => Value::none(),
                 Smart::Custom(Some(supplement)) => supplement.resolve(engine, [elem])?,
             };
 
             let mut content = numbers;
-            if !supplement.is_empty() {
-                content = supplement + TextElem::packed("\u{a0}") + content;
+            if !supplement.is::<NoneValue>() {
+                content =
+                    Value::sequence([supplement, TextElem::packed("\u{a0}"), content]);
             }
 
             Ok(content.linked(Destination::Location(loc)))
@@ -260,7 +258,7 @@ fn to_citation(
 /// Additional content for a reference.
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub enum Supplement {
-    Content(Content),
+    Content(Value),
     Func(Func),
 }
 
@@ -270,11 +268,11 @@ impl Supplement {
         &self,
         engine: &mut Engine,
         args: impl IntoIterator<Item = T>,
-    ) -> SourceResult<Content> {
-        Ok(match self {
-            Supplement::Content(content) => content.clone(),
-            Supplement::Func(func) => func.call(engine, args)?.display(),
-        })
+    ) -> SourceResult<Value> {
+        match self {
+            Supplement::Content(content) => Ok(content.clone()),
+            Supplement::Func(func) => func.call(engine, args),
+        }
     }
 }
 
@@ -284,15 +282,15 @@ cast! {
         Self::Content(v) => v.into_value(),
         Self::Func(v) => v.into_value(),
     },
-    v: Content => Self::Content(v),
     v: Func => Self::Func(v),
+    v: Value => Self::Content(v),
 }
 
 /// Marks an element as being able to be referenced. This is used to implement
 /// the `@ref` element.
 pub trait Refable {
     /// The supplement, if not overridden by the reference.
-    fn supplement(&self) -> Content;
+    fn supplement(&self) -> Value;
 
     /// Returns the counter of this element.
     fn counter(&self) -> Counter;

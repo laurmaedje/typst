@@ -1812,7 +1812,7 @@ cast! {
     }.into_value(),
     v: Value => {
         let expected = "expected `rgb`, `luma`, `cmyk`, `oklab`, `oklch`, `color.linear-rgb`, `color.hsl`, or `color.hsv`";
-        let Some(func) = v.to::<Func>() else {
+        let Some(func) = v.to::<Func>().map(AsRef::as_ref) else {
             bail!("{expected}, found {}", v.ty());
         };
 

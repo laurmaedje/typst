@@ -1,8 +1,6 @@
 use crate::diag::SourceResult;
 use crate::engine::Engine;
-use crate::foundations::{
-    elem, func, Content, Func, NativeElement, Packed, Show, StyleChain,
-};
+use crate::foundations::{elem, func, Func, Packed, Show, StyleChain, Value};
 use crate::introspection::Locatable;
 use crate::syntax::Span;
 
@@ -29,7 +27,7 @@ pub fn locate(
     /// `locate` appears in the document. That makes it possible to generate
     /// content that depends on its own location in the document.
     func: Func,
-) -> Content {
+) -> Value {
     LocateElem::new(func).pack().spanned(span)
 }
 
@@ -43,10 +41,10 @@ struct LocateElem {
 
 impl Show for Packed<LocateElem> {
     #[typst_macros::time(name = "locate", span = self.span())]
-    fn show(&self, engine: &mut Engine, _: StyleChain) -> SourceResult<Content> {
+    fn show(&self, engine: &mut Engine, _: StyleChain) -> SourceResult<Value> {
         Ok(engine.delayed(|engine| {
             let location = self.location().unwrap();
-            Ok(self.func().call(engine, [location])?.display())
+            self.func().call(engine, [location])
         }))
     }
 }

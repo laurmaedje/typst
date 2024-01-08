@@ -1,8 +1,6 @@
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
-use crate::foundations::{
-    cast, elem, scope, Array, Content, NativeElement, Packed, Smart, StyleChain,
-};
+use crate::foundations::{cast, elem, scope, Array, Packed, Smart, StyleChain, Value};
 use crate::layout::{
     BlockElem, Em, Fragment, HElem, Layout, Length, Regions, Spacing, VElem,
 };
@@ -63,7 +61,7 @@ pub struct TermsElem {
     /// ```
     #[default(HElem::new(Em::new(0.6).into()).with_weak(true).pack())]
     #[borrowed]
-    pub separator: Content,
+    pub separator: Value,
 
     /// The indentation of each item.
     pub indent: Length,
@@ -103,7 +101,7 @@ pub struct TermsElem {
 
 #[scope]
 impl TermsElem {
-    #[elem]
+    #[ty]
     type TermItem;
 }
 
@@ -138,7 +136,7 @@ impl Layout for Packed<TermsElem> {
             seq.push(child.description().clone());
         }
 
-        Content::sequence(seq)
+        Value::sequence(seq)
             .styled(ParElem::set_hanging_indent(hanging_indent + indent))
             .layout(engine, styles, regions)
     }
@@ -149,22 +147,21 @@ impl Layout for Packed<TermsElem> {
 pub struct TermItem {
     /// The term described by the list item.
     #[required]
-    pub term: Content,
+    pub term: Value,
 
     /// The description of the term.
     #[required]
-    pub description: Content,
+    pub description: Value,
 }
 
-cast! {
-    TermItem,
-    array: Array => {
-        let mut iter = array.into_iter();
-        let (term, description) = match (iter.next(), iter.next(), iter.next()) {
-            (Some(a), Some(b), None) => (a.cast()?, b.cast()?),
-            _ => bail!("array must contain exactly two entries"),
-        };
-        Self::new(term, description)
-    },
-    v: Content => v.to_packed::<Self>().map_err(|_| "expected term item or array")?.unpack(),
-}
+// cast! {
+//     TermItem,
+//     array: Array => {
+//         let mut iter = array.into_iter();
+//         let (term, description) = match (iter.next(), iter.next(), iter.next()) {
+//             (Some(a), Some(b), None) => (a.cast()?, b.cast()?),
+//             _ => bail!("array must contain exactly two entries"),
+//         };
+//         Self::new(term, description)
+//     },
+// }

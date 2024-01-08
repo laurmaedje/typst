@@ -3,7 +3,7 @@ use ecow::eco_format;
 use crate::diag::{bail, At, Hint, SourceResult, Trace, Tracepoint};
 use crate::eval::{Eval, Vm};
 use crate::foundations::{
-    call_method_access, is_accessor_method, Content, Dict, Func, Module, Value,
+    call_method_access, is_accessor_method, Dict, Func, Module, Value,
 };
 use crate::symbols::Symbol;
 use crate::syntax::ast::{self, AstNode};
@@ -85,11 +85,7 @@ pub(crate) fn access_dict<'a>(
     let span = access.target().span();
 
     // Those types have their own field getters
-    if value.is::<Symbol>()
-        || value.is::<Content>()
-        || value.is::<Module>()
-        || value.is::<Func>()
-    {
+    if value.is::<Symbol>() || value.is::<Module>() || value.is::<Func>() {
         bail!(span, "cannot mutate fields on {ty}");
     } else if crate::foundations::fields_on(ty).is_empty() {
         bail!(span, "{ty} does not have accessible fields");

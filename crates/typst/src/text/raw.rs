@@ -12,8 +12,8 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::diag::{At, FileError, SourceResult, StrResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, scope, Args, Array, Bytes, Content, Finalize, Fold, NativeElement,
-    Packed, PlainText, Show, Smart, StyleChain, Styles, Synthesize, Value,
+    cast, elem, scope, Args, Array, Bytes, Finalize, Fold, Packed, PlainText, Show,
+    Smart, StyleChain, Styles, Synthesize, Value,
 };
 use crate::layout::{BlockElem, Em, HAlignment};
 use crate::model::Figurable;
@@ -27,8 +27,8 @@ use crate::visualize::Color;
 use crate::{syntax, World};
 
 // Shorthand for highlighter closures.
-type StyleFn<'a> = &'a mut dyn FnMut(&LinkedNode, Range<usize>, synt::Style) -> Content;
-type LineFn<'a> = &'a mut dyn FnMut(i64, Range<usize>, &mut Vec<Content>);
+type StyleFn<'a> = &'a mut dyn FnMut(&LinkedNode, Range<usize>, synt::Style) -> Value;
+type LineFn<'a> = &'a mut dyn FnMut(i64, Range<usize>, &mut Vec<Value>);
 
 /// Raw text with optional syntax highlighting.
 ///
@@ -266,7 +266,7 @@ pub struct RawElem {
 
 #[scope]
 impl RawElem {
-    #[elem]
+    #[ty]
     type RawLine;
 }
 
@@ -341,7 +341,7 @@ impl Synthesize for Packed<RawElem> {
                             i + 1,
                             count,
                             EcoString::from(&text[range]),
-                            Content::sequence(line.drain(..)),
+                            Value::sequence(line.drain(..)),
                         ))
                         .spanned(span),
                     );
@@ -372,7 +372,7 @@ impl Synthesize for Packed<RawElem> {
                         i as i64 + 1,
                         count,
                         EcoString::from(line),
-                        Content::sequence(line_content),
+                        Value::sequence(line_content),
                     ))
                     .spanned(span),
                 );
@@ -397,7 +397,7 @@ impl Synthesize for Packed<RawElem> {
 
 impl Show for Packed<RawElem> {
     #[typst_macros::time(name = "raw", span = self.span())]
-    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         let mut lines = EcoVec::with_capacity((2 * self.lines().len()).saturating_sub(1));
         for (i, line) in self.lines().iter().enumerate() {
             if i != 0 {
@@ -407,7 +407,7 @@ impl Show for Packed<RawElem> {
             lines.push(line.clone().pack());
         }
 
-        let mut realized = Content::sequence(lines);
+        let mut realized = Value::sequence(lines);
         if self.block(styles) {
             // Align the text before inserting it into the block.
             realized = realized.aligned(self.align(styles).into());
@@ -420,7 +420,7 @@ impl Show for Packed<RawElem> {
 }
 
 impl Finalize for Packed<RawElem> {
-    fn finalize(&self, realized: Content, _: StyleChain) -> Content {
+    fn finalize(&self, realized: Value, _: StyleChain) -> Value {
         let mut styles = Styles::new();
         styles.set(TextElem::set_overhang(false));
         styles.set(TextElem::set_hyphenate(Hyphenate(Smart::Custom(false))));
@@ -499,12 +499,12 @@ pub struct RawLine {
 
     /// The highlighted raw text.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Show for Packed<RawLine> {
     #[typst_macros::time(name = "raw.line", span = self.span())]
-    fn show(&self, _: &mut Engine, _styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, _styles: StyleChain) -> SourceResult<Value> {
         Ok(self.body().clone())
     }
 }
@@ -526,7 +526,7 @@ struct ThemedHighlighter<'a> {
     /// The current scopes.
     scopes: Vec<syntect::parsing::Scope>,
     /// The current highlighted line.
-    current_line: Vec<Content>,
+    current_line: Vec<Value>,
     /// The range of the current line.
     range: Range<usize>,
     /// The current line number.
@@ -615,7 +615,7 @@ impl<'a> ThemedHighlighter<'a> {
 }
 
 /// Style a piece of text with a syntect style.
-fn styled(piece: &str, foreground: synt::Color, style: synt::Style) -> Content {
+fn styled(piece: &str, foreground: synt::Color, style: synt::Style) -> Value {
     let mut body = TextElem::packed(piece);
 
     if style.foreground != foreground {

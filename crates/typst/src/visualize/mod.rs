@@ -39,12 +39,12 @@ pub(super) fn define(global: &mut Scope) {
     global.define_type::<Gradient>();
     global.define_type::<Pattern>();
     global.define_type::<Stroke>();
-    global.define_elem::<ImageElem>();
-    global.define_elem::<LineElem>();
-    global.define_elem::<RectElem>();
-    global.define_elem::<SquareElem>();
-    global.define_elem::<EllipseElem>();
-    global.define_elem::<CircleElem>();
-    global.define_elem::<PolygonElem>();
-    global.define_elem::<PathElem>();
+    global.define_type::<ImageElem>();
+    global.define_type::<LineElem>();
+    global.define_type::<RectElem>();
+    global.define_type::<SquareElem>();
+    global.define_type::<EllipseElem>();
+    global.define_type::<CircleElem>();
+    global.define_type::<PolygonElem>();
+    global.define_type::<PathElem>();
 }

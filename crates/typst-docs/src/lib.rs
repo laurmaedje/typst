@@ -368,7 +368,6 @@ fn func_model(
         title: func.title().unwrap(),
         keywords: func.keywords(),
         oneliner: oneliner(details),
-        element: func.element().is_some(),
         details: Html::markdown(resolver, details, nesting),
         example: example.map(|md| Html::markdown(resolver, md, None)),
         self_,
@@ -434,7 +433,7 @@ fn casts(
         CastInfo::Value(value, docs) => {
             if let Some(string) = value.to::<Str>() {
                 strings.push(StrParam {
-                    string: string.clone().into(),
+                    string: string.as_ref().clone().into(),
                     details: Html::markdown(resolver, docs, None),
                 })
             }

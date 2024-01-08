@@ -9,7 +9,7 @@ use smallvec::SmallVec;
 use unicode_math_class::MathClass;
 
 use crate::diag::{At, SourceResult, StrResult};
-use crate::foundations::{repr, Content, NativeElement, Packed, Repr, Type, Value};
+use crate::foundations::{repr, NativeType, Packed, Repr, Type, Value};
 use crate::syntax::{Span, Spanned};
 
 #[rustfmt::skip]
@@ -84,7 +84,7 @@ impl<T: Reflect> Reflect for Spanned<T> {
     }
 }
 
-impl<T: NativeElement + Reflect> Reflect for Packed<T> {
+impl<T: NativeType + Reflect> Reflect for Packed<T> {
     fn input() -> CastInfo {
         T::input()
     }
@@ -188,7 +188,7 @@ impl<T: IntoValue + Clone> IntoValue for Cow<'_, T> {
     }
 }
 
-impl<T: NativeElement + IntoValue> IntoValue for Packed<T> {
+impl<T: NativeType + IntoValue> IntoValue for Packed<T> {
     fn into_value(self) -> Value {
         self.pack().into_value()
     }
@@ -253,16 +253,12 @@ impl FromValue for Value {
     }
 }
 
-impl<T: NativeElement + FromValue> FromValue for Packed<T> {
+impl<T: NativeType + FromValue> FromValue for Packed<T> {
     fn from_value(mut value: Value) -> StrResult<Self> {
-        if let Some(content) = value.to::<Content>() {
-            match content.clone().to_packed::<T>() {
-                Ok(packed) => return Ok(packed),
-                Err(content) => {}
-            }
+        match value.to_packed::<T>() {
+            Ok(data) => Ok(data),
+            Err(value) => Ok(Packed::new(T::from_value(value)?)),
         }
-        let val = T::from_value(value)?;
-        Ok(Packed::new(val))
     }
 }
 
@@ -329,7 +325,7 @@ impl CastInfo {
             write!(msg, "{}", found.ty()).unwrap();
         }
 
-        if let Some(&i) = found.to::<i64>() {
+        if let Some(&i) = found.to::<i64>().map(AsRef::as_ref) {
             if parts.iter().any(|p| p == "length") && !matching_type {
                 write!(msg, ": a length needs a unit - did you mean {i}pt?").unwrap();
             }

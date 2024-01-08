@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use crate::foundations::{
-    cast, elem, Behave, Behaviour, Content, Packed, Resolve, StyleChain,
+    cast, elem, Behave, Behaviour, Packed, Resolve, StyleChain, Value,
 };
 use crate::layout::{Abs, Em, Fr, Length, Ratio, Rel};
 use crate::util::Numeric;
@@ -77,7 +77,7 @@ impl Behave for Packed<HElem> {
 
     fn larger(
         &self,
-        prev: &(Cow<Content>, Behaviour, StyleChain),
+        prev: &(Cow<Value>, Behaviour, StyleChain),
         styles: StyleChain,
     ) -> bool {
         let Some(other) = prev.0.to::<HElem>() else { return false };
@@ -179,7 +179,7 @@ impl Behave for Packed<VElem> {
 
     fn larger(
         &self,
-        prev: &(Cow<Content>, Behaviour, StyleChain),
+        prev: &(Cow<Value>, Behaviour, StyleChain),
         styles: StyleChain,
     ) -> bool {
         let Some(other) = prev.0.to::<VElem>() else { return false };
@@ -191,11 +191,6 @@ impl Behave for Packed<VElem> {
             _ => false,
         }
     }
-}
-
-cast! {
-    VElem,
-    v: Content => v.to_packed::<Self>().map_err(|_| "expected `v` element")?.unpack(),
 }
 
 /// Kinds of spacing.

@@ -2,9 +2,7 @@ use ecow::{eco_vec, EcoVec};
 
 use crate::diag::{bail, error, At, SourceDiagnostic, SourceResult};
 use crate::eval::{ops, Eval, Vm};
-use crate::foundations::{
-    Array, AutoValue, Content, Dict, IntoValue, NoneValue, Str, Value,
-};
+use crate::foundations::{Array, AutoValue, Dict, IntoValue, NoneValue, Str, Value};
 use crate::syntax::ast::{self, AstNode};
 
 impl Eval for ast::Code<'_> {
@@ -32,7 +30,7 @@ fn eval_code<'a>(
                     break;
                 }
 
-                let tail = eval_code(vm, exprs)?.display();
+                let tail = eval_code(vm, exprs)?;
                 tail.styled_with_map(styles).into_value()
             }
             ast::Expr::Show(show) => {
@@ -41,7 +39,7 @@ fn eval_code<'a>(
                     break;
                 }
 
-                let tail = eval_code(vm, exprs)?.display();
+                let tail = eval_code(vm, exprs)?;
                 tail.styled_with_recipe(&mut vm.engine, recipe)?.into_value()
             }
             _ => expr.eval(vm)?,
@@ -106,7 +104,7 @@ impl Eval for ast::Expr<'_> {
             Self::Numeric(v) => v.eval(vm),
             Self::Str(v) => v.eval(vm).map(IntoValue::into_value),
             Self::Code(v) => v.eval(vm),
-            Self::Content(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Content(v) => v.eval(vm),
             Self::Array(v) => v.eval(vm).map(IntoValue::into_value),
             Self::Dict(v) => v.eval(vm).map(IntoValue::into_value),
             Self::Parenthesized(v) => v.eval(vm),
@@ -123,7 +121,7 @@ impl Eval for ast::Expr<'_> {
             Self::While(v) => v.eval(vm),
             Self::For(v) => v.eval(vm),
             Self::Import(v) => v.eval(vm).map(IntoValue::into_value),
-            Self::Include(v) => v.eval(vm).map(IntoValue::into_value),
+            Self::Include(v) => v.eval(vm),
             Self::Break(v) => v.eval(vm).map(IntoValue::into_value),
             Self::Continue(v) => v.eval(vm).map(IntoValue::into_value),
             Self::Return(v) => v.eval(vm).map(IntoValue::into_value),
@@ -215,7 +213,7 @@ impl Eval for ast::Array<'_> {
                 ast::ArrayItem::Spread(expr) => {
                     let value = expr.eval(vm)?;
                     if value.is::<Array>() {
-                        let array = value.unpack::<Array>().unwrap();
+                        let array = value.to_packed::<Array>().unwrap().unpack();
                         vec.extend(array.into_iter());
                     } else if !value.is::<NoneValue>() {
                         bail!(expr.span(), "cannot spread {} into array", value.ty());
@@ -254,7 +252,7 @@ impl Eval for ast::Dict<'_> {
                 ast::DictItem::Spread(expr) => {
                     let value = expr.eval(vm)?;
                     if value.is::<Dict>() {
-                        let dict = value.unpack::<Dict>().unwrap();
+                        let dict = value.to_packed::<Dict>().unwrap().unpack();
                         map.extend(dict.into_iter());
                     } else if !value.is::<NoneValue>() {
                         bail!(
@@ -287,7 +285,7 @@ impl Eval for ast::CodeBlock<'_> {
 }
 
 impl Eval for ast::ContentBlock<'_> {
-    type Output = Content;
+    type Output = Value;
 
     fn eval(self, vm: &mut Vm) -> SourceResult<Self::Output> {
         vm.scopes.enter();

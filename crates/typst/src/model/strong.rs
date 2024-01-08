@@ -1,6 +1,6 @@
 use crate::diag::SourceResult;
 use crate::engine::Engine;
-use crate::foundations::{elem, Content, Packed, Show, StyleChain};
+use crate::foundations::{elem, Packed, Show, StyleChain, Value};
 use crate::text::{TextElem, WeightDelta};
 
 /// Strongly emphasizes content by increasing the font weight.
@@ -34,12 +34,12 @@ pub struct StrongElem {
 
     /// The content to strongly emphasize.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Show for Packed<StrongElem> {
     #[typst_macros::time(name = "strong", span = self.span())]
-    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         Ok(self
             .body()
             .clone()

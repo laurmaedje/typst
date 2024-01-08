@@ -36,10 +36,10 @@ use ttf_parser::Rect;
 
 use crate::diag::{bail, SourceResult, StrResult};
 use crate::engine::Engine;
+use crate::foundations::NoneValue;
 use crate::foundations::{
-    cast, category, elem, Args, Array, Cast, Category, Construct, Content, Dict, Fold,
-    NativeElement, Never, NoneValue, Packed, PlainText, Repr, Resolve, Scope, Set, Smart,
-    StyleChain, Value,
+    cast, category, elem, Args, Array, Cast, Category, Construct, Dict, Fold, Never,
+    Packed, PlainText, Repr, Resolve, Scope, Set, Smart, StyleChain, Value,
 };
 use crate::layout::{Abs, Axis, Dir, Length, Rel};
 use crate::model::ParElem;
@@ -55,16 +55,16 @@ pub static TEXT: Category;
 /// Hook up all `text` definitions.
 pub(super) fn define(global: &mut Scope) {
     global.category(TEXT);
-    global.define_elem::<TextElem>();
-    global.define_elem::<LinebreakElem>();
-    global.define_elem::<SmartQuoteElem>();
-    global.define_elem::<SubElem>();
-    global.define_elem::<SuperElem>();
-    global.define_elem::<UnderlineElem>();
-    global.define_elem::<OverlineElem>();
-    global.define_elem::<StrikeElem>();
-    global.define_elem::<HighlightElem>();
-    global.define_elem::<RawElem>();
+    global.define_type::<TextElem>();
+    global.define_type::<LinebreakElem>();
+    global.define_type::<SmartQuoteElem>();
+    global.define_type::<SubElem>();
+    global.define_type::<SuperElem>();
+    global.define_type::<UnderlineElem>();
+    global.define_type::<OverlineElem>();
+    global.define_type::<StrikeElem>();
+    global.define_type::<HighlightElem>();
+    global.define_type::<RawElem>();
     global.define_func::<lower>();
     global.define_func::<upper>();
     global.define_func::<smallcaps>();
@@ -652,7 +652,7 @@ pub struct TextElem {
 
 impl TextElem {
     /// Create a new packed text element.
-    pub fn packed(text: impl Into<EcoString>) -> Content {
+    pub fn packed(text: impl Into<EcoString>) -> Value {
         Self::new(text.into()).pack()
     }
 }
@@ -664,12 +664,12 @@ impl Repr for TextElem {
 }
 
 impl Construct for TextElem {
-    fn construct(engine: &mut Engine, args: &mut Args) -> SourceResult<Content> {
+    fn construct(engine: &mut Engine, args: &mut Args) -> SourceResult<Value> {
         // The text constructor is special: It doesn't create a text element.
         // Instead, it leaves the passed argument structurally unchanged, but
         // styles all text in it.
         let styles = Self::set(engine, args)?;
-        let body = args.expect::<Content>("body")?;
+        let body = args.expect::<Value>("body")?;
         Ok(body.styled_with_map(styles))
     }
 }

@@ -616,8 +616,8 @@ impl Array {
     pub fn flatten(self) -> Array {
         let mut flat = EcoVec::with_capacity(self.0.len());
         for item in self {
-            match item.unpack::<Array>() {
-                Ok(nested) => flat.extend(nested.flatten()),
+            match item.to_packed::<Array>() {
+                Ok(nested) => flat.extend(nested.unpack().flatten()),
                 Err(item) => flat.push(item),
             }
         }

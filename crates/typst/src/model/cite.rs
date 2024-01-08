@@ -1,7 +1,7 @@
 use crate::diag::{bail, At, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, Cast, Content, Label, Packed, Show, Smart, StyleChain, Synthesize,
+    cast, elem, Cast, Label, Packed, Show, Smart, StyleChain, Synthesize, Value,
 };
 use crate::introspection::Locatable;
 use crate::model::bibliography::Works;
@@ -56,7 +56,7 @@ pub struct CiteElem {
     ///
     /// #bibliography("works.bib")
     /// ```
-    pub supplement: Option<Content>,
+    pub supplement: Option<Value>,
 
     /// The kind of citation to produce. Different forms are useful in different
     /// scenarios: A normal citation is useful as a source at the end of a
@@ -111,11 +111,6 @@ impl Synthesize for Packed<CiteElem> {
     }
 }
 
-cast! {
-    CiteElem,
-    v: Content => v.to_packed::<Self>().map_err(|_| "expected citation")?.unpack(),
-}
-
 /// The form of the citation.
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Cast)]
 pub enum CitationForm {
@@ -145,7 +140,7 @@ pub struct CiteGroup {
 
 impl Show for Packed<CiteGroup> {
     #[typst_macros::time(name = "cite", span = self.span())]
-    fn show(&self, engine: &mut Engine, _: StyleChain) -> SourceResult<Content> {
+    fn show(&self, engine: &mut Engine, _: StyleChain) -> SourceResult<Value> {
         Ok(engine.delayed(|engine| {
             let location = self.location().unwrap();
             let span = self.span();

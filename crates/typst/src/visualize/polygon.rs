@@ -2,9 +2,7 @@ use std::f64::consts::PI;
 
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
-use crate::foundations::{
-    elem, func, scope, Content, NativeElement, Packed, Resolve, Smart, StyleChain,
-};
+use crate::foundations::{elem, func, scope, Packed, Resolve, Smart, StyleChain, Value};
 use crate::layout::{
     Axes, Em, Fragment, Frame, FrameItem, Layout, Length, Point, Regions, Rel,
 };
@@ -88,7 +86,7 @@ impl PolygonElem {
         #[named]
         #[default(3)]
         vertices: u64,
-    ) -> Content {
+    ) -> Value {
         let radius = size / 2.0;
         let angle = |i: f64| {
             2.0 * PI * i / (vertices as f64) + PI * (1.0 / 2.0 - 1.0 / vertices as f64)

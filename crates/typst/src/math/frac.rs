@@ -1,5 +1,5 @@
 use crate::diag::{bail, SourceResult};
-use crate::foundations::{elem, Content, Packed, Value};
+use crate::foundations::{elem, Packed, Value};
 use crate::layout::{Em, Frame, FrameItem, Point, Size};
 use crate::math::{
     FrameFragment, GlyphFragment, LayoutMath, MathContext, MathSize, Scaled,
@@ -28,11 +28,11 @@ const FRAC_AROUND: Em = Em::new(0.1);
 pub struct FracElem {
     /// The fraction's numerator.
     #[required]
-    pub num: Content,
+    pub num: Value,
 
     /// The fraction's denominator.
     #[required]
-    pub denom: Content,
+    pub denom: Value,
 }
 
 impl LayoutMath for Packed<FracElem> {
@@ -53,7 +53,7 @@ impl LayoutMath for Packed<FracElem> {
 pub struct BinomElem {
     /// The binomial's upper index.
     #[required]
-    pub upper: Content,
+    pub upper: Value,
 
     /// The binomial's lower index.
     #[required]
@@ -61,12 +61,12 @@ pub struct BinomElem {
     #[parse(
         let values = args.all::<Spanned<Value>>()?;
         if values.is_empty() {
-            // Prevents one element binomials
+            // Prevents one element binomials.
             bail!(args.span, "missing argument: lower");
         }
-        values.into_iter().map(|spanned| spanned.v.display()).collect()
+        values.into_iter().map(|spanned| spanned.v).collect()
     )]
-    pub lower: Vec<Content>,
+    pub lower: Vec<Value>,
 }
 
 impl LayoutMath for Packed<BinomElem> {
@@ -79,8 +79,8 @@ impl LayoutMath for Packed<BinomElem> {
 /// Layout a fraction or binomial.
 fn layout(
     ctx: &mut MathContext,
-    num: &Content,
-    denom: &[Content],
+    num: &Value,
+    denom: &[Value],
     binom: bool,
     span: Span,
 ) -> SourceResult<()> {
@@ -113,7 +113,7 @@ fn layout(
     ctx.unstyle();
 
     ctx.style(ctx.style.for_denominator());
-    let denom = ctx.layout_frame(&Content::sequence(
+    let denom = ctx.layout_frame(&Value::sequence(
         // Add a comma between each element.
         denom.iter().flat_map(|a| [TextElem::packed(','), a.clone()]).skip(1),
     ))?;

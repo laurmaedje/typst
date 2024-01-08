@@ -64,8 +64,8 @@ fn expr_tooltip(world: &dyn World, leaf: &LinkedNode) -> Option<Tooltip> {
             return Some(Tooltip::Text(plain_docs_sentence(docs)));
         }
 
-        if let Some(&length) = value.to::<Length>() {
-            if let Some(tooltip) = length_tooltip(length) {
+        if let Some(length) = value.to::<Length>() {
+            if let Some(tooltip) = length_tooltip(**length) {
                 return Some(tooltip);
             }
         }

@@ -1,6 +1,6 @@
 use unicode_math_class::MathClass;
 
-use crate::foundations::{NativeElement, Scope};
+use crate::foundations::Scope;
 use crate::layout::{Abs, Em, HElem};
 use crate::math::{MathFragment, MathSize, SpacingFragment};
 

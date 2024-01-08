@@ -42,9 +42,9 @@ use self::spacing::*;
 use std::borrow::Cow;
 
 use crate::diag::SourceResult;
-use crate::foundations::{
-    category, Category, Content, Module, Resolve, Scope, StyleChain,
-};
+use crate::foundations::SequenceElem;
+use crate::foundations::StyledElem;
+use crate::foundations::{category, Category, Module, Resolve, Scope, StyleChain, Value};
 use crate::layout::{BoxElem, HElem, Spacing};
 use crate::realize::BehavedBuilder;
 use crate::text::{LinebreakElem, SpaceElem, TextElem};
@@ -158,30 +158,30 @@ pub static MATH: Category;
 pub fn module() -> Module {
     let mut math = Scope::deduplicating();
     math.category(MATH);
-    math.define_elem::<EquationElem>();
-    math.define_elem::<TextElem>();
-    math.define_elem::<LrElem>();
-    math.define_elem::<MidElem>();
-    math.define_elem::<AttachElem>();
-    math.define_elem::<ScriptsElem>();
-    math.define_elem::<LimitsElem>();
-    math.define_elem::<AccentElem>();
-    math.define_elem::<UnderlineElem>();
-    math.define_elem::<OverlineElem>();
-    math.define_elem::<UnderbraceElem>();
-    math.define_elem::<OverbraceElem>();
-    math.define_elem::<UnderbracketElem>();
-    math.define_elem::<OverbracketElem>();
-    math.define_elem::<CancelElem>();
-    math.define_elem::<FracElem>();
-    math.define_elem::<BinomElem>();
-    math.define_elem::<VecElem>();
-    math.define_elem::<MatElem>();
-    math.define_elem::<CasesElem>();
-    math.define_elem::<RootElem>();
-    math.define_elem::<ClassElem>();
-    math.define_elem::<OpElem>();
-    math.define_elem::<PrimesElem>();
+    math.define_type::<EquationElem>();
+    math.define_type::<TextElem>();
+    math.define_type::<LrElem>();
+    math.define_type::<MidElem>();
+    math.define_type::<AttachElem>();
+    math.define_type::<ScriptsElem>();
+    math.define_type::<LimitsElem>();
+    math.define_type::<AccentElem>();
+    math.define_type::<UnderlineElem>();
+    math.define_type::<OverlineElem>();
+    math.define_type::<UnderbraceElem>();
+    math.define_type::<OverbraceElem>();
+    math.define_type::<UnderbracketElem>();
+    math.define_type::<OverbracketElem>();
+    math.define_type::<CancelElem>();
+    math.define_type::<FracElem>();
+    math.define_type::<BinomElem>();
+    math.define_type::<VecElem>();
+    math.define_type::<MatElem>();
+    math.define_type::<CasesElem>();
+    math.define_type::<RootElem>();
+    math.define_type::<ClassElem>();
+    math.define_type::<OpElem>();
+    math.define_type::<PrimesElem>();
     math.define_func::<abs>();
     math.define_func::<norm>();
     math.define_func::<floor>();
@@ -218,7 +218,7 @@ pub trait LayoutMath {
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()>;
 }
 
-impl LayoutMath for Content {
+impl LayoutMath for Value {
     #[typst_macros::time(name = "math", span = self.span())]
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()> {
         // Directly layout the body of nested equations instead of handling it
@@ -235,9 +235,9 @@ impl LayoutMath for Content {
             return realized.layout_math(ctx);
         }
 
-        if self.is_sequence() {
+        if self.is::<SequenceElem>() {
             let mut bb = BehavedBuilder::new();
-            self.sequence_recursive_for_each(&mut |child: &Content| {
+            self.sequence_recursive_for_each(&mut |child: &Value| {
                 bb.push(Cow::Owned(child.clone()), StyleChain::default())
             });
 
@@ -247,8 +247,8 @@ impl LayoutMath for Content {
             return Ok(());
         }
 
-        if let Some((elem, styles)) = self.to_styled() {
-            if TextElem::font_in(ctx.styles().chain(styles))
+        if let Some(styled) = self.to::<StyledElem>() {
+            if TextElem::font_in(ctx.styles().chain(styled.styles()))
                 != TextElem::font_in(ctx.styles())
             {
                 let frame = ctx.layout_content(self)?;
@@ -256,11 +256,11 @@ impl LayoutMath for Content {
                 return Ok(());
             }
 
-            let prev_map = std::mem::replace(&mut ctx.local, styles.clone());
+            let prev_map = std::mem::replace(&mut ctx.local, styled.styles().clone());
             let prev_size = ctx.size;
             ctx.local.apply(prev_map.clone());
             ctx.size = TextElem::size_in(ctx.styles());
-            elem.layout_math(ctx)?;
+            styled.child().layout_math(ctx)?;
             ctx.size = prev_size;
             ctx.local = prev_map;
             return Ok(());

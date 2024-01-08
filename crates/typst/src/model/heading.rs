@@ -3,8 +3,7 @@ use std::num::NonZeroUsize;
 use crate::diag::SourceResult;
 use crate::engine::Engine;
 use crate::foundations::{
-    elem, Content, Finalize, NativeElement, Packed, Show, Smart, StyleChain, Styles,
-    Synthesize,
+    cast, elem, Finalize, Packed, Show, Smart, StyleChain, Styles, Synthesize, Value,
 };
 use crate::introspection::{Count, Counter, CounterUpdate, Locatable};
 use crate::layout::{BlockElem, Em, HElem, VElem};
@@ -123,7 +122,7 @@ pub struct HeadingElem {
 
     /// The heading's title.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Synthesize for Packed<HeadingElem> {
@@ -134,7 +133,7 @@ impl Synthesize for Packed<HeadingElem> {
     ) -> SourceResult<()> {
         let supplement = match (**self).supplement(styles) {
             Smart::Auto => TextElem::packed(Self::local_name_in(styles)),
-            Smart::Custom(None) => Content::empty(),
+            Smart::Custom(None) => Value::none(),
             Smart::Custom(Some(supplement)) => {
                 supplement.resolve(engine, [self.clone().pack()])?
             }
@@ -153,21 +152,23 @@ impl Synthesize for Packed<HeadingElem> {
 
 impl Show for Packed<HeadingElem> {
     #[typst_macros::time(name = "heading", span = self.span())]
-    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         let mut realized = self.body().clone();
         if let Some(numbering) = (**self).numbering(styles).as_ref() {
-            realized = Counter::of(HeadingElem::elem())
-                .display(self.span(), Some(numbering.clone()), false)
-                .spanned(self.span())
-                + HElem::new(Em::new(0.3).into()).with_weak(true).pack()
-                + realized;
+            realized = Value::sequence([
+                Counter::of(HeadingElem::ty())
+                    .display(self.span(), Some(numbering.clone()), false)
+                    .spanned(self.span()),
+                HElem::new(Em::new(0.3).into()).with_weak(true).pack(),
+                realized,
+            ]);
         }
         Ok(BlockElem::new().with_body(Some(realized)).pack().spanned(self.span()))
     }
 }
 
 impl Finalize for Packed<HeadingElem> {
-    fn finalize(&self, realized: Content, styles: StyleChain) -> Content {
+    fn finalize(&self, realized: Value, styles: StyleChain) -> Value {
         let level = (**self).level(styles).get();
         let scale = match level {
             1 => 1.4,
@@ -199,16 +200,16 @@ impl Count for Packed<HeadingElem> {
 }
 
 impl Refable for Packed<HeadingElem> {
-    fn supplement(&self) -> Content {
+    fn supplement(&self) -> Value {
         // After synthesis, this should always be custom content.
         match (**self).supplement(StyleChain::default()) {
             Smart::Custom(Some(Supplement::Content(content))) => content,
-            _ => Content::empty(),
+            _ => Value::none(),
         }
     }
 
     fn counter(&self) -> Counter {
-        Counter::of(HeadingElem::elem())
+        Counter::of(HeadingElem::ty())
     }
 
     fn numbering(&self) -> Option<Numbering> {
@@ -217,17 +218,17 @@ impl Refable for Packed<HeadingElem> {
 }
 
 impl Outlinable for Packed<HeadingElem> {
-    fn outline(&self, engine: &mut Engine) -> SourceResult<Option<Content>> {
+    fn outline(&self, engine: &mut Engine) -> SourceResult<Option<Value>> {
         if !self.outlined(StyleChain::default()) {
             return Ok(None);
         }
 
         let mut content = self.body().clone();
         if let Some(numbering) = (**self).numbering(StyleChain::default()).as_ref() {
-            let numbers = Counter::of(HeadingElem::elem())
+            let numbers = Counter::of(HeadingElem::ty())
                 .at(engine, self.location().unwrap())?
                 .display(engine, numbering)?;
-            content = numbers + SpaceElem::new().pack() + content;
+            content = Value::sequence([numbers, SpaceElem::new().pack(), content]);
         };
 
         Ok(Some(content))

@@ -9,9 +9,8 @@ use crate::diag::{At, SourceResult, StrResult};
 use crate::engine::{Engine, Route};
 use crate::eval::Tracer;
 use crate::foundations::{
-    cast, elem, func, scope, select_where, ty, Array, Content, Element, Func, IntoValue,
-    Label, LocatableSelector, NativeElement, Packed, Repr, Selector, Show, Str,
-    StyleChain, Value,
+    cast, elem, func, scope, select_where, ty, Array, Func, IntoValue, Label,
+    LocatableSelector, Packed, Repr, Selector, Show, Str, StyleChain, Type, Value,
 };
 use crate::introspection::{Introspector, Locatable, Location, Locator, Meta};
 use crate::layout::{Frame, FrameItem, PageElem};
@@ -219,8 +218,8 @@ impl Counter {
     }
 
     /// The counter for the given element.
-    pub fn of(func: Element) -> Self {
-        Self::construct(CounterKey::Selector(Selector::Elem(func, None)))
+    pub fn of(ty: Type) -> Self {
+        Self::construct(CounterKey::Selector(Selector::Type(ty)))
     }
 
     /// Gets the current and final value of the state combined in one state.
@@ -371,7 +370,7 @@ impl Counter {
         #[named]
         #[default(false)]
         both: bool,
-    ) -> Content {
+    ) -> Value {
         DisplayElem::new(self, numbering, both).pack().spanned(span)
     }
 
@@ -392,7 +391,7 @@ impl Counter {
         #[named]
         #[default(NonZeroUsize::ONE)]
         level: NonZeroUsize,
-    ) -> Content {
+    ) -> Value {
         self.update(span, CounterUpdate::Step(level))
     }
 
@@ -410,7 +409,7 @@ impl Counter {
         /// counter value (with each number as a separate argument) and has to
         /// return the new value (integer or array).
         update: CounterUpdate,
-    ) -> Content {
+    ) -> Value {
         UpdateElem::new(self.0, update).pack().spanned(span)
     }
 
@@ -490,14 +489,14 @@ pub enum CounterKey {
 cast! {
     CounterKey,
     self => match self {
-        Self::Page => PageElem::elem().into_value(),
+        Self::Page => PageElem::ty().into_value(),
         Self::Selector(v) => v.into_value(),
         Self::Str(v) => v.into_value(),
     },
     v: Str => Self::Str(v),
     v: Label => Self::Selector(Selector::Label(v)),
-    v: Element => {
-        if v == PageElem::elem() {
+    v: Type => {
+        if v == PageElem::ty() {
             Self::Page
         } else {
             Self::Selector(LocatableSelector::from_value(v.into_value())?.0)
@@ -601,8 +600,8 @@ impl CounterState {
         &self,
         engine: &mut Engine,
         numbering: &Numbering,
-    ) -> SourceResult<Content> {
-        Ok(numbering.apply(engine, &self.0)?.display())
+    ) -> SourceResult<Value> {
+        numbering.apply(engine, &self.0)
     }
 }
 
@@ -634,7 +633,7 @@ struct DisplayElem {
 
 impl Show for Packed<DisplayElem> {
     #[typst_macros::time(name = "counter.display", span = self.span())]
-    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         Ok(engine.delayed(|engine| {
             let location = self.location().unwrap();
             let counter = self.counter();
@@ -642,15 +641,15 @@ impl Show for Packed<DisplayElem> {
                 .numbering()
                 .clone()
                 .or_else(|| {
-                    let CounterKey::Selector(Selector::Elem(func, _)) = counter.0 else {
+                    let CounterKey::Selector(Selector::Type(ty)) = counter.0 else {
                         return None;
                     };
 
-                    if func == HeadingElem::elem() {
+                    if ty == HeadingElem::ty() {
                         HeadingElem::numbering_in(styles).clone()
-                    } else if func == FigureElem::elem() {
+                    } else if ty == FigureElem::ty() {
                         FigureElem::numbering_in(styles)
-                    } else if func == EquationElem::elem() {
+                    } else if ty == EquationElem::ty() {
                         EquationElem::numbering_in(styles)
                     } else {
                         None
@@ -682,8 +681,8 @@ struct UpdateElem {
 }
 
 impl Show for Packed<UpdateElem> {
-    fn show(&self, _: &mut Engine, _: StyleChain) -> SourceResult<Content> {
-        Ok(Content::empty())
+    fn show(&self, _: &mut Engine, _: StyleChain) -> SourceResult<Value> {
+        Ok(Value::none())
     }
 }
 

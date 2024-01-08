@@ -7,8 +7,8 @@ use ecow::EcoString;
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, scope, select_where, Content, Element, Finalize, NativeElement, Packed,
-    Selector, Show, Smart, StyleChain, Synthesize,
+    cast, elem, scope, select_where, Finalize, Packed, Selector, Show, Smart, StyleChain,
+    Synthesize, Type, Value,
 };
 use crate::introspection::{
     Count, Counter, CounterKey, CounterUpdate, Locatable, Location,
@@ -105,7 +105,7 @@ use crate::visualize::ImageElem;
 pub struct FigureElem {
     /// The content of the figure. Often, an [image]($image).
     #[required]
-    pub body: Content,
+    pub body: Value,
 
     /// The figure's placement on the page.
     ///
@@ -218,7 +218,7 @@ pub struct FigureElem {
 
 #[scope]
 impl FigureElem {
-    #[elem]
+    #[ty]
     type FigureCaption;
 }
 
@@ -239,8 +239,8 @@ impl Synthesize for Packed<FigureElem> {
         let kind = elem.kind(styles).unwrap_or_else(|| {
             elem.body()
                 .query_first(Selector::can::<dyn Figurable>())
-                .map(|elem| FigureKind::Elem(elem.func()))
-                .unwrap_or_else(|| FigureKind::Elem(ImageElem::elem()))
+                .map(|child| FigureKind::Type(child.ty()))
+                .unwrap_or_else(|| FigureKind::Type(ImageElem::ty()))
         });
 
         // Resolve the supplement.
@@ -248,7 +248,7 @@ impl Synthesize for Packed<FigureElem> {
             Smart::Auto => {
                 // Default to the local name for the kind, if available.
                 let name = match &kind {
-                    FigureKind::Elem(func) => func
+                    FigureKind::Type(ty) => ty
                         .local_name(
                             TextElem::lang_in(styles),
                             TextElem::region_in(styles),
@@ -268,10 +268,9 @@ impl Synthesize for Packed<FigureElem> {
                 // Resolve the supplement with the first descendant of the kind or
                 // just the body, if none was found.
                 let descendant = match kind {
-                    FigureKind::Elem(func) => elem
-                        .body()
-                        .query_first(Selector::Elem(func, None))
-                        .map(Cow::Owned),
+                    FigureKind::Type(ty) => {
+                        elem.body().query_first(Selector::Type(ty)).map(Cow::Owned)
+                    }
                     FigureKind::Name(_) => None,
                 };
 
@@ -309,16 +308,16 @@ impl Synthesize for Packed<FigureElem> {
 
 impl Show for Packed<FigureElem> {
     #[typst_macros::time(name = "figure", span = self.span())]
-    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         let mut realized = self.body().clone();
 
         // Build the caption, if any.
         if let Some(caption) = self.caption(styles) {
             let v = VElem::weak(self.gap(styles).into()).pack();
             realized = if caption.position(styles) == VAlignment::Bottom {
-                realized + v + caption.pack()
+                Value::sequence([realized, v, caption.pack()])
             } else {
-                caption.pack() + v + realized
+                Value::sequence([caption.pack(), v, realized])
             };
         }
 
@@ -343,7 +342,7 @@ impl Show for Packed<FigureElem> {
 }
 
 impl Finalize for Packed<FigureElem> {
-    fn finalize(&self, realized: Content, _: StyleChain) -> Content {
+    fn finalize(&self, realized: Value, _: StyleChain) -> Value {
         // Allow breakable figures with `show figure: set block(breakable: true)`.
         realized.styled(BlockElem::set_breakable(false))
     }
@@ -360,11 +359,11 @@ impl Count for Packed<FigureElem> {
 }
 
 impl Refable for Packed<FigureElem> {
-    fn supplement(&self) -> Content {
+    fn supplement(&self) -> Value {
         // After synthesis, this should always be custom content.
         match (**self).supplement(StyleChain::default()).as_ref() {
             Smart::Custom(Some(Supplement::Content(content))) => content.clone(),
-            _ => Content::empty(),
+            _ => Value::none(),
         }
     }
 
@@ -372,7 +371,7 @@ impl Refable for Packed<FigureElem> {
         (**self)
             .counter()
             .clone()
-            .unwrap_or_else(|| Counter::of(FigureElem::elem()))
+            .unwrap_or_else(|| Counter::of(FigureElem::ty()))
     }
 
     fn numbering(&self) -> Option<Numbering> {
@@ -381,7 +380,7 @@ impl Refable for Packed<FigureElem> {
 }
 
 impl Outlinable for Packed<FigureElem> {
-    fn outline(&self, engine: &mut Engine) -> SourceResult<Option<Content>> {
+    fn outline(&self, engine: &mut Engine) -> SourceResult<Option<Value>> {
         if !self.outlined(StyleChain::default()) {
             return Ok(None);
         }
@@ -395,21 +394,20 @@ impl Outlinable for Packed<FigureElem> {
             Smart::Custom(Some(Supplement::Content(mut supplement))),
             Some(counter),
             Some(numbering),
+            Some(location),
         ) = (
             (**self).supplement(StyleChain::default()).clone(),
             (**self).counter(),
             self.numbering(),
+            self.location(),
         ) {
-            let location = self.location().unwrap();
-            let numbers = counter.at(engine, location)?.display(engine, &numbering)?;
-
-            if !supplement.is_empty() {
-                supplement += TextElem::packed('\u{a0}');
-            }
-
-            let separator = caption.get_separator(StyleChain::default());
-
-            realized = supplement + numbers + separator + caption.body();
+            realized = Value::sequence([
+                supplement,
+                TextElem::packed('\u{a0}'),
+                counter.at(engine, location)?.display(engine, &numbering)?,
+                caption.get_separator(StyleChain::default()),
+                caption.pack(),
+            ]);
         }
 
         Ok(Some(realized))
@@ -485,7 +483,7 @@ pub struct FigureCaption {
     ///   caption: [A rectangle],
     /// )
     /// ```
-    pub separator: Smart<Content>,
+    pub separator: Smart<Value>,
 
     /// The caption's body.
     ///
@@ -504,7 +502,7 @@ pub struct FigureCaption {
     /// )
     /// ```
     #[required]
-    pub body: Content,
+    pub body: Value,
 
     /// The figure's supplement.
     #[synthesized]
@@ -513,7 +511,7 @@ pub struct FigureCaption {
     /// The figure's supplement.
     #[synthesized]
     #[default(None)]
-    pub supplement: Option<Content>,
+    pub supplement: Option<Value>,
 
     /// How to number the figure.
     #[synthesized]
@@ -544,7 +542,7 @@ impl FigureCaption {
         }
     }
 
-    fn get_separator(&self, styles: StyleChain) -> Content {
+    fn get_separator(&self, styles: StyleChain) -> Value {
         self.separator(styles).unwrap_or_else(|| {
             TextElem::packed(Self::local_separator(
                 TextElem::lang_in(styles),
@@ -565,7 +563,7 @@ impl Synthesize for Packed<FigureCaption> {
 
 impl Show for Packed<FigureCaption> {
     #[typst_macros::time(name = "figure.caption", span = self.span())]
-    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         let mut realized = self.body().clone();
 
         if let (Some(mut supplement), Some(numbering), Some(counter), Some(location)) = (
@@ -574,30 +572,24 @@ impl Show for Packed<FigureCaption> {
             self.counter(),
             self.figure_location(),
         ) {
-            let numbers = counter.at(engine, *location)?.display(engine, numbering)?;
-            if !supplement.is_empty() {
-                supplement += TextElem::packed('\u{a0}');
-            }
-            realized = supplement + numbers + self.get_separator(styles) + realized;
+            realized = Value::sequence([
+                supplement,
+                TextElem::packed('\u{a0}'),
+                counter.at(engine, *location)?.display(engine, numbering)?,
+                self.get_separator(styles),
+                realized,
+            ]);
         }
 
         Ok(realized)
     }
 }
 
-cast! {
-    FigureCaption,
-    v: Content => match v.to_packed::<Self>() {
-        Ok(packed) => packed.unpack(),
-        Err(v) => Self::new(v),
-    },
-}
-
 /// The `kind` parameter of a [`FigureElem`].
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub enum FigureKind {
     /// The kind is an element function.
-    Elem(Element),
+    Type(Type),
     /// The kind is a name.
     Name(EcoString),
 }
@@ -605,10 +597,10 @@ pub enum FigureKind {
 cast! {
     FigureKind,
     self => match self {
-        Self::Elem(v) => v.into_value(),
+        Self::Type(v) => v.into_value(),
         Self::Name(v) => v.into_value(),
     },
-    v: Element => Self::Elem(v),
+    v: Type => Self::Type(v),
     v: EcoString => Self::Name(v),
 }
 

@@ -68,7 +68,7 @@ use crate::diag::{warning, FileResult, SourceDiagnostic, SourceResult};
 use crate::engine::{Engine, Route};
 use crate::eval::Tracer;
 use crate::foundations::{
-    Array, Bytes, Content, Datetime, Dict, Module, Scope, StyleChain, Styles,
+    Array, Bytes, Datetime, Dict, Module, Scope, StyleChain, Styles, Value,
 };
 use crate::introspection::{Introspector, Locator};
 use crate::layout::{Alignment, Dir, LayoutRoot};
@@ -107,7 +107,7 @@ pub fn compile(world: &dyn World, tracer: &mut Tracer) -> SourceResult<Document>
 fn typeset(
     world: Tracked<dyn World + '_>,
     tracer: &mut Tracer,
-    content: &Content,
+    content: &Value,
 ) -> SourceResult<Document> {
     // The name of the iterations for timing scopes.
     const ITER_NAMES: &[&str] =

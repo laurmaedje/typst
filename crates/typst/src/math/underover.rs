@@ -1,7 +1,7 @@
 use unicode_math_class::MathClass;
 
 use crate::diag::SourceResult;
-use crate::foundations::{elem, Content, Packed};
+use crate::foundations::{elem, Packed, Value};
 use crate::layout::{Abs, Em, FixedAlign, Frame, FrameItem, Point, Size};
 use crate::math::{
     alignments, AlignmentResult, FrameFragment, GlyphFragment, LayoutMath, MathContext,
@@ -29,7 +29,7 @@ enum LineKind {
 pub struct UnderlineElem {
     /// The content above the line.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl LayoutMath for Packed<UnderlineElem> {
@@ -48,7 +48,7 @@ impl LayoutMath for Packed<UnderlineElem> {
 pub struct OverlineElem {
     /// The content below the line.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl LayoutMath for Packed<OverlineElem> {
@@ -61,7 +61,7 @@ impl LayoutMath for Packed<OverlineElem> {
 /// layout under- or overlined content
 fn layout_underoverline(
     ctx: &mut MathContext,
-    body: &Content,
+    body: &Value,
     span: Span,
     line: LineKind,
 ) -> SourceResult<()> {
@@ -129,11 +129,11 @@ fn layout_underoverline(
 pub struct UnderbraceElem {
     /// The content above the brace.
     #[required]
-    pub body: Content,
+    pub body: Value,
 
     /// The optional content below the brace.
     #[positional]
-    pub annotation: Option<Content>,
+    pub annotation: Option<Value>,
 }
 
 impl LayoutMath for Packed<UnderbraceElem> {
@@ -160,11 +160,11 @@ impl LayoutMath for Packed<UnderbraceElem> {
 pub struct OverbraceElem {
     /// The content below the brace.
     #[required]
-    pub body: Content,
+    pub body: Value,
 
     /// The optional content above the brace.
     #[positional]
-    pub annotation: Option<Content>,
+    pub annotation: Option<Value>,
 }
 
 impl LayoutMath for Packed<OverbraceElem> {
@@ -191,11 +191,11 @@ impl LayoutMath for Packed<OverbraceElem> {
 pub struct UnderbracketElem {
     /// The content above the bracket.
     #[required]
-    pub body: Content,
+    pub body: Value,
 
     /// The optional content below the bracket.
     #[positional]
-    pub annotation: Option<Content>,
+    pub annotation: Option<Value>,
 }
 
 impl LayoutMath for Packed<UnderbracketElem> {
@@ -222,11 +222,11 @@ impl LayoutMath for Packed<UnderbracketElem> {
 pub struct OverbracketElem {
     /// The content below the bracket.
     #[required]
-    pub body: Content,
+    pub body: Value,
 
     /// The optional content above the bracket.
     #[positional]
-    pub annotation: Option<Content>,
+    pub annotation: Option<Value>,
 }
 
 impl LayoutMath for Packed<OverbracketElem> {
@@ -247,8 +247,8 @@ impl LayoutMath for Packed<OverbracketElem> {
 /// Layout an over- or underbrace-like object.
 fn layout_underoverspreader(
     ctx: &mut MathContext,
-    body: &Content,
-    annotation: &Option<Content>,
+    body: &Value,
+    annotation: &Option<Value>,
     c: char,
     gap: Em,
     reverse: bool,

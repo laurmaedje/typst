@@ -6,8 +6,7 @@ use indexmap::IndexMap;
 
 use crate::diag::{bail, HintedStrResult, HintedString, StrResult};
 use crate::foundations::{
-    Element, Func, IntoValue, Module, NativeElement, NativeFunc, NativeFuncData,
-    NativeType, Type, Value,
+    Func, IntoValue, Module, NativeFunc, NativeFuncData, NativeType, Type, Value,
 };
 use crate::util::Static;
 use crate::Library;
@@ -155,12 +154,6 @@ impl Scope {
     pub fn define_type<T: NativeType>(&mut self) {
         let data = T::data();
         self.define(data.name, Type::from(data));
-    }
-
-    /// Define a native element.
-    pub fn define_elem<T: NativeElement>(&mut self) {
-        let data = T::data();
-        self.define(data.name, Element::from(data));
     }
 
     /// Define a module.

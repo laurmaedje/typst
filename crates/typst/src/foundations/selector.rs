@@ -6,8 +6,8 @@ use smallvec::SmallVec;
 
 use crate::diag::{bail, StrResult};
 use crate::foundations::{
-    cast, func, repr, scope, ty, CastInfo, Content, Dict, Element, FromValue, Func,
-    Label, Reflect, Regex, Repr, Str, Type, Value,
+    cast, func, repr, scope, ty, CastInfo, Dict, FromValue, Func, Label, Reflect, Regex,
+    Repr, Str, Type, Value,
 };
 use crate::introspection::{Locatable, Location};
 use crate::symbols::Symbol;
@@ -30,9 +30,9 @@ macro_rules! __select_where {
                 $crate::foundations::IntoValue::into_value($value),
             ));
         )*
-        $crate::foundations::Selector::Elem(
-            <$ty as $crate::foundations::NativeElement>::elem(),
-            Some(fields),
+        $crate::foundations::Selector::Where(
+            <$ty as $crate::foundations::NativeType>::ty(),
+            fields,
         )
     }};
 }
@@ -79,11 +79,10 @@ pub use crate::__select_where as select_where;
 #[ty(scope, cast)]
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub enum Selector {
-    /// Matches a specific type of element.
-    ///
-    /// If there is a dictionary, only elements with the fields from the
-    /// dictionary match.
-    Elem(Element, Option<SmallVec<[(u8, Value); 1]>>),
+    /// Match a value of the specified type.
+    Type(Type),
+    /// Match a value with the specified fields.
+    Where(Type, SmallVec<[(u8, Value); 1]>),
     /// Matches the element at the specified location.
     Location(Location),
     /// Matches elements with a specific label.
@@ -128,21 +127,21 @@ impl Selector {
     }
 
     /// Whether the selector matches for the target.
-    pub fn matches(&self, target: &Content) -> bool {
-        // TODO: optimize field access to not clone.
+    pub fn matches(&self, target: &Value) -> bool {
+        // TODO: Optimize field access to not clone.
         match self {
-            Self::Elem(element, dict) => {
-                target.func() == *element
-                    && dict
+            Self::Type(ty) => target.ty() == *ty,
+            Self::Where(ty, fields) => {
+                target.ty() == *ty
+                    && fields
                         .iter()
-                        .flat_map(|dict| dict.iter())
-                        .all(|(id, value)| target.get(*id).as_ref() == Some(value))
+                        .all(|(id, value)| target.get_by_id(*id).as_ref() == Some(value))
             }
             Self::Label(label) => target.label() == Some(*label),
             Self::Regex(regex) => target
                 .to::<TextElem>()
                 .map_or(false, |elem| regex.is_match(elem.text())),
-            Self::Can(cap) => target.func().can_type_id(*cap),
+            Self::Can(cap) => target.ty().can_type_id(*cap),
             Self::Or(selectors) => selectors.iter().any(move |sel| sel.matches(target)),
             Self::And(selectors) => selectors.iter().all(move |sel| sel.matches(target)),
             Self::Location(location) => target.location() == Some(*location),
@@ -240,17 +239,14 @@ impl From<Location> for Selector {
 impl Repr for Selector {
     fn repr(&self) -> EcoString {
         match self {
-            Self::Elem(elem, dict) => {
-                if let Some(dict) = dict {
-                    let dict = dict
-                        .iter()
-                        .map(|(id, value)| (elem.field_name(*id).unwrap(), value.clone()))
-                        .map(|(name, value)| (EcoString::from(name).into(), value))
-                        .collect::<Dict>();
-                    eco_format!("{}.where{}", elem.name(), dict.repr())
-                } else {
-                    elem.name().into()
-                }
+            Self::Type(ty) => ty.short_name().into(),
+            Self::Where(ty, fields) => {
+                let dict = fields
+                    .iter()
+                    .map(|(id, value)| (ty.field_name(*id).unwrap(), value.clone()))
+                    .map(|(name, value)| (EcoString::from(name).into(), value))
+                    .collect::<Dict>();
+                eco_format!("{}.where{}", ty.short_name(), dict.repr())
             }
             Self::Label(label) => label.repr(),
             Self::Regex(regex) => regex.repr(),
@@ -280,10 +276,7 @@ impl Repr for Selector {
 
 cast! {
     type Selector,
-    func: Func => func
-        .element()
-        .ok_or("only element functions can be used as selectors")?
-        .select(),
+    ty: Type => Self::Type(ty),
     label: Label => Self::Label(label),
     text: EcoString => Self::text(&text)?,
     regex: Regex => Self::regex(regex)?,
@@ -311,7 +304,9 @@ impl Reflect for LocatableSelector {
     }
 
     fn castable(value: &Value) -> bool {
-        Label::castable(value) || Func::castable(value) || Selector::castable(value)
+        <Label as Reflect>::castable(value)
+            || <Func as Reflect>::castable(value)
+            || <Selector as Reflect>::castable(value)
     }
 }
 
@@ -324,9 +319,9 @@ impl FromValue for LocatableSelector {
     fn from_value(value: Value) -> StrResult<Self> {
         fn validate(selector: &Selector) -> StrResult<()> {
             match selector {
-                Selector::Elem(elem, _) => {
-                    if !elem.can::<dyn Locatable>() {
-                        Err(eco_format!("{} is not locatable", elem.name()))?
+                Selector::Type(ty) | Selector::Where(ty, _) => {
+                    if !ty.can::<dyn Locatable>() {
+                        Err(eco_format!("{} is not locatable", ty))?
                     }
                 }
                 Selector::Location(_) => {}
@@ -352,7 +347,7 @@ impl FromValue for LocatableSelector {
             return Err(Self::error(&value));
         }
 
-        let selector = Selector::from_value(value)?;
+        let selector = value.cast::<Selector>()?;
         validate(&selector)?;
         Ok(Self(selector))
     }
@@ -388,12 +383,12 @@ impl Reflect for ShowableSelector {
     }
 
     fn castable(value: &Value) -> bool {
-        Symbol::castable(value)
-            || Str::castable(value)
-            || Label::castable(value)
-            || Func::castable(value)
-            || Regex::castable(value)
-            || Selector::castable(value)
+        <Symbol as Reflect>::castable(value)
+            || <Str as Reflect>::castable(value)
+            || <Label as Reflect>::castable(value)
+            || <Func as Reflect>::castable(value)
+            || <Regex as Reflect>::castable(value)
+            || <Selector as Reflect>::castable(value)
     }
 }
 
@@ -406,7 +401,8 @@ impl FromValue for ShowableSelector {
     fn from_value(value: Value) -> StrResult<Self> {
         fn validate(selector: &Selector) -> StrResult<()> {
             match selector {
-                Selector::Elem(_, _) => {}
+                Selector::Type(_) => {}
+                Selector::Where(..) => {}
                 Selector::Label(_) => {}
                 Selector::Regex(_) => {}
                 Selector::Or(_)
@@ -425,7 +421,7 @@ impl FromValue for ShowableSelector {
             return Err(Self::error(&value));
         }
 
-        let selector = Selector::from_value(value)?;
+        let selector = value.cast::<Selector>()?;
         validate(&selector)?;
         Ok(Self(selector))
     }

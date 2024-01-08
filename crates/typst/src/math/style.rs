@@ -1,9 +1,7 @@
 use unicode_math_class::MathClass;
 
 use crate::diag::SourceResult;
-use crate::foundations::{
-    elem, func, Cast, Content, NativeElement, Packed, Smart, StyleChain,
-};
+use crate::foundations::{elem, func, Cast, Packed, Smart, StyleChain, Value};
 use crate::math::{LayoutMath, MathContext};
 use crate::syntax::Span;
 
@@ -17,8 +15,8 @@ pub fn bold(
     /// The call span of this function.
     span: Span,
     /// The content to style.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     MathStyleElem::new(body).with_bold(Some(true)).pack().spanned(span)
 }
 
@@ -32,8 +30,8 @@ pub fn upright(
     /// The call span of this function.
     span: Span,
     /// The content to style.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     MathStyleElem::new(body).with_italic(Some(false)).pack().spanned(span)
 }
 
@@ -45,10 +43,11 @@ pub fn italic(
     /// The call span of this function.
     span: Span,
     /// The content to style.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     MathStyleElem::new(body).with_italic(Some(true)).pack().spanned(span)
 }
+
 /// Serif (roman) font style in math.
 ///
 /// This is already the default.
@@ -57,8 +56,8 @@ pub fn serif(
     /// The call span of this function.
     span: Span,
     /// The content to style.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     MathStyleElem::new(body)
         .with_variant(Some(MathVariant::Serif))
         .pack()
@@ -75,8 +74,8 @@ pub fn sans(
     /// The call span of this function.
     span: Span,
     /// The content to style.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     MathStyleElem::new(body)
         .with_variant(Some(MathVariant::Sans))
         .pack()
@@ -93,8 +92,8 @@ pub fn cal(
     /// The call span of this function.
     span: Span,
     /// The content to style.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     MathStyleElem::new(body)
         .with_variant(Some(MathVariant::Cal))
         .pack()
@@ -111,8 +110,8 @@ pub fn frak(
     /// The call span of this function.
     span: Span,
     /// The content to style.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     MathStyleElem::new(body)
         .with_variant(Some(MathVariant::Frak))
         .pack()
@@ -129,8 +128,8 @@ pub fn mono(
     /// The call span of this function.
     span: Span,
     /// The content to style.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     MathStyleElem::new(body)
         .with_variant(Some(MathVariant::Mono))
         .pack()
@@ -152,8 +151,8 @@ pub fn bb(
     /// The call span of this function.
     span: Span,
     /// The content to style.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     MathStyleElem::new(body)
         .with_variant(Some(MathVariant::Bb))
         .pack()
@@ -172,13 +171,13 @@ pub fn display(
     /// The call span of this function.
     span: Span,
     /// The content to size.
-    body: Content,
+    body: Value,
     /// Whether to impose a height restriction for exponents, like regular sub-
     /// and superscripts do.
     #[named]
     #[default(false)]
     cramped: bool,
-) -> Content {
+) -> Value {
     MathStyleElem::new(body)
         .with_size(Some(MathSize::Display))
         .with_cramped(Some(cramped))
@@ -199,13 +198,13 @@ pub fn inline(
     /// The call span of this function.
     span: Span,
     /// The content to size.
-    body: Content,
+    body: Value,
     /// Whether to impose a height restriction for exponents, like regular sub-
     /// and superscripts do.
     #[named]
     #[default(false)]
     cramped: bool,
-) -> Content {
+) -> Value {
     MathStyleElem::new(body)
         .with_size(Some(MathSize::Text))
         .with_cramped(Some(cramped))
@@ -225,13 +224,13 @@ pub fn script(
     /// The call span of this function.
     span: Span,
     /// The content to size.
-    body: Content,
+    body: Value,
     /// Whether to impose a height restriction for exponents, like regular sub-
     /// and superscripts do.
     #[named]
     #[default(true)]
     cramped: bool,
-) -> Content {
+) -> Value {
     MathStyleElem::new(body)
         .with_size(Some(MathSize::Script))
         .with_cramped(Some(cramped))
@@ -252,13 +251,13 @@ pub fn sscript(
     /// The call span of this function.
     span: Span,
     /// The content to size.
-    body: Content,
+    body: Value,
     /// Whether to impose a height restriction for exponents, like regular sub-
     /// and superscripts do.
     #[named]
     #[default(true)]
     cramped: bool,
-) -> Content {
+) -> Value {
     MathStyleElem::new(body)
         .with_size(Some(MathSize::ScriptScript))
         .with_cramped(Some(cramped))
@@ -271,7 +270,7 @@ pub fn sscript(
 pub struct MathStyleElem {
     /// The content to style.
     #[required]
-    pub body: Content,
+    pub body: Value,
 
     /// The variant to select.
     pub variant: Option<MathVariant>,

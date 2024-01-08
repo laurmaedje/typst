@@ -2,7 +2,7 @@ use ecow::EcoString;
 use unicode_math_class::MathClass;
 
 use crate::diag::SourceResult;
-use crate::foundations::{elem, Content, NativeElement, Packed, Scope};
+use crate::foundations::{elem, Packed, Scope, Value};
 use crate::layout::HElem;
 use crate::math::{FrameFragment, LayoutMath, Limits, MathContext, MathStyleElem, THIN};
 use crate::text::TextElem;
@@ -26,7 +26,7 @@ use crate::text::TextElem;
 pub struct OpElem {
     /// The operator's text.
     #[required]
-    pub text: Content,
+    pub text: Value,
 
     /// Whether the operator should show attachments as limits in display mode.
     #[default(false)]
@@ -64,16 +64,16 @@ macro_rules! ops {
                 let operator = EcoString::from(ops!(@name $name $(: $value)?));
                 math.define(
                     stringify!($name),
-                    OpElem::new(TextElem::new(operator).into())
+                    OpElem::new(TextElem::packed(operator))
                         .with_limits(ops!(@limit $($tts)*))
                         .pack()
                 );
             })*
 
-            let dif = |d| {
-                HElem::new(THIN.into()).with_weak(true).pack()
-                    + MathStyleElem::new(TextElem::packed(d)).with_italic(Some(false)).pack()
-            };
+            let dif = |d| Value::sequence([
+                HElem::new(THIN.into()).with_weak(true).pack(),
+                MathStyleElem::new(TextElem::packed(d)).with_italic(Some(false)).pack(),
+            ]);
             math.define("dif", dif('d'));
             math.define("Dif", dif('D'));
         }

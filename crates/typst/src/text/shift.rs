@@ -2,7 +2,7 @@ use ecow::EcoString;
 
 use crate::diag::SourceResult;
 use crate::engine::Engine;
-use crate::foundations::{elem, Content, Packed, Show, StyleChain};
+use crate::foundations::{elem, Packed, SequenceElem, Show, StyleChain, Value};
 use crate::layout::{Em, Length};
 use crate::text::{variant, SpaceElem, TextElem, TextSize};
 use crate::World;
@@ -44,12 +44,12 @@ pub struct SubElem {
 
     /// The text to display in subscript.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Show for Packed<SubElem> {
     #[typst_macros::time(name = "sub", span = self.span())]
-    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         let body = self.body().clone();
         let mut transformed = None;
         if self.typographic(styles) {
@@ -104,12 +104,12 @@ pub struct SuperElem {
 
     /// The text to display in superscript.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Show for Packed<SuperElem> {
     #[typst_macros::time(name = "super", span = self.span())]
-    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         let body = self.body().clone();
         let mut transformed = None;
         if self.typographic(styles) {
@@ -129,14 +129,14 @@ impl Show for Packed<SuperElem> {
 
 /// Find and transform the text contained in `content` to the given script kind
 /// if and only if it only consists of `Text`, `Space`, and `Empty` leafs.
-fn search_text(content: &Content, sub: bool) -> Option<EcoString> {
+fn search_text(content: &Value, sub: bool) -> Option<EcoString> {
     if content.is::<SpaceElem>() {
         Some(' '.into())
     } else if let Some(elem) = content.to::<TextElem>() {
         convert_script(elem.text(), sub)
-    } else if let Some(children) = content.to_sequence() {
+    } else if let Some(sequence) = content.to::<SequenceElem>() {
         let mut full = EcoString::new();
-        for item in children {
+        for item in sequence.children() {
             match search_text(item, sub) {
                 Some(text) => full.push_str(&text),
                 None => return None,

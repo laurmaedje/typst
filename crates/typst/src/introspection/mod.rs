@@ -27,7 +27,8 @@ use smallvec::SmallVec;
 
 use crate::foundations::Packed;
 use crate::foundations::{
-    category, elem, ty, Behave, Behaviour, Category, Content, Repr, Scope, Unlabellable,
+    cast, category, elem, ty, Behave, Behaviour, Category, Repr, Scope, Unlabellable,
+    Value,
 };
 use crate::layout::PdfPageLabel;
 use crate::model::{Destination, Numbering};
@@ -48,7 +49,7 @@ pub fn define(global: &mut Scope) {
     global.define_type::<Location>();
     global.define_type::<Counter>();
     global.define_type::<State>();
-    global.define_elem::<MetadataElem>();
+    global.define_type::<MetadataElem>();
     global.define_func::<locate>();
     global.define_func::<query>();
 }
@@ -78,7 +79,7 @@ pub enum Meta {
     Link(Destination),
     /// An identifiable element that produces something within the area this
     /// metadata is attached to.
-    Elem(Content),
+    Elem(Value),
     /// The numbering of the current page.
     PageNumbering(Option<Numbering>),
     /// A PDF page label of the current page.
@@ -93,7 +94,7 @@ impl Debug for Meta {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
             Self::Link(dest) => write!(f, "Link({dest:?})"),
-            Self::Elem(content) => write!(f, "Elem({:?})", content.func()),
+            Self::Elem(content) => write!(f, "Elem({:?})", content.ty()),
             Self::PageNumbering(value) => write!(f, "PageNumbering({value:?})"),
             Self::PdfPageLabel(label) => write!(f, "PdfPageLabel({label:?})"),
             Self::Hide => f.pad("Hide"),

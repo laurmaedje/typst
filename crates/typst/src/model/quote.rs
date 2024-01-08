@@ -1,8 +1,7 @@
 use crate::diag::SourceResult;
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, Content, Finalize, Label, NativeElement, Packed, Show, Smart, StyleChain,
-    Synthesize,
+    cast, elem, Finalize, Label, Packed, Show, Smart, StyleChain, Synthesize, Value,
 };
 use crate::layout::{Alignment, BlockElem, Em, HElem, PadElem, Spacing, VElem};
 use crate::model::{CitationForm, CiteElem};
@@ -125,13 +124,13 @@ pub struct QuoteElem {
 
     /// The quote.
     #[required]
-    body: Content,
+    body: Value,
 }
 
 /// Attribution for a [quote](QuoteElem).
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub enum Attribution {
-    Content(Content),
+    Content(Value),
     Label(Label),
 }
 
@@ -141,8 +140,8 @@ cast! {
         Self::Content(content) => content.into_value(),
         Self::Label(label) => label.into_value(),
     },
-    content: Content => Self::Content(content),
     label: Label => Self::Label(label),
+    content: Value => Self::Content(content),
 }
 
 impl Synthesize for Packed<QuoteElem> {
@@ -156,7 +155,7 @@ impl Synthesize for Packed<QuoteElem> {
 
 impl Show for Packed<QuoteElem> {
     #[typst_macros::time(name = "quote", span = self.span())]
-    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         let mut realized = self.body().clone();
         let block = self.block(styles);
 
@@ -165,7 +164,7 @@ impl Show for Packed<QuoteElem> {
             let hole = HElem::hole().pack();
             let quote = SmartQuoteElem::new().with_double(true).pack();
             realized =
-                Content::sequence([quote.clone(), hole.clone(), realized, hole, quote]);
+                Value::sequence([quote.clone(), hole.clone(), realized, hole, quote]);
         }
 
         if block {
@@ -192,13 +191,20 @@ impl Show for Packed<QuoteElem> {
                 // Use v(0.9em, weak: true) bring the attribution closer to the
                 // quote.
                 let weak_v = VElem::weak(Spacing::Rel(Em::new(0.9).into())).pack();
-                realized += weak_v + Content::sequence(seq).aligned(Alignment::END);
+                realized = Value::sequence([
+                    realized,
+                    weak_v,
+                    Value::sequence(seq).aligned(Alignment::END),
+                ]);
             }
 
             realized = PadElem::new(realized).pack();
         } else if let Some(Attribution::Label(label)) = self.attribution(styles) {
-            realized += SpaceElem::new().pack()
-                + CiteElem::new(*label).pack().spanned(self.span());
+            realized = Value::sequence([
+                realized,
+                SpaceElem::new().pack(),
+                CiteElem::new(*label).pack().spanned(self.span()),
+            ]);
         }
 
         Ok(realized)
@@ -206,7 +212,7 @@ impl Show for Packed<QuoteElem> {
 }
 
 impl Finalize for Packed<QuoteElem> {
-    fn finalize(&self, realized: Content, _: StyleChain) -> Content {
+    fn finalize(&self, realized: Value, _: StyleChain) -> Value {
         let x = Em::new(1.0).into();
         let above = Em::new(2.4).into();
         let below = Em::new(1.8).into();

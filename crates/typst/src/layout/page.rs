@@ -6,8 +6,8 @@ use std::str::FromStr;
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, AutoValue, Cast, Content, Dict, Fold, Func, NativeElement, NoneValue,
-    Packed, Resolve, Smart, StyleChain, Value,
+    cast, elem, AutoValue, Cast, Dict, Fold, Func, NoneValue, Packed, Resolve, Smart,
+    StyleChain, Value,
 };
 use crate::introspection::{Counter, CounterKey, ManualPageCounter, Meta};
 use crate::layout::{
@@ -249,7 +249,7 @@ pub struct PageElem {
     /// #lorem(19)
     /// ```
     #[borrowed]
-    pub header: Option<Content>,
+    pub header: Option<Value>,
 
     /// The amount the header is raised into the top margin.
     #[resolve]
@@ -280,7 +280,7 @@ pub struct PageElem {
     /// #lorem(48)
     /// ```
     #[borrowed]
-    pub footer: Option<Content>,
+    pub footer: Option<Value>,
 
     /// The amount the footer is lowered into the bottom margin.
     #[resolve]
@@ -304,7 +304,7 @@ pub struct PageElem {
     /// over the world (of typesetting).
     /// ```
     #[borrowed]
-    pub background: Option<Content>,
+    pub background: Option<Value>,
 
     /// Content in the page's foreground.
     ///
@@ -318,7 +318,7 @@ pub struct PageElem {
     /// not understand our approach...
     /// ```
     #[borrowed]
-    pub foreground: Option<Content>,
+    pub foreground: Option<Value>,
 
     /// The contents of the page(s).
     ///
@@ -326,7 +326,7 @@ pub struct PageElem {
     /// page. A new page with the page properties prior to the function invocation
     /// will be created after the body has been typeset.
     #[required]
-    pub body: Content,
+    pub body: Value,
 
     /// Whether the page should be aligned to an even or odd page.
     #[internal]
@@ -663,10 +663,10 @@ cast! {
 /// A header, footer, foreground or background definition.
 #[derive(Debug, Clone, Hash)]
 pub enum Marginal {
-    /// Bare content.
-    Content(Content),
     /// A closure mapping from a page number to content.
     Func(Func),
+    /// Bare content.
+    Content(Value),
 }
 
 impl Marginal {
@@ -675,10 +675,10 @@ impl Marginal {
         &self,
         engine: &mut Engine,
         page: usize,
-    ) -> SourceResult<Cow<'_, Content>> {
+    ) -> SourceResult<Cow<'_, Value>> {
         Ok(match self {
             Self::Content(content) => Cow::Borrowed(content),
-            Self::Func(func) => Cow::Owned(func.call(engine, [page])?.display()),
+            Self::Func(func) => Cow::Owned(func.call(engine, [page])?),
         })
     }
 }
@@ -689,8 +689,8 @@ cast! {
         Self::Content(v) => v.into_value(),
         Self::Func(v) => v.into_value(),
     },
-    v: Content => Self::Content(v),
     v: Func => Self::Func(v),
+    v: Value => Self::Content(v),
 }
 
 /// A manual page break.

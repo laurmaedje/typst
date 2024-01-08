@@ -2,9 +2,7 @@ use comemo::Prehashed;
 
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
-use crate::foundations::{
-    elem, Content, NativeElement, Packed, Resolve, Smart, StyleChain,
-};
+use crate::foundations::{elem, Packed, Resolve, Smart, StyleChain, StyledElem, Value};
 use crate::introspection::{Meta, MetaElem};
 use crate::layout::{
     Abs, AlignElem, Axes, BlockElem, ColbreakElem, ColumnsElem, FixedAlign, Fr, Fragment,
@@ -26,7 +24,7 @@ use crate::visualize::{
 pub struct FlowElem {
     /// The children that will be arranges into a flow.
     #[variadic]
-    pub children: Vec<Prehashed<Content>>,
+    pub children: Vec<Prehashed<Value>>,
 }
 
 impl Layout for Packed<FlowElem> {
@@ -48,9 +46,9 @@ impl Layout for Packed<FlowElem> {
         for mut child in self.children().iter().map(|c| &**c) {
             let outer = styles;
             let mut styles = styles;
-            if let Some((elem, map)) = child.to_styled() {
-                child = elem;
-                styles = outer.chain(map);
+            if let Some(styled) = child.to::<StyledElem>() {
+                child = &styled.child();
+                styles = outer.chain(styled.styles());
             }
 
             if let Some(elem) = child.to::<VElem>() {
@@ -124,7 +122,7 @@ struct FlowLayouter<'a> {
 
 /// Cached footnote configuration.
 struct FootnoteConfig {
-    separator: Content,
+    separator: Value,
     clearance: Abs,
     gap: Abs,
 }
@@ -321,7 +319,7 @@ impl<'a> FlowLayouter<'a> {
     fn layout_multiple(
         &mut self,
         engine: &mut Engine,
-        block: &Content,
+        block: &Value,
         styles: StyleChain,
     ) -> SourceResult<()> {
         // Temporarily delegerate rootness to the columns.
@@ -341,8 +339,8 @@ impl<'a> FlowLayouter<'a> {
         // How to align the block.
         let align = if let Some(align) = block.to::<AlignElem>() {
             align.alignment(styles)
-        } else if let Some((_, local)) = block.to_styled() {
-            AlignElem::alignment_in(styles.chain(local))
+        } else if let Some(styled) = block.to::<StyledElem>() {
+            AlignElem::alignment_in(styles.chain(styled.styles()))
         } else {
             AlignElem::alignment_in(styles)
         }

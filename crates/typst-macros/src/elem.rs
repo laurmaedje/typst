@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use heck::{ToKebabCase, ToShoutySnakeCase, ToUpperCamelCase};
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -313,7 +315,7 @@ fn create(element: &Elem) -> Result<TokenStream> {
     // Trait implementations.
     let fields_impl = create_fields_impl(element);
     let capable_impl = create_capable_impl(element);
-    let native_element_impl = create_native_elem_impl(element);
+    let _native_element_impl = create_native_elem_impl(element);
     let construct_impl =
         element.unless_capability("Construct", || create_construct_impl(element));
     let set_impl = element.unless_capability("Set", || create_set_impl(element));
@@ -333,7 +335,36 @@ fn create(element: &Elem) -> Result<TokenStream> {
 
         #fields_enum
 
+        impl #foundations::NativeType for #ident {
+            const NAME: &'static str = "";
+            fn ty() -> #foundations::Type {
+                todo!()
+            }
+            fn data() -> &'static #foundations::NativeTypeData {
+                todo!()
+            }
+        }
+
         impl #ident {
+            pub fn ty() -> #foundations::Type {
+                todo!()
+            }
+            pub fn span(&self) -> ::typst::syntax::Span {
+                todo!()
+            }
+            pub fn set_location(&self, _loc: ::typst::introspection::Location) {
+                todo!()
+            }
+            pub fn location(&self) -> ::std::option::Option<::typst::introspection::Location> {
+                todo!()
+            }
+            pub fn spanned(self, _span: ::typst::syntax::Span) -> Self {
+                self
+            }
+            pub fn pack(self) -> #foundations::Value {
+                #foundations::Value::new(self)
+            }
+
             #new
             #(#field_methods)*
             #(#field_in_methods)*
@@ -342,7 +373,7 @@ fn create(element: &Elem) -> Result<TokenStream> {
             #(#field_style_methods)*
         }
 
-        #native_element_impl
+        // #native_element_impl
         #fields_impl
         #capable_impl
         #construct_impl
@@ -351,8 +382,26 @@ fn create(element: &Elem) -> Result<TokenStream> {
         #partial_eq_impl
         #repr_impl
 
+        impl #foundations::Reflect for #ident {
+            fn input() -> #foundations::CastInfo {
+                todo!()
+            }
+            fn output() -> #foundations::CastInfo {
+                todo!()
+            }
+            fn castable(value: &#foundations::Value) -> bool {
+                todo!()
+            }
+        }
+
         impl #foundations::IntoValue for #ident {
             fn into_value(self) -> #foundations::Value {
+                todo!()
+            }
+        }
+
+        impl #foundations::FromValue for #ident {
+            fn from_value(value: #foundations::Value) -> ::typst::diag::StrResult<Self> {
                 todo!()
             }
         }
@@ -560,11 +609,12 @@ fn create_set_field_method(element: &Elem, field: &Field) -> TokenStream {
     quote! {
         #[doc = #doc]
         #vis fn #set_ident(#ident: #ty) -> #foundations::Style {
-            #foundations::Style::Property(#foundations::Property::new(
-                <Self as #foundations::NativeElement>::elem(),
-                <#elem as #foundations::ElementFields>::Fields::#enum_ident as u8,
-                #ident,
-            ))
+            // #foundations::Style::Property(#foundations::Property::new(
+            //     <Self as #foundations::NativeElement>::elem(),
+            //     <#elem as #foundations::ElementFields>::Fields::#enum_ident as u8,
+            //     #ident,
+            // ))
+            todo!()
         }
     }
 }
@@ -665,13 +715,14 @@ fn create_style_chain_access(
     ));
 
     quote! {
-        #init
-        styles.#getter::<#ty>(
-            <Self as #foundations::NativeElement>::elem(),
-            <#elem as #foundations::ElementFields>::Fields::#enum_ident as u8,
-            #inherent,
-            #default,
-        )
+        // #init
+        // styles.#getter::<#ty>(
+        //     <Self as #foundations::NativeElement>::elem(),
+        //     <#elem as #foundations::ElementFields>::Fields::#enum_ident as u8,
+        //     #inherent,
+        //     #default,
+        // )
+        todo!()
     }
 }
 
@@ -892,14 +943,14 @@ fn create_construct_impl(element: &Elem) -> TokenStream {
             fn construct(
                 engine: &mut ::typst::engine::Engine,
                 args: &mut #foundations::Args,
-            ) -> ::typst::diag::SourceResult<#foundations::Content> {
+            ) -> ::typst::diag::SourceResult<#foundations::Value> {
                 #(#pre)*
 
                 let mut element = Self::new(#(#defaults),*);
 
                 #(#handlers)*
 
-                Ok(#foundations::Content::new(element))
+                Ok(#foundations::Value::new(element))
             }
         }
     }
@@ -962,10 +1013,11 @@ fn create_repr_impl(element: &Elem) -> TokenStream {
     quote! {
         impl #foundations::Repr for #ident {
             fn repr(&self) -> ::ecow::EcoString {
-                let fields = #foundations::Fields::fields(self).into_iter()
-                    .map(|(name, value)| ::ecow::eco_format!("{}: {}", name, value.repr()))
-                    .collect::<Vec<_>>();
-                ::ecow::eco_format!(#repr_format, #foundations::repr::pretty_array_like(&fields, false))
+                // let fields = #foundations::Fields::fields(self).into_iter()
+                //     .map(|(name, value)| ::ecow::eco_format!("{}: {}", name, value.repr()))
+                //     .collect::<Vec<_>>();
+                // ::ecow::eco_format!(#repr_format, #foundations::repr::pretty_array_like(&fields, false))
+                todo!()
             }
         }
     }

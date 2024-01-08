@@ -12,8 +12,7 @@ use smallvec::SmallVec;
 use crate::diag::{SourceResult, Trace, Tracepoint};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, func, ty, Content, Element, Func, NativeElement, Packed, Repr, Selector,
-    Show,
+    cast, elem, func, ty, Func, NativeType, Packed, Repr, Selector, Show, Type, Value,
 };
 use crate::syntax::Span;
 use crate::text::{FontFamily, FontList, TextElem};
@@ -45,7 +44,7 @@ pub fn style(
     /// `style` appears in the document. That makes it possible to generate
     /// content that depends on the style context it appears in.
     func: Func,
-) -> Content {
+) -> Value {
     StyleElem::new(func).pack().spanned(span)
 }
 
@@ -59,8 +58,8 @@ struct StyleElem {
 
 impl Show for Packed<StyleElem> {
     #[typst_macros::time(name = "style", span = self.span())]
-    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
-        Ok(self.func().call(engine, [styles.to_map()])?.display())
+    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
+        self.func().call(engine, [styles.to_map()])
     }
 }
 
@@ -124,8 +123,8 @@ impl Styles {
 
     /// Returns `Some(_)` with an optional span if this list contains
     /// styles for the given element.
-    pub fn interruption<T: NativeElement>(&self) -> Option<Option<Span>> {
-        let elem = T::elem();
+    pub fn interruption<T: NativeType>(&self) -> Option<Option<Span>> {
+        let elem = T::ty();
         self.0.iter().find_map(|entry| match &**entry {
             Style::Property(property) => property.is_of(elem).then_some(property.span),
             Style::Recipe(recipe) => recipe.is_of(elem).then_some(Some(recipe.span)),
@@ -213,8 +212,8 @@ impl From<Recipe> for Style {
 /// A style property originating from a set rule or constructor.
 #[derive(Clone, Hash)]
 pub struct Property {
-    /// The element the property belongs to.
-    elem: Element,
+    /// The type the property belongs to.
+    ty: Type,
     /// The property's ID.
     id: u8,
     /// The property's value.
@@ -225,21 +224,21 @@ pub struct Property {
 
 impl Property {
     /// Create a new property from a key-value pair.
-    pub fn new<T>(elem: Element, id: u8, value: T) -> Self
+    pub fn new<T>(ty: Type, id: u8, value: T) -> Self
     where
         T: Debug + Clone + Hash + Send + Sync + 'static,
     {
-        Self { elem, id, value: Block::new(value), span: None }
+        Self { ty, id, value: Block::new(value), span: None }
     }
 
     /// Whether this property is the given one.
-    pub fn is(&self, elem: Element, id: u8) -> bool {
-        self.elem == elem && self.id == id
+    pub fn is(&self, ty: Type, id: u8) -> bool {
+        self.ty == ty && self.id == id
     }
 
     /// Whether this property belongs to the given element.
-    pub fn is_of(&self, elem: Element) -> bool {
-        self.elem == elem
+    pub fn is_of(&self, ty: Type) -> bool {
+        self.ty == ty
     }
 }
 
@@ -248,8 +247,8 @@ impl Debug for Property {
         write!(
             f,
             "Set({}.{}: ",
-            self.elem.name(),
-            self.elem.field_name(self.id).unwrap()
+            self.ty.short_name(),
+            self.ty.field_name(self.id).unwrap()
         )?;
         self.value.fmt(f)?;
         write!(f, ")")
@@ -346,31 +345,31 @@ pub struct Recipe {
 
 impl Recipe {
     /// Whether this recipe is for the given type of element.
-    pub fn is_of(&self, element: Element) -> bool {
+    pub fn is_of(&self, ty: Type) -> bool {
         match self.selector {
-            Some(Selector::Elem(own, _)) => own == element,
+            Some(Selector::Type(own)) => own == ty,
             _ => false,
         }
     }
 
     /// Whether the recipe is applicable to the target.
-    pub fn applicable(&self, target: &Content) -> bool {
+    pub fn applicable(&self, target: &Value) -> bool {
         self.selector
             .as_ref()
             .map_or(false, |selector| selector.matches(target))
     }
 
     /// Apply the recipe to the given content.
-    pub fn apply(&self, engine: &mut Engine, content: Content) -> SourceResult<Content> {
+    pub fn apply(&self, engine: &mut Engine, content: Value) -> SourceResult<Value> {
         let mut content = match &self.transform {
-            Transformation::Content(content) => content.clone(),
+            Transformation::Replace(content) => content.clone(),
             Transformation::Func(func) => {
                 let mut result = func.call(engine, [content.clone()]);
                 if self.selector.is_some() {
-                    let point = || Tracepoint::Show(content.func().name().into());
+                    let point = || Tracepoint::Show(content.ty().short_name().into());
                     result = result.trace(engine.world, point, content.span());
                 }
-                result?.display()
+                result?
             }
             Transformation::Style(styles) => content.styled_with_map(styles.clone()),
         };
@@ -396,7 +395,7 @@ impl Debug for Recipe {
 #[derive(Clone, PartialEq, Hash)]
 pub enum Transformation {
     /// Replacement content.
-    Content(Content),
+    Replace(Value),
     /// A function to apply to the match.
     Func(Func),
     /// Apply styles to the content.
@@ -406,7 +405,7 @@ pub enum Transformation {
 impl Debug for Transformation {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            Self::Content(content) => content.fmt(f),
+            Self::Replace(replacement) => replacement.fmt(f),
             Self::Func(func) => func.fmt(f),
             Self::Style(styles) => styles.fmt(f),
         }
@@ -415,8 +414,8 @@ impl Debug for Transformation {
 
 cast! {
     Transformation,
-    content: Content => Self::Content(content),
     func: Func => Self::Func(func),
+    replacement: Value => Self::Replace(replacement),
 }
 
 /// A chain of styles, similar to a linked list.
@@ -457,12 +456,12 @@ impl<'a> StyleChain<'a> {
     /// returning a borrowed value if possible.
     pub fn get_borrowed<T: Clone>(
         self,
-        func: Element,
+        ty: Type,
         id: u8,
         inherent: Option<&'a T>,
         default: &'static Lazy<T>,
     ) -> &'a T {
-        self.properties::<T>(func, id, inherent)
+        self.properties::<T>(ty, id, inherent)
             .next()
             .unwrap_or_else(|| default)
     }
@@ -470,29 +469,29 @@ impl<'a> StyleChain<'a> {
     /// Cast the first value for the given property in the chain.
     pub fn get<T: Clone>(
         self,
-        func: Element,
+        ty: Type,
         id: u8,
         inherent: Option<&T>,
         default: &'static Lazy<T>,
     ) -> T {
-        self.get_borrowed(func, id, inherent, default).clone()
+        self.get_borrowed(ty, id, inherent, default).clone()
     }
 
     /// Cast the first value for the given property in the chain.
     pub fn get_resolve<T: Clone + Resolve>(
         self,
-        func: Element,
+        ty: Type,
         id: u8,
         inherent: Option<&T>,
         default: &'static Lazy<T>,
     ) -> T::Output {
-        self.get(func, id, inherent, default).resolve(self)
+        self.get(ty, id, inherent, default).resolve(self)
     }
 
     /// Cast the first value for the given property in the chain.
     pub fn get_fold<T: Clone + Fold + 'static>(
         self,
-        func: Element,
+        ty: Type,
         id: u8,
         inherent: Option<&T>,
         default: impl Fn() -> T::Output,
@@ -506,13 +505,13 @@ impl<'a> StyleChain<'a> {
                 .map(|value| value.fold(next(values, default)))
                 .unwrap_or_else(default)
         }
-        next(self.properties::<T>(func, id, inherent).cloned(), &default)
+        next(self.properties::<T>(ty, id, inherent).cloned(), &default)
     }
 
     /// Cast the first value for the given property in the chain.
     pub fn get_resolve_fold<T>(
         self,
-        func: Element,
+        ty: Type,
         id: u8,
         inherent: Option<&T>,
         default: impl Fn() -> <T::Output as Fold>::Output,
@@ -536,7 +535,7 @@ impl<'a> StyleChain<'a> {
                 .unwrap_or_else(default)
         }
 
-        next(self.properties::<T>(func, id, inherent).cloned(), self, &default)
+        next(self.properties::<T>(ty, id, inherent).cloned(), self, &default)
     }
 
     /// Iterate over all style recipes in the chain.
@@ -547,21 +546,21 @@ impl<'a> StyleChain<'a> {
     /// Iterate over all values for the given property in the chain.
     pub fn properties<T: 'static>(
         self,
-        func: Element,
+        ty: Type,
         id: u8,
         inherent: Option<&'a T>,
     ) -> impl Iterator<Item = &'a T> {
         inherent.into_iter().chain(
             self.entries()
                 .filter_map(Style::property)
-                .filter(move |property| property.is(func, id))
+                .filter(move |property| property.is(ty, id))
                 .map(|property| &property.value)
                 .map(move |value| {
                     value.downcast().unwrap_or_else(|| {
                         panic!(
                             "attempted to read a value of a different type than was written {}.{}: {:?}",
-                            func.name(),
-                            func.field_name(id).unwrap(),
+                            ty.short_name(),
+                            ty.field_name(id).unwrap(),
                             value
                         )
                     })
@@ -730,8 +729,8 @@ impl<T> StyleVec<T> {
     }
 }
 
-impl<'a> StyleVec<Cow<'a, Content>> {
-    pub fn to_vec<F: From<Content>>(self) -> Vec<F> {
+impl<'a> StyleVec<Cow<'a, Value>> {
+    pub fn to_vec<F: From<Value>>(self) -> Vec<F> {
         self.items
             .into_iter()
             .zip(

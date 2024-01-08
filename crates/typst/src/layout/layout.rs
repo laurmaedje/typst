@@ -1,8 +1,6 @@
 use crate::diag::SourceResult;
 use crate::engine::Engine;
-use crate::foundations::{
-    dict, elem, func, Content, Func, NativeElement, Packed, StyleChain,
-};
+use crate::foundations::{dict, elem, func, Func, Packed, StyleChain, Value};
 use crate::layout::{Fragment, Layout, Regions, Size};
 use crate::syntax::Span;
 
@@ -58,7 +56,7 @@ pub fn layout(
     /// `layout` appears in the document. That makes it possible to generate
     /// content that depends on the size of the container it is inside of.
     func: Func,
-) -> Content {
+) -> Value {
     LayoutElem::new(func).pack().spanned(span)
 }
 
@@ -81,10 +79,8 @@ impl Layout for Packed<LayoutElem> {
         // Gets the current region's base size, which will be the size of the
         // outer container, or of the page if there is no such container.
         let Size { x, y } = regions.base();
-        let result = self
-            .func()
+        self.func()
             .call(engine, [dict! { "width" => x, "height" => y }])?
-            .display();
-        result.layout(engine, styles, regions)
+            .layout(engine, styles, regions)
     }
 }

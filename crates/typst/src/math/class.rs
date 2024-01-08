@@ -1,7 +1,7 @@
 use unicode_math_class::MathClass;
 
 use crate::diag::SourceResult;
-use crate::foundations::{elem, Content, Packed};
+use crate::foundations::{elem, Packed, Value};
 use crate::math::{LayoutMath, MathContext};
 
 /// Forced use of a certain math class.
@@ -26,7 +26,7 @@ pub struct ClassElem {
 
     /// The content to which the class is applied.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl LayoutMath for Packed<ClassElem> {

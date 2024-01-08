@@ -1,7 +1,7 @@
 use crate::diag::SourceResult;
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, AutoValue, Content, NativeElement, Packed, Resolve, Smart, StyleChain,
+    cast, elem, AutoValue, Packed, Resolve, Smart, StyleChain, Value,
 };
 use crate::layout::{
     Abs, Axes, Corners, Em, Fr, Fragment, FrameKind, Layout, Length, Ratio, Regions, Rel,
@@ -106,7 +106,7 @@ pub struct BoxElem {
 
     /// The contents of the box.
     #[positional]
-    pub body: Option<Content>,
+    pub body: Option<Value>,
 }
 
 impl Layout for Packed<BoxElem> {
@@ -331,7 +331,7 @@ pub struct BlockElem {
 
     /// The contents of the block.
     #[positional]
-    pub body: Option<Content>,
+    pub body: Option<Value>,
 
     /// Whether this block must stick to the following one.
     ///

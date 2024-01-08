@@ -1,7 +1,7 @@
 use crate::diag::SourceResult;
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, scope, Content, Fold, NativeElement, Packed, Show, Smart, StyleChain,
+    cast, elem, scope, Fold, Packed, Show, Smart, StyleChain, Value,
 };
 use crate::layout::{
     show_grid_cell, Abs, Alignment, Axes, Cell, CellGrid, Celled, Fragment, GridLayouter,
@@ -162,7 +162,7 @@ pub struct TableElem {
 
 #[scope]
 impl TableElem {
-    #[elem]
+    #[ty]
     type TableCell;
 }
 
@@ -263,7 +263,7 @@ impl Figurable for Packed<TableElem> {}
 pub struct TableCell {
     /// The cell's body.
     #[required]
-    body: Content,
+    body: Value,
 
     /// The cell's fill override.
     fill: Smart<Option<Paint>>,
@@ -275,14 +275,14 @@ pub struct TableCell {
     inset: Smart<Sides<Option<Rel<Length>>>>,
 }
 
-cast! {
-    TableCell,
-    v: Content => v.into(),
-}
+// cast! {
+//     TableCell,
+//     v: Value => v.into(),
+// }
 
 impl Default for TableCell {
     fn default() -> Self {
-        Self::new(Content::default())
+        Self::new(Value::default())
     }
 }
 
@@ -316,13 +316,13 @@ impl ResolvableCell for TableCell {
 }
 
 impl Show for Packed<TableCell> {
-    fn show(&self, _engine: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         show_grid_cell(self.body().clone(), self.inset(styles), self.align(styles))
     }
 }
 
-impl From<Content> for TableCell {
-    fn from(value: Content) -> Self {
+impl From<Value> for TableCell {
+    fn from(value: Value) -> Self {
         match value.to_packed::<Self>() {
             Ok(packed) => packed.unpack(),
             Err(v) => Self::new(v),

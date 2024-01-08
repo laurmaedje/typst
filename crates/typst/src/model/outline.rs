@@ -4,8 +4,8 @@ use std::str::FromStr;
 use crate::diag::{bail, At, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, scope, select_where, Content, Finalize, Func, LocatableSelector,
-    NativeElement, Packed, Show, Smart, StyleChain,
+    cast, elem, scope, select_where, Finalize, Func, LocatableSelector, Packed, Show,
+    Smart, StyleChain, Value,
 };
 use crate::introspection::{Counter, CounterKey, Locatable};
 use crate::layout::{BoxElem, Fr, HElem, HideElem, Length, Rel, RepeatElem, Spacing};
@@ -71,7 +71,7 @@ pub struct OutlineElem {
     /// `{show outline: set heading(numbering: "1.")}`
     /// ```
     #[default(Some(Smart::Auto))]
-    pub title: Option<Smart<Content>>,
+    pub title: Option<Smart<Value>>,
 
     /// The type of element to include in the outline.
     ///
@@ -176,18 +176,18 @@ pub struct OutlineElem {
     /// = A New Beginning
     /// ```
     #[default(Some(RepeatElem::new(TextElem::packed(".")).pack()))]
-    pub fill: Option<Content>,
+    pub fill: Option<Value>,
 }
 
 #[scope]
 impl OutlineElem {
-    #[elem]
+    #[ty]
     type OutlineEntry;
 }
 
 impl Show for Packed<OutlineElem> {
     #[typst_macros::time(name = "outline", span = self.span())]
-    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         let mut seq = vec![ParbreakElem::new().pack()];
         // Build the outline title.
         if let Some(title) = self.title(styles) {
@@ -206,7 +206,7 @@ impl Show for Packed<OutlineElem> {
         let indent = self.indent(styles);
         let depth = self.depth(styles).unwrap_or(NonZeroUsize::new(usize::MAX).unwrap());
 
-        let mut ancestors: Vec<&Content> = vec![];
+        let mut ancestors: Vec<&Value> = vec![];
         let elems = engine.introspector.query(&self.target(styles).0);
 
         for elem in &elems {
@@ -246,12 +246,12 @@ impl Show for Packed<OutlineElem> {
 
         seq.push(ParbreakElem::new().pack());
 
-        Ok(Content::sequence(seq))
+        Ok(Value::sequence(seq))
     }
 }
 
 impl Finalize for Packed<OutlineElem> {
-    fn finalize(&self, realized: Content, _: StyleChain) -> Content {
+    fn finalize(&self, realized: Value, _: StyleChain) -> Value {
         realized
             .styled(HeadingElem::set_outlined(false))
             .styled(HeadingElem::set_numbering(None))
@@ -301,7 +301,7 @@ impl LocalName for Packed<OutlineElem> {
 /// `#outline()` element.
 pub trait Outlinable: Refable {
     /// Produce an outline item for this element.
-    fn outline(&self, engine: &mut Engine) -> SourceResult<Option<Content>>;
+    fn outline(&self, engine: &mut Engine) -> SourceResult<Option<Value>>;
 
     /// Returns the nesting level of this element.
     fn level(&self) -> NonZeroUsize {
@@ -321,8 +321,8 @@ impl OutlineIndent {
     fn apply(
         indent: &Option<Smart<Self>>,
         engine: &mut Engine,
-        ancestors: &Vec<&Content>,
-        seq: &mut Vec<Content>,
+        ancestors: &Vec<&Value>,
+        seq: &mut Vec<Value>,
         span: Span,
     ) -> SourceResult<()> {
         match indent {
@@ -332,7 +332,7 @@ impl OutlineIndent {
             // 'auto' | 'true' => use numbering alignment for indenting
             Some(Smart::Auto | Smart::Custom(OutlineIndent::Bool(true))) => {
                 // Add hidden ancestors numberings to realize the indent.
-                let mut hidden = Content::empty();
+                let mut hidden = vec![];
                 for ancestor in ancestors {
                     let ancestor_outlinable = ancestor.with::<dyn Outlinable>().unwrap();
 
@@ -342,21 +342,22 @@ impl OutlineIndent {
                             .at(engine, ancestor.location().unwrap())?
                             .display(engine, &numbering)?;
 
-                        hidden += numbers + SpaceElem::new().pack();
+                        hidden.push(numbers);
+                        hidden.push(SpaceElem::new().pack());
                     };
                 }
 
                 if !ancestors.is_empty() {
-                    seq.push(HideElem::new(hidden).pack());
+                    seq.push(HideElem::new(Value::sequence(hidden)).pack());
                     seq.push(SpaceElem::new().pack());
                 }
             }
 
             // Length => indent with some fixed spacing per level
             Some(Smart::Custom(OutlineIndent::Rel(length))) => {
-                seq.push(
-                    HElem::new(Spacing::Rel(*length)).pack().repeat(ancestors.len()),
-                );
+                for _ in 0..ancestors.len() {
+                    seq.push(HElem::new(Spacing::Rel(*length)).pack());
+                }
             }
 
             // Function => call function with the current depth and take
@@ -365,9 +366,7 @@ impl OutlineIndent {
                 let depth = ancestors.len();
                 let LengthOrContent(content) =
                     func.call(engine, [depth])?.cast().at(span)?;
-                if !content.is_empty() {
-                    seq.push(content);
-                }
+                seq.push(content);
             }
         };
 
@@ -387,12 +386,12 @@ cast! {
     v: Func => OutlineIndent::Func(v),
 }
 
-struct LengthOrContent(Content);
+struct LengthOrContent(Value);
 
 cast! {
     LengthOrContent,
     v: Rel<Length> => Self(HElem::new(Spacing::Rel(v)).pack()),
-    v: Content => Self(v),
+    v: Value => Self(v),
 }
 
 /// Represents each entry line in an outline, including the reference to the
@@ -433,13 +432,13 @@ pub struct OutlineEntry {
     /// through the [`location`]($content.location) method on content
     /// and can be [linked]($link) to.
     #[required]
-    pub element: Content,
+    pub element: Value,
 
     /// The content which is displayed in place of the referred element at its
     /// entry in the outline. For a heading, this would be its number followed
     /// by the heading's title, for example.
     #[required]
-    pub body: Content,
+    pub body: Value,
 
     /// The content used to fill the space between the element's outline and
     /// its page number, as defined by the outline element this entry is
@@ -450,12 +449,12 @@ pub struct OutlineEntry {
     /// fractional width. For example, `{box(width: 1fr, repeat[-])}` would show
     /// precisely as many `-` characters as necessary to fill a particular gap.
     #[required]
-    pub fill: Option<Content>,
+    pub fill: Option<Value>,
 
     /// The page number of the element this entry links to, formatted with the
     /// numbering set for the referenced page.
     #[required]
-    pub page: Content,
+    pub page: Value,
 }
 
 impl OutlineEntry {
@@ -466,11 +465,11 @@ impl OutlineEntry {
     fn from_outlinable(
         engine: &mut Engine,
         span: Span,
-        elem: Content,
-        fill: Option<Content>,
+        elem: Value,
+        fill: Option<Value>,
     ) -> SourceResult<Option<Self>> {
         let Some(outlinable) = elem.with::<dyn Outlinable>() else {
-            bail!(span, "cannot outline {}", elem.func().name());
+            bail!(span, "cannot outline {}", elem.ty());
         };
 
         let Some(body) = outlinable.outline(engine)? else {
@@ -494,7 +493,7 @@ impl OutlineEntry {
 
 impl Show for Packed<OutlineEntry> {
     #[typst_macros::time(name = "outline.entry", span = self.span())]
-    fn show(&self, _: &mut Engine, _: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, _: StyleChain) -> SourceResult<Value> {
         let mut seq = vec![];
         let elem = self.element();
 
@@ -502,11 +501,11 @@ impl Show for Packed<OutlineEntry> {
         let Some(location) = elem.location() else {
             if elem.can::<dyn Locatable>() && elem.can::<dyn Outlinable>() {
                 bail!(
-                    self.span(), "{} must have a location", elem.func().name();
+                    self.span(), "{} must have a location", elem.ty();
                     hint: "try using a query or a show rule to customize the outline.entry instead",
                 )
             } else {
-                bail!(self.span(), "cannot outline {}", elem.func().name())
+                bail!(self.span(), "cannot outline {}", elem.ty())
             }
         };
 
@@ -532,6 +531,6 @@ impl Show for Packed<OutlineEntry> {
         let page = self.page().clone().linked(Destination::Location(location));
         seq.push(page);
 
-        Ok(Content::sequence(seq))
+        Ok(Value::sequence(seq))
     }
 }

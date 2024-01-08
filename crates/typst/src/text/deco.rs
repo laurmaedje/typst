@@ -6,7 +6,7 @@ use ecow::{eco_format, EcoString};
 use crate::diag::SourceResult;
 use crate::engine::Engine;
 use crate::foundations::{
-    elem, ty, Content, Fold, Packed, Repr, Show, Smart, StyleChain,
+    cast, elem, ty, Fold, Packed, Repr, Show, Smart, StyleChain, Value,
 };
 use crate::layout::{Abs, Em, Frame, FrameItem, Length, Point, Size};
 use crate::syntax::Span;
@@ -83,12 +83,12 @@ pub struct UnderlineElem {
 
     /// The content to underline.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Show for Packed<UnderlineElem> {
     #[typst_macros::time(name = "underline", span = self.span())]
-    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         Ok(self.body().clone().styled(TextElem::set_deco(Decoration {
             line: DecoLine::Underline {
                 stroke: self.stroke(styles).unwrap_or_default(),
@@ -175,12 +175,12 @@ pub struct OverlineElem {
 
     /// The content to add a line over.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Show for Packed<OverlineElem> {
     #[typst_macros::time(name = "overline", span = self.span())]
-    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         Ok(self.body().clone().styled(TextElem::set_deco(Decoration {
             line: DecoLine::Overline {
                 stroke: self.stroke(styles).unwrap_or_default(),
@@ -252,12 +252,12 @@ pub struct StrikeElem {
 
     /// The content to strike through.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Show for Packed<StrikeElem> {
     #[typst_macros::time(name = "strike", span = self.span())]
-    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         Ok(self.body().clone().styled(TextElem::set_deco(Decoration {
             // Note that we do not support evade option for strikethrough.
             line: DecoLine::Strikethrough {
@@ -322,12 +322,12 @@ pub struct HighlightElem {
 
     /// The content that should be highlighted.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Show for Packed<HighlightElem> {
     #[typst_macros::time(name = "highlight", span = self.span())]
-    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, _: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         Ok(self.body().clone().styled(TextElem::set_deco(Decoration {
             line: DecoLine::Highlight {
                 fill: self.fill(styles),

@@ -1,8 +1,8 @@
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, scope, Array, Content, Fold, Func, NativeElement, NoneValue, Packed,
-    Smart, StyleChain, Value,
+    array, cast, elem, scope, Array, Fold, Func, NoneValue, Packed, Smart, StyleChain,
+    Value,
 };
 use crate::layout::{
     Axes, BlockElem, Cell, CellGrid, Em, Fragment, GridLayouter, HAlignment, Layout,
@@ -130,7 +130,7 @@ pub struct ListElem {
 
 #[scope]
 impl ListElem {
-    #[elem]
+    #[ty]
     type ListItem;
 }
 
@@ -160,9 +160,9 @@ impl Layout for Packed<ListElem> {
 
         let mut cells = vec![];
         for item in self.children() {
-            cells.push(Cell::from(Content::empty()));
+            cells.push(Cell::from(Value::none()));
             cells.push(Cell::from(marker.clone()));
-            cells.push(Cell::from(Content::empty()));
+            cells.push(Cell::from(Value::none()));
             cells
                 .push(Cell::from(item.body().clone().styled(ListElem::set_depth(Depth))));
         }
@@ -190,33 +190,33 @@ impl Layout for Packed<ListElem> {
 pub struct ListItem {
     /// The item's body.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
-cast! {
-    ListItem,
-    v: Content => match v.to_packed::<Self>() {
-        Ok(packed) => packed.unpack(),
-        Err(v) => Self::new(v),
-    }
-}
+// cast! {
+//     ListItem,
+//     v: Value => match v.to_packed::<Self>() {
+//         Ok(packed) => packed.unpack(),
+//         Err(v) => Self::new(v),
+//     }
+// }
 
 /// A list's marker.
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub enum ListMarker {
-    Content(Vec<Content>),
+    Content(Array),
     Func(Func),
 }
 
 impl ListMarker {
     /// Resolve the marker for the given depth.
-    fn resolve(&self, engine: &mut Engine, depth: usize) -> SourceResult<Content> {
-        Ok(match self {
+    fn resolve(&self, engine: &mut Engine, depth: usize) -> SourceResult<Value> {
+        match self {
             Self::Content(list) => {
-                list.get(depth % list.len()).cloned().unwrap_or_default()
+                Ok(list.as_slice().get(depth % list.len()).cloned().unwrap_or_default())
             }
-            Self::Func(func) => func.call(engine, [depth])?.display(),
-        })
+            Self::Func(func) => func.call(engine, [depth]),
+        }
     }
 }
 
@@ -230,14 +230,14 @@ cast! {
         },
         Self::Func(func) => func.into_value(),
     },
-    v: Content => Self::Content(vec![v]),
-    array: Array => {
-        if array.is_empty() {
+    v: Array => {
+        if v.is_empty() {
             bail!("array must contain at least one marker");
         }
-        Self::Content(array.into_iter().map(Value::display).collect())
+        Self::Content(v)
     },
     v: Func => Self::Func(v),
+    v: Value => Self::Content(array![v]),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash)]

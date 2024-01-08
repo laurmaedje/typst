@@ -6,7 +6,7 @@ use ecow::{eco_format, EcoString};
 
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
-use crate::foundations::{func, repr, scope, ty, Content, Smart, StyleChain};
+use crate::foundations::{func, repr, scope, ty, Smart, StyleChain, Value};
 use crate::layout::{Abs, Axes, Frame, Layout, Length, Regions, Size};
 use crate::syntax::{Span, Spanned};
 use crate::util::Numeric;
@@ -155,7 +155,7 @@ impl Pattern {
         #[default(Smart::Auto)]
         relative: Smart<RelativeTo>,
         /// The content of each cell of the pattern.
-        body: Content,
+        body: Value,
     ) -> SourceResult<Pattern> {
         let size_span = size.span;
         if let Smart::Custom(size) = size.v {

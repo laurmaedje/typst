@@ -1,7 +1,7 @@
 use unicode_math_class::MathClass;
 
 use crate::diag::SourceResult;
-use crate::foundations::{elem, Content, Packed, StyleChain};
+use crate::foundations::{elem, Packed, StyleChain, Value};
 use crate::layout::{Abs, Frame, Point, Size};
 use crate::math::{
     FrameFragment, LayoutMath, MathContext, MathFragment, MathSize, Scaled,
@@ -20,38 +20,38 @@ use crate::text::TextElem;
 pub struct AttachElem {
     /// The base to which things are attached.
     #[required]
-    pub base: Content,
+    pub base: Value,
 
     /// The top attachment, smartly positioned at top-right or above the base.
     ///
     /// You can wrap the base in `{limits()}` or `{scripts()}` to override the
     /// smart positioning.
-    pub t: Option<Content>,
+    pub t: Option<Value>,
 
     /// The bottom attachment, smartly positioned at the bottom-right or below
     /// the base.
     ///
     /// You can wrap the base in `{limits()}` or `{scripts()}` to override the
     /// smart positioning.
-    pub b: Option<Content>,
+    pub b: Option<Value>,
 
     /// The top-left attachment (before the base).
-    pub tl: Option<Content>,
+    pub tl: Option<Value>,
 
     /// The bottom-left attachment (before base).
-    pub bl: Option<Content>,
+    pub bl: Option<Value>,
 
     /// The top-right attachment (after the base).
-    pub tr: Option<Content>,
+    pub tr: Option<Value>,
 
     /// The bottom-right attachment (after the base).
-    pub br: Option<Content>,
+    pub br: Option<Value>,
 }
 
 impl LayoutMath for Packed<AttachElem> {
     #[typst_macros::time(name = "math.attach", span = self.span())]
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()> {
-        type GetAttachment = fn(&AttachElem, styles: StyleChain) -> Option<Content>;
+        type GetAttachment = fn(&AttachElem, styles: StyleChain) -> Option<Value>;
         let layout_attachment = |ctx: &mut MathContext, getter: GetAttachment| {
             getter(self, ctx.styles())
                 .map(|elem| ctx.layout_fragment(&elem))
@@ -139,7 +139,7 @@ impl LayoutMath for Packed<PrimesElem> {
 pub struct ScriptsElem {
     /// The base to attach the scripts to.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl LayoutMath for Packed<ScriptsElem> {
@@ -161,7 +161,7 @@ impl LayoutMath for Packed<ScriptsElem> {
 pub struct LimitsElem {
     /// The base to attach the limits to.
     #[required]
-    pub body: Content,
+    pub body: Value,
 
     /// Whether to also force limits in inline equations.
     ///

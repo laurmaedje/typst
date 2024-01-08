@@ -73,10 +73,10 @@ where
         ast::Pattern::Placeholder(_) => {}
         ast::Pattern::Destructuring(destruct) => {
             if value.is::<Array>() {
-                let array = value.unpack::<Array>().unwrap();
+                let array = value.to_packed::<Array>().unwrap().unpack();
                 destructure_array(vm, pattern, array, f, destruct)?;
             } else if value.is::<Dict>() {
-                let dict = value.unpack::<Dict>().unwrap();
+                let dict = value.to_packed::<Dict>().unwrap().unpack();
                 destructure_dict(vm, dict, f, destruct)?;
             } else {
                 bail!(pattern.span(), "cannot destructure {}", value.ty());

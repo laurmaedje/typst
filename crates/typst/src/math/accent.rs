@@ -1,9 +1,7 @@
 use unicode_math_class::MathClass;
 
 use crate::diag::{bail, SourceResult};
-use crate::foundations::{
-    cast, elem, Content, IntoValue, NativeElement, Packed, Resolve, Smart, Str,
-};
+use crate::foundations::{cast, elem, IntoValue, Packed, Resolve, Smart, Str, Value};
 use crate::layout::{Em, Frame, Length, Point, Rel, Size};
 use crate::math::{
     FrameFragment, GlyphFragment, LayoutMath, MathContext, MathFragment, Scaled,
@@ -31,7 +29,7 @@ pub struct AccentElem {
     /// $arrow(A B C)$
     /// ```
     #[required]
-    pub base: Content,
+    pub base: Value,
 
     /// The accent to apply to the base.
     ///
@@ -140,8 +138,5 @@ cast! {
     Accent,
     self => self.0.into_value(),
     v: char => Self::new(v),
-    v: Content => match v.to::<TextElem>() {
-        Some(elem) => Str::from(elem.text().clone()).into_value().cast()?,
-        None => bail!("expected text"),
-    },
+    v: TextElem => Str::from(v.text().clone()).into_value().cast()?,
 }

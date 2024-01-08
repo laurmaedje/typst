@@ -2,8 +2,7 @@ use smallvec::{smallvec, SmallVec};
 
 use crate::diag::{bail, At, SourceResult, StrResult};
 use crate::foundations::{
-    cast, dict, elem, Array, Cast, Content, Dict, Fold, Packed, Resolve, Smart,
-    StyleChain, Value,
+    cast, dict, elem, Array, Cast, Dict, Fold, Packed, Resolve, Smart, StyleChain, Value,
 };
 use crate::layout::{
     Abs, Axes, Em, FixedAlign, Frame, FrameItem, Length, Point, Ratio, Rel, Size,
@@ -54,7 +53,7 @@ pub struct VecElem {
 
     /// The elements of the vector.
     #[variadic]
-    pub children: Vec<Content>,
+    pub children: Vec<Value>,
 }
 
 impl LayoutMath for Packed<VecElem> {
@@ -190,24 +189,25 @@ pub struct MatElem {
         let values = args.all::<Spanned<Value>>()?;
         if values.iter().any(|spanned| spanned.v.is::<Array>()) {
             for Spanned { v, span } in values {
-                let array = v.cast::<Array>().at(span)?;
-                let row: Vec<_> = array.into_iter().map(Value::display).collect();
-                width = width.max(row.len());
+                let row = v.cast::<Array>().at(span)?;
+                width = width.max(row.as_slice().len());
                 rows.push(row);
             }
         } else {
-            rows = vec![values.into_iter().map(|spanned| spanned.v.display()).collect()];
+            rows = vec![values.into_iter().map(|spanned| spanned.v).collect()];
         }
 
         for row in &mut rows {
-            if row.len() < width {
-                row.resize(width, Content::empty());
+            if let Some(rem @ 1..) = width.checked_sub(row.len()) {
+                for _ in 0..rem {
+                    row.push( Value::none());
+                }
             }
         }
 
         rows
     )]
-    pub rows: Vec<Vec<Content>>,
+    pub rows: Vec<Array>,
 }
 
 impl LayoutMath for Packed<MatElem> {
@@ -306,7 +306,7 @@ pub struct CasesElem {
 
     /// The branches of the case distinction.
     #[variadic]
-    pub children: Vec<Content>,
+    pub children: Vec<Value>,
 }
 
 impl LayoutMath for Packed<CasesElem> {
@@ -377,7 +377,7 @@ impl Delimiter {
 /// Layout the inner contents of a vector.
 fn layout_vec_body(
     ctx: &mut MathContext,
-    column: &[Content],
+    column: &[Value],
     align: FixedAlign,
     row_gap: Rel<Abs>,
 ) -> SourceResult<Frame> {
@@ -394,7 +394,7 @@ fn layout_vec_body(
 /// Layout the inner contents of a matrix.
 fn layout_mat_body(
     ctx: &mut MathContext,
-    rows: &[Vec<Content>],
+    rows: &[Array],
     augment: Option<Augment<Abs>>,
     gap: Axes<Rel<Abs>>,
     span: Span,

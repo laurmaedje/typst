@@ -1,7 +1,7 @@
 use unicode_math_class::MathClass;
 
 use crate::diag::SourceResult;
-use crate::foundations::{elem, func, Content, NativeElement, Packed, Resolve, Smart};
+use crate::foundations::{elem, func, Packed, Resolve, Smart, Value};
 use crate::layout::{Abs, Em, Length, Rel};
 use crate::math::{
     GlyphFragment, LayoutMath, MathContext, MathFragment, Scaled, SpacingFragment,
@@ -23,16 +23,16 @@ pub struct LrElem {
     /// The delimited content, including the delimiters.
     #[required]
     #[parse(
-        let mut body = Content::empty();
-        for (i, arg) in args.all::<Content>()?.into_iter().enumerate() {
+        let mut body = Vec::new();
+        for (i, arg) in args.all::<Value>()?.into_iter().enumerate() {
             if i > 0 {
-                body += TextElem::packed(',');
+                body.push(TextElem::packed(','));
             }
-            body += arg;
+            body.push(arg);
         }
-        body
+        Value::sequence(body)
     )]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl LayoutMath for Packed<LrElem> {
@@ -107,7 +107,7 @@ impl LayoutMath for Packed<LrElem> {
 pub struct MidElem {
     /// The content to be scaled.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl LayoutMath for Packed<MidElem> {
@@ -175,8 +175,8 @@ pub fn floor(
     #[named]
     size: Option<Smart<Rel<Length>>>,
     /// The expression to floor.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     delimited(body, '⌊', '⌋', size)
 }
 
@@ -191,8 +191,8 @@ pub fn ceil(
     #[named]
     size: Option<Smart<Rel<Length>>>,
     /// The expression to ceil.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     delimited(body, '⌈', '⌉', size)
 }
 
@@ -207,8 +207,8 @@ pub fn round(
     #[named]
     size: Option<Smart<Rel<Length>>>,
     /// The expression to round.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     delimited(body, '⌊', '⌉', size)
 }
 
@@ -223,8 +223,8 @@ pub fn abs(
     #[named]
     size: Option<Smart<Rel<Length>>>,
     /// The expression to take the absolute value of.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     delimited(body, '|', '|', size)
 }
 
@@ -239,19 +239,19 @@ pub fn norm(
     #[named]
     size: Option<Smart<Rel<Length>>>,
     /// The expression to take the norm of.
-    body: Content,
-) -> Content {
+    body: Value,
+) -> Value {
     delimited(body, '‖', '‖', size)
 }
 
 fn delimited(
-    body: Content,
+    body: Value,
     left: char,
     right: char,
     size: Option<Smart<Rel<Length>>>,
-) -> Content {
+) -> Value {
     let span = body.span();
-    let mut elem = LrElem::new(Content::sequence([
+    let mut elem = LrElem::new(Value::sequence([
         TextElem::packed(left),
         body,
         TextElem::packed(right),

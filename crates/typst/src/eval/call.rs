@@ -5,9 +5,8 @@ use crate::diag::{bail, error, At, HintedStrResult, SourceResult, Trace, Tracepo
 use crate::engine::Engine;
 use crate::eval::{Access, Eval, FlowEvent, Route, Tracer, Vm};
 use crate::foundations::{
-    call_method_mut, is_mutating_method, Arg, Args, Array, Bytes, Closure, Content, Dict,
-    Func, IntoValue, Module, NativeElement, NoneValue, Plugin, Scope, Scopes, Type,
-    Value,
+    call_method_mut, is_mutating_method, Arg, Args, Array, Bytes, Closure, Dict, Func,
+    IntoValue, Module, NoneValue, Plugin, Scope, Scopes, Type, Value,
 };
 use crate::introspection::{Introspector, Locator};
 use crate::math::{Accent, AccentElem, LrElem};
@@ -138,20 +137,22 @@ impl Eval for ast::FuncCall<'_> {
                     return Ok(accent.pack().into_value());
                 }
             }
-            let mut body = Content::empty();
-            for (i, arg) in args.all::<Content>()?.into_iter().enumerate() {
+            let mut body = Vec::new();
+            body.push(TextElem::packed('('));
+            for (i, arg) in args.all::<Value>()?.into_iter().enumerate() {
                 if i > 0 {
-                    body += TextElem::packed(',');
+                    body.push(TextElem::packed(','));
                 }
-                body += arg;
+                body.push(arg);
             }
             if trailing_comma {
-                body += TextElem::packed(',');
+                body.push(TextElem::packed(','));
             }
-            return Ok((callee.display().spanned(callee_span)
-                + LrElem::new(TextElem::packed('(') + body + TextElem::packed(')'))
-                    .pack())
-            .into_value());
+            body.push(TextElem::packed(')'));
+            return Ok(Value::sequence([
+                callee.spanned(callee_span),
+                LrElem::new(Value::sequence(body)).pack(),
+            ]));
         }
 
         let callee = callee.cast::<Func>().at(callee_span)?;
@@ -193,21 +194,21 @@ impl Eval for ast::Args<'_> {
                 ast::Arg::Spread(expr) => {
                     let value = expr.eval(vm)?;
                     if value.is::<Array>() {
-                        let array = value.unpack::<Array>().unwrap();
+                        let array = value.to_packed::<Array>().unwrap().unpack();
                         items.extend(array.into_iter().map(|value| Arg {
                             span,
                             name: None,
                             value: Spanned::new(value, span),
                         }));
                     } else if value.is::<Dict>() {
-                        let dict = value.unpack::<Dict>().unwrap();
+                        let dict = value.to_packed::<Dict>().unwrap().unpack();
                         items.extend(dict.into_iter().map(|(key, value)| Arg {
                             span,
                             name: Some(key),
                             value: Spanned::new(value, span),
                         }));
                     } else if value.is::<Args>() {
-                        let args = value.unpack::<Args>().unwrap();
+                        let args = value.to_packed::<Args>().unwrap().unpack();
                         items.extend(args.items);
                     } else if !value.is::<NoneValue>() {
                         bail!(expr.span(), "cannot spread {}", value.ty())

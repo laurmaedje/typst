@@ -3,7 +3,7 @@ use std::str::FromStr;
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, scope, Array, Content, Fold, Packed, Smart, StyleChain,
+    cast, elem, scope, Array, Fold, Packed, Smart, StyleChain, Value,
 };
 use crate::layout::{
     Alignment, Axes, BlockElem, Cell, CellGrid, Em, Fragment, GridLayouter, HAlignment,
@@ -204,7 +204,7 @@ pub struct EnumElem {
 
 #[scope]
 impl EnumElem {
-    #[elem]
+    #[ty]
     type EnumItem;
 }
 
@@ -242,7 +242,7 @@ impl Layout for Packed<EnumElem> {
 
             let resolved = if full {
                 parents.push(number);
-                let content = numbering.apply(engine, &parents)?.display();
+                let content = numbering.apply(engine, &parents)?;
                 parents.pop();
                 content
             } else {
@@ -250,7 +250,7 @@ impl Layout for Packed<EnumElem> {
                     Numbering::Pattern(pattern) => {
                         TextElem::packed(pattern.apply_kth(parents.len(), number))
                     }
-                    other => other.apply(engine, &[number])?.display(),
+                    other => other.apply(engine, &[number])?,
                 }
             };
 
@@ -259,9 +259,9 @@ impl Layout for Packed<EnumElem> {
             let resolved =
                 resolved.aligned(number_align).styled(TextElem::set_overhang(false));
 
-            cells.push(Cell::from(Content::empty()));
+            cells.push(Cell::from(Value::none()));
             cells.push(Cell::from(resolved));
-            cells.push(Cell::from(Content::empty()));
+            cells.push(Cell::from(Value::none()));
             cells.push(Cell::from(
                 item.body().clone().styled(EnumElem::set_parents(Parent(number))),
             ));
@@ -295,24 +295,20 @@ pub struct EnumItem {
 
     /// The item's body.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
-cast! {
-    EnumItem,
-    array: Array => {
-        let mut iter = array.into_iter();
-        let (number, body) = match (iter.next(), iter.next(), iter.next()) {
-            (Some(a), Some(b), None) => (a.cast()?, b.cast()?),
-            _ => bail!("array must contain exactly two entries"),
-        };
-        Self::new(body).with_number(number)
-    },
-    v: Content => match v.to_packed::<Self>() {
-        Ok(packed) => packed.unpack(),
-        Err(v) => Self::new(v),
-    },
-}
+// cast! {
+//     EnumItem,
+//     array: Array => {
+//         let mut iter = array.into_iter();
+//         let (number, body) = match (iter.next(), iter.next(), iter.next()) {
+//             (Some(a), Some(b), None) => (a.cast()?, b.cast()?),
+//             _ => bail!("array must contain exactly two entries"),
+//         };
+//         Self::new(body).with_number(number)
+//     },
+// }
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash)]
 struct Parent(usize);

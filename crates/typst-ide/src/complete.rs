@@ -5,8 +5,8 @@ use ecow::{eco_format, EcoString};
 use if_chain::if_chain;
 use serde::{Deserialize, Serialize};
 use typst::foundations::{
-    fields_on, format_str, mutable_methods_on, repr, AutoValue, CastInfo, Content, Dict,
-    Func, IntoValue, Label, Module, NoneValue, Plugin, Repr, Scope, Type, Value,
+    fields_on, format_str, mutable_methods_on, repr, AutoValue, CastInfo, Dict, Func,
+    IntoValue, Label, Module, NoneValue, Plugin, Repr, Scope, Type, Value,
 };
 use typst::model::Document;
 use typst::symbols::Symbol;
@@ -401,7 +401,7 @@ fn field_access_completions(ctx: &mut CompletionContext, value: &Value) {
 
     if let Some(symbol) = value.to::<Symbol>() {
         for modifier in symbol.modifiers() {
-            if let Ok(modified) = symbol.clone().modified(modifier) {
+            if let Ok(modified) = symbol.as_ref().clone().modified(modifier) {
                 ctx.completions.push(Completion {
                     kind: CompletionKind::Symbol(modified.get()),
                     label: modifier.into(),
@@ -409,10 +409,6 @@ fn field_access_completions(ctx: &mut CompletionContext, value: &Value) {
                     detail: None,
                 });
             }
-        }
-    } else if let Some(content) = value.to::<Content>() {
-        for (name, value) in content.fields() {
-            ctx.value_completion(Some(name.into()), &value, false, None);
         }
     } else if let Some(dict) = value.to::<Dict>() {
         for (name, value) in dict.iter() {
@@ -428,6 +424,12 @@ fn field_access_completions(ctx: &mut CompletionContext, value: &Value) {
             })
         }
     }
+
+    // if let Some(content) = value.to::<Content>() {
+    //     for (name, value) in content.fields() {
+    //         ctx.value_completion(Some(name.into()), &value, false, None);
+    //     }
+    // } else
 }
 
 /// Complete half-finished labels.
@@ -565,9 +567,7 @@ fn set_rule_completions(ctx: &mut CompletionContext) {
 
 /// Add completions for selectors.
 fn show_rule_selector_completions(ctx: &mut CompletionContext) {
-    ctx.scope_completions(false, |value| {
-        value.to::<Func>().map_or(false, |func| func.element().is_some())
-    });
+    ctx.scope_completions(false, |value| value.is::<Type>());
 
     ctx.enrich("", ": ");
 
@@ -767,7 +767,7 @@ fn resolve_global_callee<'a>(
         _ => return None,
     };
 
-    value.to::<Func>()
+    value.to::<Func>().map(AsRef::as_ref)
 }
 
 /// Complete in code mode.

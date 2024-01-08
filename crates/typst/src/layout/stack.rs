@@ -2,7 +2,7 @@ use std::fmt::{self, Debug, Formatter};
 
 use crate::diag::SourceResult;
 use crate::engine::Engine;
-use crate::foundations::{cast, elem, Content, Packed, Resolve, StyleChain};
+use crate::foundations::{cast, elem, Packed, Resolve, StyleChain, StyledElem, Value};
 use crate::layout::{
     Abs, AlignElem, Axes, Axis, Dir, FixedAlign, Fr, Fragment, Frame, Layout, Point,
     Regions, Size, Spacing,
@@ -92,7 +92,7 @@ pub enum StackChild {
     /// Spacing between other children.
     Spacing(Spacing),
     /// Arbitrary block-level content.
-    Block(Content),
+    Block(Value),
 }
 
 impl Debug for StackChild {
@@ -111,7 +111,7 @@ cast! {
         Self::Block(content) => content.into_value(),
     },
     v: Spacing => Self::Spacing(v),
-    v: Content => Self::Block(v),
+    v: Value => Self::Block(v),
 }
 
 /// Performs stack layout.
@@ -199,7 +199,7 @@ impl<'a> StackLayouter<'a> {
     fn layout_block(
         &mut self,
         engine: &mut Engine,
-        block: &Content,
+        block: &Value,
         styles: StyleChain,
     ) -> SourceResult<()> {
         if self.regions.is_full() {
@@ -209,8 +209,8 @@ impl<'a> StackLayouter<'a> {
         // Block-axis alignment of the `AlignElement` is respected by stacks.
         let align = if let Some(align) = block.to::<AlignElem>() {
             align.alignment(styles)
-        } else if let Some((_, local)) = block.to_styled() {
-            AlignElem::alignment_in(styles.chain(local))
+        } else if let Some(styled) = block.to::<StyledElem>() {
+            AlignElem::alignment_in(styles.chain(styled.styles()))
         } else {
             AlignElem::alignment_in(styles)
         }

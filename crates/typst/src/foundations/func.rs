@@ -8,8 +8,8 @@ use once_cell::sync::Lazy;
 use crate::diag::{bail, SourceResult, StrResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, repr, scope, ty, Args, CastInfo, Content, Element, IntoArgs, IntoValue, Scope,
-    Selector, Type, Value,
+    cast, repr, scope, ty, Args, CastInfo, IntoArgs, IntoValue, Scope, Selector, Type,
+    Value,
 };
 use crate::syntax::{ast, Span, SyntaxNode};
 use crate::util::Static;
@@ -138,8 +138,6 @@ pub struct Func {
 enum Repr {
     /// A native Rust function.
     Native(Static<NativeFuncData>),
-    /// A function for an element.
-    Element(Element),
     /// A user-defined closure.
     Closure(Arc<Prehashed<Closure>>),
     /// A nested function with pre-applied arguments.
@@ -153,7 +151,6 @@ impl Func {
     pub fn name(&self) -> Option<&str> {
         match &self.repr {
             Repr::Native(native) => Some(native.name),
-            Repr::Element(elem) => Some(elem.name()),
             Repr::Closure(closure) => closure.name(),
             Repr::With(with) => with.0.name(),
         }
@@ -165,7 +162,6 @@ impl Func {
     pub fn title(&self) -> Option<&'static str> {
         match &self.repr {
             Repr::Native(native) => Some(native.title),
-            Repr::Element(elem) => Some(elem.title()),
             Repr::Closure(_) => None,
             Repr::With(with) => with.0.title(),
         }
@@ -175,7 +171,6 @@ impl Func {
     pub fn docs(&self) -> Option<&'static str> {
         match &self.repr {
             Repr::Native(native) => Some(native.docs),
-            Repr::Element(elem) => Some(elem.docs()),
             Repr::Closure(_) => None,
             Repr::With(with) => with.0.docs(),
         }
@@ -185,7 +180,6 @@ impl Func {
     pub fn params(&self) -> Option<&'static [ParamInfo]> {
         match &self.repr {
             Repr::Native(native) => Some(&native.0.params),
-            Repr::Element(elem) => Some(elem.params()),
             Repr::Closure(_) => None,
             Repr::With(with) => with.0.params(),
         }
@@ -198,11 +192,8 @@ impl Func {
 
     /// Get details about the function's return type.
     pub fn returns(&self) -> Option<&'static CastInfo> {
-        static CONTENT: Lazy<CastInfo> =
-            Lazy::new(|| CastInfo::Type(Type::of::<Content>()));
         match &self.repr {
             Repr::Native(native) => Some(&native.0.returns),
-            Repr::Element(_) => Some(&CONTENT),
             Repr::Closure(_) => None,
             Repr::With(with) => with.0.returns(),
         }
@@ -212,7 +203,6 @@ impl Func {
     pub fn keywords(&self) -> &'static [&'static str] {
         match &self.repr {
             Repr::Native(native) => native.keywords,
-            Repr::Element(elem) => elem.keywords(),
             Repr::Closure(_) => &[],
             Repr::With(with) => with.0.keywords(),
         }
@@ -222,7 +212,6 @@ impl Func {
     pub fn scope(&self) -> Option<&'static Scope> {
         match &self.repr {
             Repr::Native(native) => Some(&native.0.scope),
-            Repr::Element(elem) => Some(elem.scope()),
             Repr::Closure(_) => None,
             Repr::With(with) => with.0.scope(),
         }
@@ -241,14 +230,6 @@ impl Func {
         }
     }
 
-    /// Extract the element function, if it is one.
-    pub fn element(&self) -> Option<Element> {
-        match self.repr {
-            Repr::Element(func) => Some(func),
-            _ => None,
-        }
-    }
-
     /// Call the function with the given arguments.
     pub fn call(&self, engine: &mut Engine, args: impl IntoArgs) -> SourceResult<Value> {
         self.call_impl(engine, args.into_args(self.span))
@@ -262,11 +243,6 @@ impl Func {
                 let value = (native.function)(engine, &mut args)?;
                 args.finish()?;
                 Ok(value)
-            }
-            Repr::Element(func) => {
-                let content = func.construct(engine, &mut args)?;
-                args.finish()?;
-                Ok(content.into_value())
             }
             Repr::Closure(closure) => crate::eval::call_closure(
                 self,
@@ -319,42 +295,6 @@ impl Func {
             span,
         }
     }
-
-    /// Returns a selector that filters for elements belonging to this function
-    /// whose fields have the values of the given arguments.
-    #[func]
-    pub fn where_(
-        self,
-        /// The real arguments (the other argument is just for the docs).
-        /// The docs argument cannot be called `args`.
-        args: &mut Args,
-        /// The fields to filter for.
-        #[variadic]
-        #[external]
-        fields: Vec<Value>,
-    ) -> StrResult<Selector> {
-        let fields = args.to_named();
-        args.items.retain(|arg| arg.name.is_none());
-
-        let element = self
-            .element()
-            .ok_or("`where()` can only be called on element functions")?;
-
-        let fields = fields
-            .into_iter()
-            .map(|(key, value)| {
-                element.field_id(&key).map(|id| (id, value)).ok_or_else(|| {
-                    eco_format!(
-                        "element `{}` does not have field `{}`",
-                        element.name(),
-                        key
-                    )
-                })
-            })
-            .collect::<StrResult<smallvec::SmallVec<_>>>()?;
-
-        Ok(element.where_(fields))
-    }
 }
 
 impl Debug for Func {
@@ -390,12 +330,6 @@ impl PartialEq<&NativeFuncData> for Func {
 impl From<Repr> for Func {
     fn from(repr: Repr) -> Self {
         Self { repr, span: Span::detached() }
-    }
-}
-
-impl From<Element> for Func {
-    fn from(func: Element) -> Self {
-        Repr::Element(func).into()
     }
 }
 

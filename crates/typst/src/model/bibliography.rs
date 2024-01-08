@@ -23,9 +23,8 @@ use crate::diag::{bail, error, At, FileError, SourceResult, StrResult};
 use crate::engine::Engine;
 use crate::eval::{eval_string, EvalMode};
 use crate::foundations::{
-    cast, elem, ty, Args, Array, Bytes, CastInfo, Content, Finalize, FromValue,
-    IntoValue, Label, NativeElement, Packed, Reflect, Repr, Scope, Show, Smart, Str,
-    StyleChain, Synthesize, Type, Value,
+    cast, elem, ty, Args, Array, Bytes, CastInfo, Finalize, FromValue, IntoValue, Label,
+    Packed, Reflect, Repr, Scope, Show, Smart, Str, StyleChain, Synthesize, Type, Value,
 };
 use crate::introspection::{Introspector, Locatable, Location};
 use crate::layout::{
@@ -105,7 +104,7 @@ pub struct BibliographyElem {
     /// force it to be with a show-set rule:
     /// `{show bibliography: set heading(numbering: "1.")}`
     #[default(Some(Smart::Auto))]
-    pub title: Option<Smart<Content>>,
+    pub title: Option<Smart<Value>>,
 
     /// Whether to include all works from the given bibliography files, even
     /// those that weren't cited in the document.
@@ -156,7 +155,7 @@ cast! {
 impl BibliographyElem {
     /// Find the document's bibliography.
     pub fn find(introspector: Tracked<Introspector>) -> StrResult<Packed<Self>> {
-        let query = introspector.query(&Self::elem().select());
+        let query = introspector.query(&Self::ty().select());
         let mut iter = query.iter();
         let Some(elem) = iter.next() else {
             bail!("the document does not contain a bibliography");
@@ -174,7 +173,7 @@ impl BibliographyElem {
         let key = key.into();
         engine
             .introspector
-            .query(&Self::elem().select())
+            .query(&Self::ty().select())
             .iter()
             .any(|elem| elem.to::<Self>().unwrap().bibliography().has(key))
     }
@@ -184,7 +183,7 @@ impl BibliographyElem {
         introspector: Tracked<Introspector>,
     ) -> Vec<(EcoString, Option<EcoString>)> {
         let mut vec = vec![];
-        for elem in introspector.query(&Self::elem().select()).iter() {
+        for elem in introspector.query(&Self::ty().select()).iter() {
             let this = elem.to::<Self>().unwrap();
             for entry in this.bibliography().entries() {
                 let key = entry.key().into();
@@ -209,7 +208,7 @@ impl Synthesize for Packed<BibliographyElem> {
 
 impl Show for Packed<BibliographyElem> {
     #[typst_macros::time(name = "bibliography", span = self.span())]
-    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Content> {
+    fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         const COLUMN_GUTTER: Em = Em::new(0.65);
         const INDENT: Em = Em::new(1.5);
 
@@ -260,7 +259,7 @@ impl Show for Packed<BibliographyElem> {
                 }
             }
 
-            let mut content = Content::sequence(seq);
+            let mut content = Value::sequence(seq);
             if works.hanging_indent {
                 content = content.styled(ParElem::set_hanging_indent(INDENT.into()));
             }
@@ -271,7 +270,7 @@ impl Show for Packed<BibliographyElem> {
 }
 
 impl Finalize for Packed<BibliographyElem> {
-    fn finalize(&self, realized: Content, _: StyleChain) -> Content {
+    fn finalize(&self, realized: Value, _: StyleChain) -> Value {
         const INDENT: Em = Em::new(1.0);
         realized
             .styled(HeadingElem::set_numbering(None))
@@ -545,7 +544,7 @@ impl Reflect for CslStyle {
 impl FromValue for CslStyle {
     fn from_value(value: Value) -> StrResult<Self> {
         if let Some(concrete) = value.to::<Self>() {
-            return Ok(concrete.clone());
+            return Ok((**concrete).clone());
         }
 
         Err(<Self as Reflect>::error(&value))
@@ -573,10 +572,10 @@ impl Repr for CslStyle {
 /// citations to do it.
 pub(super) struct Works {
     /// Maps from the location of a citation group to its rendered content.
-    pub citations: HashMap<Location, SourceResult<Content>>,
+    pub citations: HashMap<Location, SourceResult<Value>>,
     /// Lists all references in the bibliography, with optional prefix, or
     /// `None` if the citation style can't be used for bibliographies.
-    pub references: Option<Vec<(Option<Content>, Content)>>,
+    pub references: Option<Vec<(Option<Value>, Value)>>,
     /// Whether the bibliography should have hanging indent.
     pub hanging_indent: bool,
 }
@@ -602,12 +601,12 @@ struct Generator<'a> {
     /// The document's bibliography.
     bibliography: Packed<BibliographyElem>,
     /// The document's citation groups.
-    groups: EcoVec<Prehashed<Content>>,
+    groups: EcoVec<Prehashed<Value>>,
     /// Details about each group that are accumulated while driving hayagriva's
     /// bibliography driver and needed when processing hayagriva's output.
     infos: Vec<GroupInfo>,
     /// Citations with unresolved keys.
-    failures: HashMap<Location, SourceResult<Content>>,
+    failures: HashMap<Location, SourceResult<Value>>,
 }
 
 /// Details about a group of merged citations. All citations are put into groups
@@ -629,7 +628,7 @@ struct CiteInfo {
     /// The citation's key.
     key: Label,
     /// The citation's supplement.
-    supplement: Option<Content>,
+    supplement: Option<Value>,
     /// Whether this citation was hidden.
     hidden: bool,
 }
@@ -641,7 +640,7 @@ impl<'a> Generator<'a> {
         introspector: Tracked<Introspector>,
     ) -> StrResult<Self> {
         let bibliography = BibliographyElem::find(introspector)?;
-        let groups = introspector.query(&CiteGroup::elem().select());
+        let groups = introspector.query(&CiteGroup::ty().select());
         let infos = Vec::with_capacity(groups.len());
         Ok(Self {
             world,
@@ -777,7 +776,7 @@ impl<'a> Generator<'a> {
     fn display_citations(
         &mut self,
         rendered: &hayagriva::Rendered,
-    ) -> HashMap<Location, SourceResult<Content>> {
+    ) -> HashMap<Location, SourceResult<Value>> {
         // Determine for each citation key where in the bibliography it is,
         // so that we can link there.
         let mut links = HashMap::new();
@@ -801,10 +800,10 @@ impl<'a> Generator<'a> {
             };
 
             let content = if info.subinfos.iter().all(|sub| sub.hidden) {
-                Content::empty()
+                Value::none()
             } else {
                 let mut content =
-                    renderer.display_elem_children(&citation.citation, &mut None);
+                    renderer.display_elem_children(&citation.citation, &mut vec![]);
 
                 if info.footnote {
                     content = FootnoteElem::with_content(content).pack();
@@ -823,7 +822,7 @@ impl<'a> Generator<'a> {
     fn display_references(
         &self,
         rendered: &hayagriva::Rendered,
-    ) -> Option<Vec<(Option<Content>, Content)>> {
+    ) -> Option<Vec<(Option<Value>, Value)>> {
         let rendered = rendered.bibliography.as_ref()?;
 
         // Determine for each citation key where it first occurred, so that we
@@ -854,21 +853,23 @@ impl<'a> Generator<'a> {
             let backlink = location.variant(k + 1);
 
             // Render the first field.
-            let mut prefix = item.first_field.as_ref().map(|elem| {
-                let mut content = renderer.display_elem_child(elem, &mut None);
+            let mut prefix = vec![];
+            if let Some(elem) = &item.first_field {
+                let mut content = renderer.display_elem_child(elem, &mut vec![]);
                 if let Some(location) = first_occurrences.get(item.key.as_str()) {
                     let dest = Destination::Location(*location);
                     content = content.linked(dest);
                 }
-                content.backlinked(backlink)
-            });
+                prefix.push(content.backlinked(backlink));
+            }
 
             // Render the main reference content.
             let reference = renderer
                 .display_elem_children(&item.content, &mut prefix)
                 .backlinked(backlink);
 
-            output.push((prefix, reference));
+            output
+                .push(((!prefix.is_empty()).then(|| Value::sequence(prefix)), reference));
         }
 
         Some(output)
@@ -882,7 +883,7 @@ struct ElemRenderer<'a> {
     /// The span that is attached to all of the resulting content.
     span: Span,
     /// Resolves the supplement of i-th citation in the request.
-    supplement: &'a dyn Fn(usize) -> Option<Content>,
+    supplement: &'a dyn Fn(usize) -> Option<Value>,
     /// Resolves where the i-th citation in the request should link to.
     link: &'a dyn Fn(usize) -> Option<Location>,
 }
@@ -895,19 +896,17 @@ impl ElemRenderer<'_> {
     fn display_elem_children(
         &self,
         elems: &hayagriva::ElemChildren,
-        prefix: &mut Option<Content>,
-    ) -> Content {
-        Content::sequence(
-            elems.0.iter().map(|elem| self.display_elem_child(elem, prefix)),
-        )
+        prefix: &mut Vec<Value>,
+    ) -> Value {
+        Value::sequence(elems.0.iter().map(|elem| self.display_elem_child(elem, prefix)))
     }
 
     /// Display a rendered hayagriva element.
     fn display_elem_child(
         &self,
         elem: &hayagriva::ElemChild,
-        prefix: &mut Option<Content>,
-    ) -> Content {
+        prefix: &mut Vec<Value>,
+    ) -> Value {
         match elem {
             hayagriva::ElemChild::Text(formatted) => self.display_formatted(formatted),
             hayagriva::ElemChild::Elem(elem) => self.display_elem(elem, prefix),
@@ -920,28 +919,28 @@ impl ElemRenderer<'_> {
     }
 
     /// Display a block-level element.
-    fn display_elem(
-        &self,
-        elem: &hayagriva::Elem,
-        prefix: &mut Option<Content>,
-    ) -> Content {
+    fn display_elem(&self, elem: &hayagriva::Elem, prefix: &mut Vec<Value>) -> Value {
         use citationberg::Display;
 
         let block_level = matches!(elem.display, Some(Display::Block | Display::Indent));
 
-        let mut suf_prefix = None;
+        let mut suf_prefix = vec![];
         let mut content = self.display_elem_children(
             &elem.children,
             if block_level { &mut suf_prefix } else { prefix },
         );
 
-        if let Some(prefix) = suf_prefix {
+        if !suf_prefix.is_empty() {
             const COLUMN_GUTTER: Em = Em::new(0.65);
-            content = GridElem::new(vec![GridCell::new(prefix), GridCell::new(content)])
-                .with_columns(TrackSizings(smallvec![Sizing::Auto; 2]))
-                .with_column_gutter(TrackSizings(smallvec![COLUMN_GUTTER.into()]))
-                .pack()
-                .spanned(self.span);
+            content = GridElem::new(vec![
+                GridCell::from(Value::sequence(suf_prefix)),
+                GridCell::from(content),
+            ])
+            .spanned(self.span)
+            .with_columns(TrackSizings(smallvec![Sizing::Auto; 2]))
+            .with_column_gutter(TrackSizings(smallvec![COLUMN_GUTTER.into()]))
+            .pack()
+            .spanned(self.span);
         }
 
         match elem.display {
@@ -953,8 +952,8 @@ impl ElemRenderer<'_> {
                 content = PadElem::new(content).pack().spanned(self.span);
             }
             Some(Display::LeftMargin) => {
-                *prefix.get_or_insert_with(Default::default) += content;
-                return Content::empty();
+                prefix.push(content);
+                return Value::none();
             }
             _ => {}
         }
@@ -970,14 +969,13 @@ impl ElemRenderer<'_> {
     }
 
     /// Display math.
-    fn display_math(&self, math: &str) -> Content {
+    fn display_math(&self, math: &str) -> Value {
         eval_string(self.world, math, self.span, EvalMode::Math, Scope::new())
-            .map(Value::display)
             .unwrap_or_else(|_| TextElem::packed(math).spanned(self.span))
     }
 
     /// Display a link.
-    fn display_link(&self, text: &hayagriva::Formatted, url: &str) -> Content {
+    fn display_link(&self, text: &hayagriva::Formatted, url: &str) -> Value {
         let dest = Destination::Url(url.into());
         LinkElem::new(dest.into(), self.display_formatted(text))
             .pack()
@@ -985,20 +983,20 @@ impl ElemRenderer<'_> {
     }
 
     /// Display transparent pass-through content.
-    fn display_transparent(&self, i: usize, format: &hayagriva::Formatting) -> Content {
+    fn display_transparent(&self, i: usize, format: &hayagriva::Formatting) -> Value {
         let content = (self.supplement)(i).unwrap_or_default();
         apply_formatting(content, format)
     }
 
     /// Display formatted hayagriva text as content.
-    fn display_formatted(&self, formatted: &hayagriva::Formatted) -> Content {
+    fn display_formatted(&self, formatted: &hayagriva::Formatted) -> Value {
         let content = TextElem::packed(formatted.text.as_str()).spanned(self.span);
         apply_formatting(content, &formatted.formatting)
     }
 }
 
 /// Applies formatting to content.
-fn apply_formatting(mut content: Content, format: &hayagriva::Formatting) -> Content {
+fn apply_formatting(mut content: Value, format: &hayagriva::Formatting) -> Value {
     match format.font_style {
         citationberg::FontStyle::Normal => {}
         citationberg::FontStyle::Italic => {
@@ -1036,10 +1034,16 @@ fn apply_formatting(mut content: Content, format: &hayagriva::Formatting) -> Con
         citationberg::VerticalAlign::Baseline => {}
         citationberg::VerticalAlign::Sup => {
             // Add zero-width weak spacing to make the superscript "sticky".
-            content = HElem::hole().pack() + SuperElem::new(content).pack().spanned(span);
+            content = Value::sequence([
+                HElem::hole().pack().spanned(span),
+                SuperElem::new(content).pack().spanned(span),
+            ]);
         }
         citationberg::VerticalAlign::Sub => {
-            content = HElem::hole().pack() + SubElem::new(content).pack().spanned(span);
+            content = Value::sequence([
+                HElem::hole().pack().spanned(span),
+                SubElem::new(content).pack().spanned(span),
+            ]);
         }
     }
 

@@ -3,7 +3,7 @@ use ecow::{eco_format, EcoString};
 use crate::diag::{At, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, Content, Label, Packed, Repr, Show, Smart, StyleChain,
+    cast, elem, Label, Packed, Repr, Show, Smart, StyleChain, Value,
 };
 use crate::introspection::Location;
 use crate::layout::Position;
@@ -78,7 +78,7 @@ pub struct LinkElem {
         },
         _ => args.expect("body")?,
     })]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl LinkElem {
@@ -91,7 +91,7 @@ impl LinkElem {
 
 impl Show for Packed<LinkElem> {
     #[typst_macros::time(name = "link", span = self.span())]
-    fn show(&self, engine: &mut Engine, _: StyleChain) -> SourceResult<Content> {
+    fn show(&self, engine: &mut Engine, _: StyleChain) -> SourceResult<Value> {
         let body = self.body().clone();
         let linked = match self.dest() {
             LinkTarget::Dest(dest) => body.linked(dest.clone()),
@@ -108,7 +108,7 @@ impl Show for Packed<LinkElem> {
     }
 }
 
-fn body_from_url(url: &EcoString) -> Content {
+fn body_from_url(url: &EcoString) -> Value {
     let mut text = url.as_str();
     for prefix in ["mailto:", "tel:"] {
         text = text.trim_start_matches(prefix);

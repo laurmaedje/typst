@@ -74,7 +74,7 @@ use comemo::{Tracked, TrackedMut};
 use crate::diag::{bail, SourceResult};
 use crate::engine::{Engine, Route};
 use crate::eval::Tracer;
-use crate::foundations::{category, Category, Content, Scope, StyleChain};
+use crate::foundations::{category, Category, Scope, StyleChain, Value};
 use crate::introspection::{Introspector, Locator};
 use crate::model::Document;
 use crate::realize::{realize_block, realize_root, Scratch};
@@ -96,24 +96,24 @@ pub fn define(global: &mut Scope) {
     global.define_type::<Fr>();
     global.define_type::<Dir>();
     global.define_type::<Alignment>();
-    global.define_elem::<PageElem>();
-    global.define_elem::<PagebreakElem>();
-    global.define_elem::<VElem>();
-    global.define_elem::<HElem>();
-    global.define_elem::<BoxElem>();
-    global.define_elem::<BlockElem>();
-    global.define_elem::<StackElem>();
-    global.define_elem::<GridElem>();
-    global.define_elem::<ColumnsElem>();
-    global.define_elem::<ColbreakElem>();
-    global.define_elem::<PlaceElem>();
-    global.define_elem::<AlignElem>();
-    global.define_elem::<PadElem>();
-    global.define_elem::<RepeatElem>();
-    global.define_elem::<MoveElem>();
-    global.define_elem::<ScaleElem>();
-    global.define_elem::<RotateElem>();
-    global.define_elem::<HideElem>();
+    global.define_type::<PageElem>();
+    global.define_type::<PagebreakElem>();
+    global.define_type::<VElem>();
+    global.define_type::<HElem>();
+    global.define_type::<BoxElem>();
+    global.define_type::<BlockElem>();
+    global.define_type::<StackElem>();
+    global.define_type::<GridElem>();
+    global.define_type::<ColumnsElem>();
+    global.define_type::<ColbreakElem>();
+    global.define_type::<PlaceElem>();
+    global.define_type::<AlignElem>();
+    global.define_type::<PadElem>();
+    global.define_type::<RepeatElem>();
+    global.define_type::<MoveElem>();
+    global.define_type::<ScaleElem>();
+    global.define_type::<RotateElem>();
+    global.define_type::<HideElem>();
     global.define_func::<measure>();
     global.define_func::<layout>();
 }
@@ -160,7 +160,7 @@ pub trait Layout {
     }
 }
 
-impl LayoutRoot for Content {
+impl LayoutRoot for Value {
     #[typst_macros::time(name = "layout root", span = self.span())]
     fn layout_root(
         &self,
@@ -169,7 +169,7 @@ impl LayoutRoot for Content {
     ) -> SourceResult<Document> {
         #[comemo::memoize]
         fn cached(
-            content: &Content,
+            content: &Value,
             world: Tracked<dyn World + '_>,
             introspector: Tracked<Introspector>,
             route: Tracked<Route>,
@@ -206,7 +206,7 @@ impl LayoutRoot for Content {
     }
 }
 
-impl Layout for Content {
+impl Layout for Value {
     fn layout(
         &self,
         engine: &mut Engine,
@@ -216,7 +216,7 @@ impl Layout for Content {
         #[allow(clippy::too_many_arguments)]
         #[comemo::memoize]
         fn cached(
-            content: &Content,
+            content: &Value,
             world: Tracked<dyn World + '_>,
             introspector: Tracked<Introspector>,
             route: Tracked<Route>,

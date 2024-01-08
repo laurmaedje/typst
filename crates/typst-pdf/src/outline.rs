@@ -1,7 +1,7 @@
 use std::num::NonZeroUsize;
 
 use pdf_writer::{Finish, Ref, TextStr};
-use typst::foundations::{NativeElement, Packed, StyleChain};
+use typst::foundations::{Packed, StyleChain};
 use typst::layout::Abs;
 use typst::model::HeadingElem;
 
@@ -17,7 +17,7 @@ pub(crate) fn write_outline(ctx: &mut PdfContext) -> Option<Ref> {
     // Therefore, its next descendant must be added at its level, which is
     // enforced in the manner shown below.
     let mut last_skipped_level = None;
-    let elements = ctx.document.introspector.query(&HeadingElem::elem().select());
+    let elements = ctx.document.introspector.query(&HeadingElem::ty().select());
     for elem in elements.iter() {
         let heading = elem.to::<HeadingElem>().unwrap();
         let leaf = HeadingNode::leaf(heading);

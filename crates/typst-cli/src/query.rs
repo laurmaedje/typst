@@ -3,7 +3,7 @@ use ecow::{eco_format, EcoString};
 use serde::Serialize;
 use typst::diag::{bail, StrResult};
 use typst::eval::{eval_string, EvalMode, Tracer};
-use typst::foundations::{Content, IntoValue, LocatableSelector, Scope};
+use typst::foundations::{IntoValue, LocatableSelector, Scope, Value};
 use typst::model::Document;
 use typst::syntax::Span;
 use typst::World;
@@ -55,7 +55,7 @@ fn retrieve(
     world: &dyn World,
     command: &QueryCommand,
     document: &Document,
-) -> StrResult<Vec<Content>> {
+) -> StrResult<Vec<Value>> {
     let selector = eval_string(
         world.track(),
         &command.selector,
@@ -82,7 +82,7 @@ fn retrieve(
 }
 
 /// Format the query result in the output format.
-fn format(elements: Vec<Content>, command: &QueryCommand) -> StrResult<String> {
+fn format(elements: Vec<Value>, command: &QueryCommand) -> StrResult<String> {
     if command.one && elements.len() != 1 {
         bail!("expected exactly one element, found {}", elements.len());
     }
@@ -90,7 +90,7 @@ fn format(elements: Vec<Content>, command: &QueryCommand) -> StrResult<String> {
     let mapped: Vec<_> = elements
         .into_iter()
         .filter_map(|c| match &command.field {
-            Some(field) => c.get_by_name(field),
+            Some(field) => c.field_by_name(field).ok(),
             _ => Some(c.into_value()),
         })
         .collect();

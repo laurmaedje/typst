@@ -3,7 +3,7 @@ use ecow::EcoString;
 use crate::diag::{bail, SourceResult, StrResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, Args, Array, Construct, Content, Datetime, Packed, Smart, StyleChain,
+    cast, elem, Args, Array, Construct, Datetime, Packed, Smart, StyleChain, StyledElem,
     Value,
 };
 use crate::introspection::{Introspector, ManualPageCounter};
@@ -33,7 +33,7 @@ pub struct DocumentElem {
     /// While this can be arbitrary content, PDF viewers only support plain text
     /// titles, so the conversion might be lossy.
     #[ghost]
-    pub title: Option<Content>,
+    pub title: Option<Value>,
 
     /// The document's authors.
     #[ghost]
@@ -57,11 +57,11 @@ pub struct DocumentElem {
     /// The page runs.
     #[internal]
     #[variadic]
-    pub children: Vec<Content>,
+    pub children: Vec<Value>,
 }
 
 impl Construct for DocumentElem {
-    fn construct(_: &mut Engine, args: &mut Args) -> SourceResult<Content> {
+    fn construct(_: &mut Engine, args: &mut Args) -> SourceResult<Value> {
         bail!(args.span, "can only be used in set rules")
     }
 }
@@ -83,15 +83,15 @@ impl LayoutRoot for Packed<DocumentElem> {
         while let Some(mut child) = iter.next() {
             let outer = styles;
             let mut styles = styles;
-            if let Some((elem, local)) = child.to_styled() {
-                styles = outer.chain(local);
-                child = elem;
+            if let Some(styled) = child.to::<StyledElem>() {
+                styles = outer.chain(styled.styles());
+                child = &styled.child();
             }
 
             if let Some(page) = child.to::<PageElem>() {
                 let extend_to = iter.peek().and_then(|&next| {
-                    next.to_styled()
-                        .map_or(next, |(elem, _)| elem)
+                    next.to::<StyledElem>()
+                        .map_or(next, |styled| styled.child())
                         .to::<PageElem>()?
                         .clear_to(styles)
                 });

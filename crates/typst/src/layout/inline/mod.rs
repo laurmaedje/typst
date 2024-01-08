@@ -13,7 +13,7 @@ use self::shaping::{
 use crate::diag::{bail, SourceResult};
 use crate::engine::{Engine, Route};
 use crate::eval::Tracer;
-use crate::foundations::{Content, Packed, Resolve, Smart, StyleChain};
+use crate::foundations::{Packed, Resolve, Smart, StyleChain, StyledElem, Value};
 use crate::introspection::{Introspector, Locator, MetaElem};
 use crate::layout::{
     Abs, AlignElem, Axes, BoxElem, Dir, Em, FixedAlign, Fr, Fragment, Frame, HElem,
@@ -30,7 +30,7 @@ use crate::World;
 
 /// Layouts content inline.
 pub(crate) fn layout_inline(
-    children: &[Prehashed<Content>],
+    children: &[Prehashed<Value>],
     engine: &mut Engine,
     styles: StyleChain,
     consecutive: bool,
@@ -40,7 +40,7 @@ pub(crate) fn layout_inline(
     #[comemo::memoize]
     #[allow(clippy::too_many_arguments)]
     fn cached(
-        children: &[Prehashed<Content>],
+        children: &[Prehashed<Value>],
         world: Tracked<dyn World + '_>,
         introspector: Tracked<Introspector>,
         route: Tracked<Route>,
@@ -404,7 +404,7 @@ impl<'a> Line<'a> {
 /// also performs string-level preprocessing like case transformations.
 #[allow(clippy::type_complexity)]
 fn collect<'a>(
-    children: &'a [Prehashed<Content>],
+    children: &'a [Prehashed<Value>],
     engine: &mut Engine<'_>,
     styles: &'a StyleChain<'a>,
     region: Size,
@@ -435,9 +435,9 @@ fn collect<'a>(
     while let Some(mut child) = iter.next() {
         let outer = styles;
         let mut styles = *styles;
-        if let Some((elem, local)) = child.to_styled() {
-            child = elem;
-            styles = outer.chain(local);
+        if let Some(styled) = child.to::<StyledElem>() {
+            child = &styled.child();
+            styles = outer.chain(styled.styles());
         }
 
         let segment = if child.is::<SpaceElem>() {
@@ -475,8 +475,8 @@ fn collect<'a>(
                     SmartQuoteElem::alternative_in(styles),
                 );
                 let peeked = iter.peek().and_then(|child| {
-                    let child = if let Some((child, _)) = child.to_styled() {
-                        child
+                    let child = if let Some(elem) = child.to::<StyledElem>() {
+                        &**elem.child()
                     } else {
                         child
                     };
@@ -538,7 +538,7 @@ fn collect<'a>(
 /// Prepare paragraph layout by shaping the whole paragraph.
 fn prepare<'a>(
     engine: &mut Engine,
-    children: &'a [Prehashed<Content>],
+    children: &'a [Prehashed<Value>],
     text: &'a str,
     segments: Vec<(Segment<'a>, StyleChain<'a>)>,
     spans: SpanMapper,
@@ -750,14 +750,14 @@ fn is_compatible(a: Script, b: Script) -> bool {
 /// paragraph.
 fn shared_get<T: PartialEq>(
     styles: StyleChain<'_>,
-    children: &[Prehashed<Content>],
+    children: &[Prehashed<Value>],
     getter: fn(StyleChain) -> T,
 ) -> Option<T> {
     let value = getter(styles);
     children
         .iter()
-        .filter_map(|child| child.to_styled())
-        .all(|(_, local)| getter(styles.chain(local)) == value)
+        .filter_map(|child| child.to::<StyledElem>())
+        .all(|styled| getter(styles.chain(styled.styles())) == value)
         .then_some(value)
 }
 

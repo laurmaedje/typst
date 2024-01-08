@@ -2,7 +2,7 @@ use std::num::NonZeroUsize;
 
 use crate::diag::SourceResult;
 use crate::engine::Engine;
-use crate::foundations::{elem, Behave, Behaviour, Content, Packed, StyleChain};
+use crate::foundations::{elem, Behave, Behaviour, Packed, StyleChain, Value};
 use crate::layout::{
     Abs, Axes, Dir, Fragment, Frame, Layout, Length, Point, Ratio, Regions, Rel, Size,
 };
@@ -54,7 +54,7 @@ pub struct ColumnsElem {
 
     /// The content that should be layouted into the columns.
     #[required]
-    pub body: Content,
+    pub body: Value,
 }
 
 impl Layout for Packed<ColumnsElem> {

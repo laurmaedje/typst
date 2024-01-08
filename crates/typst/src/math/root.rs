@@ -1,5 +1,5 @@
 use crate::diag::SourceResult;
-use crate::foundations::{elem, func, Content, NativeElement, Packed};
+use crate::foundations::{elem, func, Packed, Value};
 use crate::layout::{Abs, Frame, FrameItem, Point, Size};
 use crate::math::{
     FrameFragment, GlyphFragment, LayoutMath, MathContext, MathSize, Scaled,
@@ -18,8 +18,8 @@ pub fn sqrt(
     /// The call span of this function.
     span: Span,
     /// The expression to take the square root of.
-    radicand: Content,
-) -> Content {
+    radicand: Value,
+) -> Value {
     RootElem::new(radicand).pack().spanned(span)
 }
 
@@ -32,11 +32,11 @@ pub fn sqrt(
 pub struct RootElem {
     /// Which root of the radicand to take.
     #[positional]
-    pub index: Option<Content>,
+    pub index: Option<Value>,
 
     /// The expression to take the root of.
     #[required]
-    pub radicand: Content,
+    pub radicand: Value,
 }
 
 impl LayoutMath for Packed<RootElem> {
@@ -52,8 +52,8 @@ impl LayoutMath for Packed<RootElem> {
 /// See also: https://www.w3.org/TR/mathml-core/#radicals-msqrt-mroot
 fn layout(
     ctx: &mut MathContext,
-    index: Option<&Content>,
-    radicand: &Content,
+    index: Option<&Value>,
+    radicand: &Value,
     span: Span,
 ) -> SourceResult<()> {
     let gap = scaled!(
