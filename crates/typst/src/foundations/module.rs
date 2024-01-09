@@ -4,7 +4,7 @@ use std::sync::Arc;
 use ecow::{eco_format, EcoString};
 
 use crate::diag::StrResult;
-use crate::foundations::{repr, ty, Scope, Value};
+use crate::foundations::{cast, repr, ty, Scope, Value};
 
 /// An evaluated module, either built-in or resulting from a file.
 ///
@@ -40,6 +40,10 @@ struct Repr {
     scope: Scope,
     /// The module's layoutable contents.
     content: Value,
+}
+
+cast! {
+    type Module,
 }
 
 impl Module {

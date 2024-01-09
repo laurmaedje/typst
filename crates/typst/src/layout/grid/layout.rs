@@ -47,15 +47,17 @@ impl<T: Default> Default for Celled<T> {
 
 impl<T: Reflect> Reflect for Celled<T> {
     fn input() -> CastInfo {
-        T::input() + Array::input() + Func::input()
+        T::input() + <Array as Reflect>::input() + <Func as Reflect>::input()
     }
 
     fn output() -> CastInfo {
-        T::output() + Array::output() + Func::output()
+        T::output() + <Array as Reflect>::output() + <Func as Reflect>::output()
     }
 
     fn castable(value: &Value) -> bool {
-        Array::castable(value) || Func::castable(value) || T::castable(value)
+        <Array as Reflect>::castable(value)
+            || <Func as Reflect>::castable(value)
+            || T::castable(value)
     }
 }
 

@@ -3,7 +3,8 @@ use std::fmt::{self, Debug, Formatter};
 
 use crate::diag::StrResult;
 use crate::foundations::{
-    ty, CastInfo, Fold, FromValue, IntoValue, Reflect, Repr, Resolve, StyleChain, Value,
+    cast, ty, CastInfo, Fold, FromValue, IntoValue, Reflect, Repr, Resolve, StyleChain,
+    Value,
 };
 
 /// A value that indicates a smart default.
@@ -28,6 +29,10 @@ impl Repr for AutoValue {
     fn repr(&self) -> EcoString {
         "auto".into()
     }
+}
+
+cast! {
+    type AutoValue,
 }
 
 /// A value that can be automatically determined.
@@ -170,15 +175,15 @@ impl<T> Default for Smart<T> {
 
 impl<T: Reflect> Reflect for Smart<T> {
     fn input() -> CastInfo {
-        T::input() + AutoValue::input()
+        T::input() + <AutoValue as Reflect>::input()
     }
 
     fn output() -> CastInfo {
-        T::output() + AutoValue::output()
+        T::output() + <AutoValue as Reflect>::output()
     }
 
     fn castable(value: &Value) -> bool {
-        AutoValue::castable(value) || T::castable(value)
+        <AutoValue as Reflect>::castable(value) || T::castable(value)
     }
 }
 

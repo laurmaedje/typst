@@ -3,7 +3,7 @@ use std::ops::{Add, Div, Mul, Neg};
 
 use ecow::EcoString;
 
-use crate::foundations::{repr, ty, Repr};
+use crate::foundations::{cast, repr, ty, Repr};
 use crate::util::{Numeric, Scalar};
 
 /// A ratio of a whole.
@@ -66,6 +66,10 @@ impl Ratio {
             T::zero()
         }
     }
+}
+
+cast! {
+    type Ratio,
 }
 
 impl Debug for Ratio {

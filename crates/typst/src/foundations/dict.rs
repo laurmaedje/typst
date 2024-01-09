@@ -9,7 +9,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::diag::StrResult;
 use crate::foundations::{
-    array, func, repr, scope, ty, Array, IntoValue, Repr, Str, Value,
+    array, cast, func, repr, scope, ty, Array, IntoValue, Repr, Str, Value,
 };
 use crate::syntax::is_ident;
 use crate::util::ArcExt;
@@ -67,6 +67,10 @@ pub use crate::__dict as dict;
 #[ty(scope, cast, name = "dictionary")]
 #[derive(Default, Clone, PartialEq)]
 pub struct Dict(Arc<IndexMap<Str, Value>>);
+
+cast! {
+    type Dict,
+}
 
 impl Dict {
     /// Create a new, empty dictionary.

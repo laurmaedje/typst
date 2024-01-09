@@ -14,6 +14,7 @@ use crate::foundations::{
     NoneValue, Repr, Type, Value, Version,
 };
 use crate::layout::Alignment;
+use crate::symbols::Symbol;
 use crate::syntax::{Span, Spanned};
 
 /// Create a new [`Str`] from a format string.
@@ -72,6 +73,11 @@ pub use ecow::eco_format;
 #[derive(Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Str(EcoString);
+
+cast! {
+    type Str,
+    v: Symbol => v.get().into(),
+}
 
 impl Str {
     /// Create a new, empty string.

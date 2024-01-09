@@ -73,6 +73,10 @@ impl Repr for i64 {
     }
 }
 
+cast! {
+    type i64,
+}
+
 /// A value that can be cast to an integer.
 pub struct ToInt(i64);
 

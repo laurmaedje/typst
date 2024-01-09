@@ -4,12 +4,16 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 use ecow::{eco_format, EcoString};
 use time::ext::NumericalDuration;
 
-use crate::foundations::{func, repr, scope, ty, Repr};
+use crate::foundations::{cast, func, repr, scope, ty, Repr};
 
 /// Represents a positive or negative span of time.
 #[ty(scope, cast)]
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Duration(time::Duration);
+
+cast! {
+    type Duration,
+}
 
 impl Duration {
     /// Whether the duration is empty / zero.

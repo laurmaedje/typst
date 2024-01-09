@@ -4,7 +4,7 @@ use ecow::{eco_format, eco_vec, EcoString, EcoVec};
 
 use crate::diag::{bail, error, At, SourceDiagnostic, SourceResult};
 use crate::foundations::{
-    func, repr, scope, ty, Array, Dict, FromValue, IntoValue, Repr, Str, Value,
+    cast, func, repr, scope, ty, Array, Dict, FromValue, IntoValue, Repr, Str, Value,
 };
 use crate::syntax::{Span, Spanned};
 
@@ -46,6 +46,10 @@ pub struct Args {
     pub span: Span,
     /// The positional and named arguments.
     pub items: EcoVec<Arg>,
+}
+
+cast! {
+    type Args,
 }
 
 impl Args {

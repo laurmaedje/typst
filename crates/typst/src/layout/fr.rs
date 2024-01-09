@@ -4,7 +4,7 @@ use std::ops::{Add, Div, Mul, Neg};
 
 use ecow::EcoString;
 
-use crate::foundations::{repr, ty, Repr};
+use crate::foundations::{cast, repr, ty, Repr};
 use crate::layout::Abs;
 use crate::util::{Numeric, Scalar};
 
@@ -59,6 +59,10 @@ impl Fr {
             Abs::zero()
         }
     }
+}
+
+cast! {
+    type Fr,
 }
 
 impl Numeric for Fr {

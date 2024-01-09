@@ -68,6 +68,10 @@ impl Show for Packed<StyleElem> {
 #[derive(Default, PartialEq, Clone, Hash)]
 pub struct Styles(EcoVec<Prehashed<Style>>);
 
+cast! {
+    type Styles,
+}
+
 impl Styles {
     /// Create a new, empty style list.
     pub fn new() -> Self {

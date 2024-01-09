@@ -102,6 +102,11 @@ impl Repr for f64 {
     }
 }
 
+cast! {
+    type f64,
+    v: i64 => v as f64,
+}
+
 /// A value that can be cast to a float.
 pub struct ToFloat(f64);
 

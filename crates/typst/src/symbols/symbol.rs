@@ -61,6 +61,10 @@ enum List {
     Runtime(Box<[(EcoString, char)]>),
 }
 
+cast! {
+    type Symbol,
+}
+
 impl Symbol {
     /// Create a new symbol from a single character.
     pub const fn single(c: char) -> Self {

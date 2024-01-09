@@ -5,7 +5,7 @@ use std::ops::{Add, Div, Mul, Neg};
 
 use ecow::EcoString;
 
-use crate::foundations::{func, repr, scope, ty, Repr};
+use crate::foundations::{cast, func, repr, scope, ty, Repr};
 use crate::util::{Numeric, Scalar};
 
 /// An angle describing a rotation.
@@ -115,6 +115,10 @@ impl Angle {
     pub fn to_deg(self) -> f64 {
         self.to_unit(AngleUnit::Deg)
     }
+}
+
+cast! {
+    type Angle,
 }
 
 impl Numeric for Angle {

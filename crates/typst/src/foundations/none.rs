@@ -46,6 +46,10 @@ impl Serialize for NoneValue {
 }
 
 cast! {
+    type NoneValue,
+}
+
+cast! {
     (),
     self => NoneValue.into_value(),
     _: NoneValue => (),
@@ -53,15 +57,15 @@ cast! {
 
 impl<T: Reflect> Reflect for Option<T> {
     fn input() -> CastInfo {
-        T::input() + NoneValue::input()
+        T::input() + <NoneValue as Reflect>::input()
     }
 
     fn output() -> CastInfo {
-        T::output() + NoneValue::output()
+        T::output() + <NoneValue as Reflect>::output()
     }
 
     fn castable(value: &Value) -> bool {
-        NoneValue::castable(value) || T::castable(value)
+        <NoneValue as Reflect>::castable(value) || T::castable(value)
     }
 }
 

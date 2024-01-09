@@ -5,7 +5,7 @@ use std::ops::{Add, Div, Mul, Neg};
 use ecow::{eco_format, EcoString};
 
 use crate::diag::{At, Hint, SourceResult};
-use crate::foundations::{func, scope, ty, Repr, Resolve, StyleChain, Styles};
+use crate::foundations::{cast, func, scope, ty, Repr, Resolve, StyleChain, Styles};
 use crate::layout::{Abs, Em};
 use crate::syntax::Span;
 use crate::util::Numeric;
@@ -164,6 +164,10 @@ impl Length {
         let styles = StyleChain::new(&styles);
         self.resolve(styles).into()
     }
+}
+
+cast! {
+    type Length,
 }
 
 impl Debug for Length {

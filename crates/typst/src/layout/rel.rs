@@ -88,6 +88,12 @@ impl Rel<Length> {
     }
 }
 
+cast! {
+    type Rel,
+    v: Length => v.into(),
+    v: Ratio => v.into(),
+}
+
 impl<T: Numeric + Debug> Debug for Rel<T> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match (self.rel.is_zero(), self.abs.is_zero()) {

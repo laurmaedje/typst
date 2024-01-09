@@ -148,15 +148,15 @@ impl<T: Debug + PartialEq> Debug for Sides<T> {
 
 impl<T: Reflect> Reflect for Sides<Option<T>> {
     fn input() -> CastInfo {
-        T::input() + Dict::input()
+        T::input() + <Dict as Reflect>::input()
     }
 
     fn output() -> CastInfo {
-        T::output() + Dict::output()
+        T::output() + <Dict as Reflect>::output()
     }
 
     fn castable(value: &Value) -> bool {
-        Dict::castable(value) || T::castable(value)
+        <Dict as Reflect>::castable(value) || T::castable(value)
     }
 }
 

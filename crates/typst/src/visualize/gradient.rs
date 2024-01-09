@@ -183,6 +183,10 @@ pub enum Gradient {
     Conic(Arc<ConicGradient>),
 }
 
+cast! {
+    type Gradient,
+}
+
 #[scope]
 #[allow(clippy::too_many_arguments)]
 impl Gradient {

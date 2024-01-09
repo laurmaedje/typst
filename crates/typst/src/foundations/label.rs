@@ -1,6 +1,6 @@
 use ecow::{eco_format, EcoString};
 
-use crate::foundations::{func, scope, ty, Repr};
+use crate::foundations::{cast, func, scope, ty, Repr};
 use crate::util::PicoStr;
 
 /// A label for an element.
@@ -34,6 +34,10 @@ use crate::util::PicoStr;
 #[ty(scope, cast)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Label(PicoStr);
+
+cast! {
+    type Label,
+}
 
 impl Label {
     /// Creates a label from a string, interning it.

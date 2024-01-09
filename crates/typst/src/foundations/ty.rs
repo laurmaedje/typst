@@ -62,6 +62,10 @@ pub use typst_macros::{scope, ty};
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Type(Static<NativeTypeData>);
 
+cast! {
+    type Type,
+}
+
 impl Type {
     /// Get the type for `T`.
     pub fn of<T: NativeType>() -> Self {

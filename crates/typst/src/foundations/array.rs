@@ -72,6 +72,10 @@ pub use crate::__array as array;
 #[serde(transparent)]
 pub struct Array(EcoVec<Value>);
 
+cast! {
+    type Array,
+}
+
 impl Array {
     /// Create a new, empty array.
     pub fn new() -> Self {
@@ -887,29 +891,29 @@ impl From<&[Value]> for Array {
 
 impl<T> Reflect for Vec<T> {
     fn input() -> CastInfo {
-        Array::input()
+        <Array as Reflect>::input()
     }
 
     fn output() -> CastInfo {
-        Array::output()
+        <Array as Reflect>::output()
     }
 
     fn castable(value: &Value) -> bool {
-        Array::castable(value)
+        <Array as Reflect>::castable(value)
     }
 }
 
 impl<T: Reflect, const N: usize> Reflect for SmallVec<[T; N]> {
     fn input() -> CastInfo {
-        Array::input()
+        <Array as Reflect>::input()
     }
 
     fn output() -> CastInfo {
-        Array::output()
+        <Array as Reflect>::output()
     }
 
     fn castable(value: &Value) -> bool {
-        Array::castable(value)
+        <Array as Reflect>::castable(value)
     }
 }
 

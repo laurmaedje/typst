@@ -144,6 +144,11 @@ enum Repr {
     With(Arc<(Func, Args)>),
 }
 
+cast! {
+    type Func,
+    v: Type => v.constructor()?.clone()
+}
+
 impl Func {
     /// The function's name (e.g. `min`).
     ///

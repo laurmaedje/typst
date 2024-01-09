@@ -7,7 +7,7 @@ use wasmi::{AsContext, AsContextMut};
 
 use crate::diag::{bail, At, SourceResult, StrResult};
 use crate::engine::Engine;
-use crate::foundations::{func, repr, scope, ty, Bytes};
+use crate::foundations::{cast, func, repr, scope, ty, Bytes};
 use crate::syntax::Spanned;
 use crate::World;
 
@@ -132,6 +132,14 @@ struct Repr {
 /// Owns all data associated with the WebAssembly module.
 type Store = wasmi::Store<StoreData>;
 
+/// The persistent store data used for communication between store and host.
+#[derive(Default)]
+struct StoreData {
+    args: Vec<Bytes>,
+    output: Vec<u8>,
+    memory_error: Option<MemoryError>,
+}
+
 /// If there was an error reading/writing memory, keep the offset + length to
 /// display an error message.
 struct MemoryError {
@@ -139,12 +147,9 @@ struct MemoryError {
     length: u32,
     write: bool,
 }
-/// The persistent store data used for communication between store and host.
-#[derive(Default)]
-struct StoreData {
-    args: Vec<Bytes>,
-    output: Vec<u8>,
-    memory_error: Option<MemoryError>,
+
+cast! {
+    type Plugin,
 }
 
 #[scope]

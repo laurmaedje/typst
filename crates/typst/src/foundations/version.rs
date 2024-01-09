@@ -25,6 +25,10 @@ use crate::foundations::{cast, func, repr, scope, ty, Repr};
 #[allow(clippy::derived_hash_with_manual_eq)]
 pub struct Version(EcoVec<u32>);
 
+cast! {
+    type Version,
+}
+
 impl Version {
     /// The names for the first components of a version.
     pub const COMPONENTS: [&'static str; 3] = ["major", "minor", "patch"];

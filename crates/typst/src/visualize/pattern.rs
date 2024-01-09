@@ -6,7 +6,7 @@ use ecow::{eco_format, EcoString};
 
 use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
-use crate::foundations::{func, repr, scope, ty, Smart, StyleChain, Value};
+use crate::foundations::{cast, func, repr, scope, ty, Smart, StyleChain, Value};
 use crate::layout::{Abs, Axes, Frame, Layout, Length, Regions, Size};
 use crate::syntax::{Span, Spanned};
 use crate::util::Numeric;
@@ -110,6 +110,10 @@ struct Repr {
     spacing: Size,
     /// The pattern's relative transform.
     relative: Smart<RelativeTo>,
+}
+
+cast! {
+    type Pattern,
 }
 
 #[scope]
