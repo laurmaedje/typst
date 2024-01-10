@@ -43,6 +43,7 @@ struct Meta {
     name: Option<String>,
     title: Option<String>,
     keywords: Vec<String>,
+    scope: bool,
 }
 
 impl Parse for Meta {
@@ -53,6 +54,7 @@ impl Parse for Meta {
             name: parse_string::<kw::name>(input)?,
             title: parse_string::<kw::title>(input)?,
             keywords: parse_string_array::<kw::keywords>(input)?,
+            scope: parse_flag::<kw::scope>(input)?,
         })
     }
 }

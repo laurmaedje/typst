@@ -103,7 +103,7 @@ pub fn func(stream: BoundaryStream, item: BoundaryStream) -> BoundaryStream {
 ///
 /// ```ignore
 /// /// A sequence of codepoints.
-/// #[ty(scope, title = "String")]
+/// #[ty(title = "String", scope)]
 /// struct Str(EcoString);
 ///
 /// #[scope]
