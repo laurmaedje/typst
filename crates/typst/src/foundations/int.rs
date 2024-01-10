@@ -25,7 +25,7 @@ use crate::foundations::{cast, func, repr, scope, ty, Repr, Str};
 /// #0o10 \
 /// #0b1001
 /// ```
-#[ty(name = "int", title = "Integer", scope)]
+#[ty(name = "int", title = "Integer", scope, Repr)]
 type i64;
 
 #[scope]

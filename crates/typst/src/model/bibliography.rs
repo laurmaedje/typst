@@ -317,7 +317,7 @@ impl LocalName for Packed<BibliographyElem> {
 }
 
 /// A loaded bibliography.
-#[ty]
+#[ty(Repr)]
 #[derive(Clone, PartialEq)]
 pub struct Bibliography {
     map: Arc<IndexMap<PicoStr, hayagriva::Entry>>,
@@ -437,7 +437,7 @@ fn format_biblatex_error(path: &str, src: &str, errors: Vec<BibLaTeXError>) -> E
 }
 
 /// A loaded CSL style.
-#[ty(cast)]
+#[ty(cast, Repr)]
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub struct CslStyle {
     name: Option<EcoString>,

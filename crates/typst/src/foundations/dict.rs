@@ -64,7 +64,7 @@ pub use crate::__dict as dict;
 /// #dict.insert("city", "Berlin ")
 /// #("name" in dict)
 /// ```
-#[ty(name = "dictionary", scope)]
+#[ty(name = "dictionary", scope, Repr)]
 #[derive(Default, Clone, PartialEq)]
 pub struct Dict(Arc<IndexMap<Str, Value>>);
 

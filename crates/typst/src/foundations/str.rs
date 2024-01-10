@@ -68,7 +68,7 @@ pub use ecow::eco_format;
 /// - `[\r]` for a carriage return
 /// - `[\t]` for a tab
 /// - `[\u{1f600}]` for a hexadecimal Unicode escape sequence
-#[ty(title = "String", scope, cast)]
+#[ty(title = "String", scope, cast, Repr)]
 #[derive(Default, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[derive(Serialize, Deserialize)]
 #[serde(transparent)]
@@ -849,7 +849,7 @@ fn string_is_empty() -> EcoString {
 ///
 /// The numbers 1 to 10.
 /// ```
-#[ty(scope)]
+#[ty(scope, Repr)]
 #[derive(Debug, Clone)]
 pub struct Regex(regex::Regex);
 

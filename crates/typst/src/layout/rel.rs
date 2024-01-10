@@ -25,13 +25,19 @@ use crate::util::Numeric;
 /// A relative length has the following fields:
 /// - `length`: Its length component.
 /// - `ratio`: Its ratio component.
-#[ty(cast, name = "relative", title = "Relative Length")]
+#[ty(name = "relative", title = "Relative Length", cast, Repr)]
 #[derive(Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Rel<T: Numeric = Length> {
     /// The relative part.
     pub rel: Ratio,
     /// The absolute part.
     pub abs: T,
+}
+
+cast! {
+    type Rel,
+    v: Length => v.into(),
+    v: Ratio => v.into(),
 }
 
 impl<T: Numeric> Rel<T> {
@@ -86,12 +92,6 @@ impl Rel<Length> {
             None
         }
     }
-}
-
-cast! {
-    type Rel,
-    v: Length => v.into(),
-    v: Ratio => v.into(),
 }
 
 impl<T: Numeric + Debug> Debug for Rel<T> {

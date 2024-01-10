@@ -13,7 +13,7 @@ use crate::model::Numbering;
 /// location with the [`locate`]($locate) function and the location of a queried
 /// or shown element with the [`location()`]($content.location) method on
 /// content.
-#[ty(scope)]
+#[ty(scope, Repr)]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Location {
     /// The hash of the element.

@@ -12,7 +12,7 @@ use smallvec::SmallVec;
 use crate::diag::{SourceResult, Trace, Tracepoint};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, elem, func, ty, Func, NativeType, Packed, Repr, Selector, Show, Type, Value,
+    cast, elem, func, ty, Func, NativeType, Repr, Selector, Show, Type, Value,
 };
 use crate::syntax::Span;
 use crate::text::{FontFamily, FontList, TextElem};
@@ -45,7 +45,7 @@ pub fn style(
     /// content that depends on the style context it appears in.
     func: Func,
 ) -> Value {
-    StyleElem::new(func).pack().spanned(span)
+    StyleElem::new(func).spanned(span).pack()
 }
 
 /// Executes a style access.
@@ -56,7 +56,7 @@ struct StyleElem {
     func: Func,
 }
 
-impl Show for Packed<StyleElem> {
+impl Show for StyleElem {
     #[typst_macros::time(name = "style", span = self.span())]
     fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         self.func().call(engine, [styles.to_map()])
@@ -64,7 +64,7 @@ impl Show for Packed<StyleElem> {
 }
 
 /// A list of style properties.
-#[ty(cast)]
+#[ty(Repr)]
 #[derive(Default, PartialEq, Clone, Hash)]
 pub struct Styles(EcoVec<Prehashed<Style>>);
 

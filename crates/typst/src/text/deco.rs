@@ -343,7 +343,7 @@ impl Show for Packed<HighlightElem> {
 ///
 /// Can be positioned over, under, or on top of text, or highlight the text with
 /// a background.
-#[ty]
+#[ty(Repr)]
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct Decoration {
     line: DecoLine,
@@ -361,7 +361,7 @@ impl Fold for Decoration {
 
 impl Repr for Decoration {
     fn repr(&self) -> EcoString {
-        eco_format!("{self:?}")
+        "..".into()
     }
 }
 

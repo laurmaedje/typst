@@ -8,7 +8,7 @@ use once_cell::sync::Lazy;
 use crate::diag::{SourceResult, StrResult};
 use crate::engine::Engine;
 use crate::foundations::{
-    cast, func, Args, Dict, Func, NativeFuncData, Repr, Scope, Selector, Styles, Value,
+    cast, func, Args, Func, NativeFuncData, Repr, Scope, Selector, Styles, Value,
 };
 use crate::text::{Lang, Region};
 use crate::util::Static;
@@ -58,7 +58,7 @@ pub use typst_macros::{scope, ty};
 /// - Adding/joining a type and string will yield a string
 /// - The `{in}` operator on a type and a dictionary will evaluate to `{true}`
 ///   if the dictionary has a string key matching the type's name
-#[ty(scope, cast)]
+#[ty(scope, Repr)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Type(Static<NativeTypeData>);
 
@@ -99,10 +99,10 @@ impl Type {
             .constructor
             .as_ref()
             .map(|lazy| Func::from(*lazy))
-            .ok_or_else(|| eco_format!("type {self} does not have a constructor"))
+            .ok_or_else(|| eco_format!("type self does not have a constructor"))
     }
 
-    /// The type's associated scope that holds sub-definitions.
+    /// The type's associated scope of sub-definition.
     pub fn scope(&self) -> &'static Scope {
         &(self.0).0.scope
     }
@@ -111,7 +111,7 @@ impl Type {
     pub fn field(&self, field: &str) -> StrResult<&'static Value> {
         self.scope()
             .get(field)
-            .ok_or_else(|| eco_format!("type {self} does not contain field `{field}`"))
+            .ok_or_else(|| eco_format!("type self does not contain field `{}`", field))
     }
 
     pub fn select(&self) -> Selector {
@@ -153,7 +153,7 @@ impl Type {
 
 // Type compatibility.
 impl Type {
-    /// The type's backward-compatible name.
+    /// The type's backwards-compatible name.
     pub fn compat_name(&self) -> &str {
         self.long_name()
     }
@@ -253,29 +253,6 @@ pub trait NativeType: 'static {
 
     // Get the type data for the native Rust type.
     fn data() -> &'static NativeTypeData;
-}
-
-/// Used to cast an element to a trait object for a trait it implements.
-///
-/// # Safety
-/// If the `vtable` function returns `Some(p)`, then `p` must be a valid pointer
-/// to a vtable of `Packed<Self>` w.r.t to the trait `C` where `capability` is
-/// `TypeId::of::<dyn C>()`.
-pub unsafe trait Capable {
-    /// Get the pointer to the vtable for the given capability / trait.
-    fn vtable(capability: TypeId) -> Option<*const ()>;
-}
-
-/// Defines how fields of an element are accessed.
-pub trait Fields {
-    /// Whether the element has the given field set.
-    fn has(&self, id: u8) -> bool;
-
-    /// Get the field with the given field ID.
-    fn field(&self, id: u8) -> Option<Value>;
-
-    /// Get the fields of the element.
-    fn fields(&self) -> Dict;
 }
 
 /// Defines a native type.

@@ -67,7 +67,7 @@ pub use crate::__array as array;
 /// #(("A", "B", "C")
 ///     .join(", ", last: " and "))
 /// ```
-#[ty(scope, cast)]
+#[ty(scope, Repr)]
 #[derive(Default, Clone, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Array(EcoVec<Value>);
@@ -617,7 +617,7 @@ impl Array {
         let mut flat = EcoVec::with_capacity(self.0.len());
         for item in self {
             if item.is::<Array>() {
-                let nested = item.to_packed::<Array>().unwrap().unpack();
+                let nested = item.unpack::<Array>().unwrap();
                 flat.extend(nested.flatten());
             } else {
                 flat.push(item);

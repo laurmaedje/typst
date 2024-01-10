@@ -20,7 +20,7 @@ use crate::util::{Numeric, Scalar};
 /// ```example
 /// Left #h(1fr) Left-ish #h(2fr) Right
 /// ```
-#[ty(cast, name = "fraction")]
+#[ty(name = "fraction", Repr)]
 #[derive(Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Fr(Scalar);
 

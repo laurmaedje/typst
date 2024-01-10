@@ -23,7 +23,7 @@ use crate::foundations::{cast, repr, ty, Scope, Value};
 /// >>>
 /// >>> #(-3)
 /// ```
-#[ty(cast)]
+#[ty(Repr)]
 #[derive(Clone, Hash)]
 #[allow(clippy::derived_hash_with_manual_eq)]
 pub struct Module {

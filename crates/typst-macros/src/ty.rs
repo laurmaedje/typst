@@ -1,7 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::{Attribute, Ident, Result};
+use syn::punctuated::Punctuated;
+use syn::{Attribute, Ident, Result, Token};
 
 use crate::util::{
     determine_name_and_title, documentation, foundations, kw, parse_flag, parse_string,
@@ -45,6 +46,13 @@ struct Meta {
     keywords: Vec<String>,
     scope: bool,
     cast: bool,
+    capabilities: Vec<Ident>,
+}
+
+impl Meta {
+    fn can(&self, capability: &str) -> bool {
+        self.capabilities.iter().any(|c| c == capability)
+    }
 }
 
 impl Parse for Meta {
@@ -57,6 +65,9 @@ impl Parse for Meta {
             keywords: parse_string_array::<kw::keywords>(input)?,
             scope: parse_flag::<kw::scope>(input)?,
             cast: parse_flag::<kw::cast>(input)?,
+            capabilities: Punctuated::<Ident, Token![,]>::parse_terminated(input)?
+                .into_iter()
+                .collect(),
         })
     }
 }
@@ -72,16 +83,37 @@ fn parse(meta: Meta, ident: Ident, attrs: &[Attribute]) -> Result<Type> {
 
 /// Produce the output of the macro.
 fn create(ty: &Type, item: Option<&syn::Item>) -> TokenStream {
+    let native_type = create_native_type_impl(ty);
+    let cast = create_cast_impl(ty);
+    let repr = create_repr_impl(ty);
+    let construct = create_construct_impl(ty);
+    let set = create_set_impl(ty);
+    let locatable = create_locatable_impl(ty);
+    quote! {
+        #item
+        #native_type
+        #cast
+        #repr
+        #construct
+        #set
+        #locatable
+    }
+}
+
+/// Creates the `NativeType` implementation for the type.
+///
+/// This trait is always implemented automatically.
+fn create_native_type_impl(ty: &Type) -> TokenStream {
     let Type { ident, name, long, title, docs, meta, .. } = ty;
     let Meta { keywords, .. } = meta;
 
-    let constructor = if meta.scope {
+    let constructor = if ty.meta.scope {
         quote! { <#ident as #foundations::NativeScope>::constructor() }
     } else {
         quote! { None }
     };
 
-    let scope = if meta.scope {
+    let scope = if ty.meta.scope {
         quote! { <#ident as #foundations::NativeScope>::scope() }
     } else {
         quote! { #foundations::Scope::new() }
@@ -106,9 +138,6 @@ fn create(ty: &Type, item: Option<&syn::Item>) -> TokenStream {
     };
 
     quote! {
-        #item
-        #cast
-
         impl #foundations::NativeType for #ident {
             const NAME: &'static str = #name;
 
@@ -118,4 +147,87 @@ fn create(ty: &Type, item: Option<&syn::Item>) -> TokenStream {
             }
         }
     }
+}
+
+/// Creates the `Reflect`, `IntoValue`, and `FromValue` implementations for
+/// the type. Returns `None` if `#[ty(cast)]` is specified because the
+/// implementations are provided manually or via the `cast!` macro.
+fn create_cast_impl(ty: &Type) -> Option<TokenStream> {
+    if ty.meta.cast {
+        return None;
+    }
+
+    let Type { ident, .. } = ty;
+    Some(quote! {
+       ::typst::foundations::cast! { type #ident, }
+    })
+}
+
+/// Creates the `Repr` implementation for the type. Returns `None` if
+/// `#[ty(Repr)]` is specified because the trait is implemented manually.
+fn create_repr_impl(ty: &Type) -> Option<TokenStream> {
+    if ty.meta.can("Repr") {
+        return None;
+    }
+
+    let Type { ident, .. } = ty;
+    Some(quote! {
+        impl #foundations::Repr for #ident {
+            fn repr(&self) -> ::ecow::EcoString {
+                ::ecow::EcoString::new()
+            }
+        }
+    })
+}
+
+/// Creates the `Construct` implementation for the type. Returns `None` if
+/// `#[ty(Construct)]` or `#[ty(!Construct)]` is specified because the
+/// constructor is implemeneted manually or is absent.
+fn create_construct_impl(ty: &Type) -> Option<TokenStream> {
+    if ty.meta.can("Construct") {
+        return None;
+    }
+
+    let Type { ident, .. } = ty;
+    Some(quote! {
+        impl #foundations::Construct for #ident {
+            fn construct(
+                engine: &mut ::typst::engine::Engine,
+                args: &mut #foundations::Args,
+            ) -> ::typst::diag::SourceResult<#foundations::Value> {
+                todo!()
+            }
+        }
+    })
+}
+
+/// Create the `Set` implementation for the type.
+///
+/// This trait is always implemented automatically.
+fn create_set_impl(ty: &Type) -> TokenStream {
+    let Type { ident, .. } = ty;
+    quote! {
+        impl #foundations::Set for #ident {
+            fn set(
+                engine: &mut ::typst::engine::Engine,
+                args: &mut #foundations::Args,
+            ) -> ::typst::diag::SourceResult<#foundations::Styles> {
+                Ok(#foundations::Styles::new())
+            }
+        }
+    }
+}
+
+/// Create the `Locatable` implementation for the type.
+///
+/// This trait is only implemented if `#[ty(Locatable)]` is specified.
+fn create_locatable_impl(ty: &Type) -> Option<TokenStream> {
+    if !ty.meta.can("Locatable") {
+        return None;
+    }
+
+    let Type { ident, .. } = ty;
+    Some(quote! {
+        impl ::typst::introspection::Locatable for #ident {}
+    })
 }

@@ -96,7 +96,7 @@ impl Show for Packed<AlignElem> {
 /// #left.x \
 /// #left.y (none)
 /// ```
-#[ty(scope)]
+#[ty(scope, Repr)]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Alignment {
     H(HAlignment),

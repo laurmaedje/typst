@@ -163,7 +163,7 @@ const ANGLE_EPSILON: f32 = 1e-5;
 ///   )
 /// }))
 /// ```
-#[ty(scope, cast)]
+#[ty(scope, Repr)]
 #[derive(Copy, Clone)]
 pub enum Color {
     /// A 32-bit luma color.
@@ -1173,6 +1173,7 @@ impl Color {
     }
 
     /// Converts a 32-bit integer to an RGBA color.
+    #[inline]
     pub fn from_u32(color: u32) -> Self {
         Self::from_u8(
             ((color >> 24) & 0xFF) as u8,
@@ -1812,7 +1813,7 @@ cast! {
     }.into_value(),
     v: Value => {
         let expected = "expected `rgb`, `luma`, `cmyk`, `oklab`, `oklch`, `color.linear-rgb`, `color.hsl`, or `color.hsv`";
-        let Some(func) = v.to::<Func>().map(AsRef::as_ref) else {
+        let Some(func) = v.to::<Func>() else {
             bail!("{expected}, found {}", v.ty());
         };
 

@@ -186,7 +186,7 @@ use crate::World;
 /// `locate` calls or `display` calls of state or counters. Instead, pass a
 /// function to `update` that determines the value of the state based on its
 /// previous value.
-#[ty(scope)]
+#[ty(scope, Repr)]
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub struct State {
     /// The key that identifies the state.
@@ -352,7 +352,7 @@ impl Repr for State {
 }
 
 /// An update to perform on a state.
-#[ty(cast)]
+#[ty(cast, Repr)]
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub enum StateUpdate {
     /// Set the state to the specified value.

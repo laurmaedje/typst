@@ -31,7 +31,7 @@ use crate::util::PicoStr;
 ///
 /// Currently, labels can only be attached to elements in markup mode, not in
 /// code mode. This might change in the future.
-#[ty(scope, cast)]
+#[ty(scope, Repr)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Label(PicoStr);
 
@@ -42,11 +42,13 @@ impl Label {
     }
 
     /// Resolves the label to a string.
+    #[inline]
     pub fn as_str(&self) -> &'static str {
         self.0.resolve()
     }
 
     /// Turns this label into its inner interned string.
+    #[inline]
     pub fn into_inner(self) -> PicoStr {
         self.0
     }

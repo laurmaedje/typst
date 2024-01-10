@@ -39,7 +39,7 @@ use crate::foundations::{
 /// #array(data.slice(0, 4)) \
 /// #str(data.slice(1, 4))
 /// ```
-#[ty(scope, cast)]
+#[ty(scope, Repr)]
 #[derive(Clone, Hash, Eq, PartialEq)]
 pub struct Bytes(Arc<Prehashed<Cow<'static, [u8]>>>);
 
@@ -239,11 +239,11 @@ cast! {
     v: Str => Self(v.as_bytes().into()),
     v: Array => Self(v.iter()
         .map(|value| {
-            let Some(int) = value.to::<i64>() else {
+            let Some(&int) = value.to::<i64>() else {
                 return Err(<u8 as Reflect>::error(&value))
             };
-            if matches!(**int, 0..=255) {
-                Ok(**int as u8)
+            if matches!(int, 0..=255) {
+                Ok(int as u8)
             } else {
                 bail!("number must be between 0 and 255")
             }

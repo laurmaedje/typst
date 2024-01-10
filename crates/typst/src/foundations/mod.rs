@@ -395,7 +395,7 @@ pub trait PlainText {
 }
 
 /// Defines the `ElemFunc` for styled elements.
-#[ty]
+#[ty(Repr)]
 pub struct StyledElem {
     pub child: Prehashed<Value>,
     pub styles: Styles,
@@ -414,7 +414,7 @@ impl Repr for StyledElem {
 }
 
 /// Defines the `ElemFunc` for sequences.
-#[ty]
+#[ty(Repr)]
 #[derive(Default, PartialEq)]
 pub struct SequenceElem {
     pub children: Vec<Prehashed<Value>>,

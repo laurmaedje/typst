@@ -207,7 +207,7 @@ use crate::World;
 /// The `counter` type is closely related to [state]($state) type. Read its
 /// documentation for more details on state management in Typst and why it
 /// doesn't just use normal variables for counters.
-#[ty(scope)]
+#[ty(scope, Repr)]
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub struct Counter(CounterKey);
 
@@ -516,7 +516,7 @@ impl Repr for CounterKey {
 }
 
 /// An update to perform on a counter.
-#[ty(cast)]
+#[ty(cast, Repr)]
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub enum CounterUpdate {
     /// Set the counter to the specified state.

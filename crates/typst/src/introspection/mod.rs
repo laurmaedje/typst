@@ -72,7 +72,7 @@ impl Behave for Packed<MetaElem> {
 }
 
 /// Meta information that isn't visible or renderable.
-#[ty]
+#[ty(Repr)]
 #[derive(Clone, PartialEq, Hash)]
 pub enum Meta {
     /// An internal or external link to a destination.
@@ -104,6 +104,6 @@ impl Debug for Meta {
 
 impl Repr for Meta {
     fn repr(&self) -> EcoString {
-        eco_format!("{self:?}")
+        "..".into()
     }
 }

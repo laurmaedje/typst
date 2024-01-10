@@ -115,7 +115,7 @@ use crate::World;
 /// - Wrappers to help you write your plugin in Rust (Zig wrapper in
 ///   development)
 /// - A stubber for WASI
-#[ty(scope, cast)]
+#[ty(scope, Repr)]
 #[derive(Clone)]
 pub struct Plugin(Arc<Repr>);
 

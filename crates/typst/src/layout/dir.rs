@@ -18,7 +18,7 @@ use crate::layout::{Axis, Side};
 /// #stack(dir: rtl)[A][B][C]
 /// #stack(dir: direction.rtl)[A][B][C]
 /// ```
-#[ty(name = "direction", scope)]
+#[ty(name = "direction", scope, Repr)]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Dir {
     /// Left to right.

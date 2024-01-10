@@ -15,7 +15,7 @@ use crate::foundations::{
 /// contextual behaviour. A good example is the [text direction]($text.dir)
 /// parameter. Setting it to `{auto}` lets Typst automatically determine the
 /// direction from the [text language]($text.lang).
-#[ty(cast, name = "auto")]
+#[ty(name = "auto", Repr)]
 #[derive(Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct AutoValue;
 
@@ -99,20 +99,8 @@ impl<T> Smart<T> {
         }
     }
 
-    /// Keeps `self` if it contains a custom value, otherwise returns the
-    /// output of the given function.
-    pub fn or_else<F>(self, f: F) -> Self
-    where
-        F: FnOnce() -> Self,
-    {
-        match self {
-            Self::Custom(x) => Self::Custom(x),
-            Self::Auto => f(),
-        }
-    }
-
-    /// Returns `Auto` if `self` is `Auto`, otherwise calls the provided
-    /// function on the contained value and returns the result.
+    /// Retusn `Auto` if `self` is `Auto`, otherwise calls the provided function onthe contained
+    /// value and returns the result.
     pub fn and_then<F, U>(self, f: F) -> Smart<U>
     where
         F: FnOnce(T) -> Smart<U>,
