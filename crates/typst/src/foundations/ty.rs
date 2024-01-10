@@ -195,7 +195,7 @@ impl Type {
         /// The fields to filter for.
         #[variadic]
         #[external]
-        fields: Vec<Args>,
+        fields: Vec<Value>,
     ) -> StrResult<Selector> {
         let fields = args.to_named();
         args.items.retain(|arg| arg.name.is_none());
