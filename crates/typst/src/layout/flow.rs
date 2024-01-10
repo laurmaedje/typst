@@ -47,8 +47,8 @@ impl Layout for Packed<FlowElem> {
             let outer = styles;
             let mut styles = styles;
             if let Some(styled) = child.to::<StyledElem>() {
-                child = &styled.child();
-                styles = outer.chain(styled.styles());
+                child = &styled.child;
+                styles = outer.chain(&styled.styles);
             }
 
             if let Some(elem) = child.to::<VElem>() {
@@ -340,7 +340,7 @@ impl<'a> FlowLayouter<'a> {
         let align = if let Some(align) = block.to::<AlignElem>() {
             align.alignment(styles)
         } else if let Some(styled) = block.to::<StyledElem>() {
-            AlignElem::alignment_in(styles.chain(styled.styles()))
+            AlignElem::alignment_in(styles.chain(&styled.styles))
         } else {
             AlignElem::alignment_in(styles)
         }

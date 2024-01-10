@@ -84,14 +84,14 @@ impl LayoutRoot for Packed<DocumentElem> {
             let outer = styles;
             let mut styles = styles;
             if let Some(styled) = child.to::<StyledElem>() {
-                styles = outer.chain(styled.styles());
-                child = &styled.child();
+                styles = outer.chain(&styled.styles);
+                child = &styled.child;
             }
 
             if let Some(page) = child.to::<PageElem>() {
                 let extend_to = iter.peek().and_then(|&next| {
                     next.to::<StyledElem>()
-                        .map_or(next, |styled| styled.child())
+                        .map_or(next, |styled| &styled.child)
                         .to::<PageElem>()?
                         .clear_to(styles)
                 });

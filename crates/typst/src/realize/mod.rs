@@ -326,11 +326,11 @@ impl<'a, 'v, 't> Builder<'a, 'v, 't> {
         }
 
         if let Some(styled) = content.to::<StyledElem>() {
-            return self.styled(&styled.child(), styled.styles(), styles);
+            return self.styled(&styled.child, &styled.styles, styles);
         }
 
         if let Some(sequence) = content.to::<SequenceElem>() {
-            for elem in sequence.children() {
+            for elem in &sequence.children {
                 self.accept(elem, styles)?;
             }
             return Ok(());

@@ -248,7 +248,7 @@ impl Value {
     /// Also auto expands sequence of sequences into flat sequence
     pub fn sequence_recursive_for_each(&self, f: &mut impl FnMut(&Self)) {
         if let Some(sequence) = self.to::<SequenceElem>() {
-            for child in sequence.children() {
+            for child in &sequence.children {
                 child.sequence_recursive_for_each(f);
             }
         } else {

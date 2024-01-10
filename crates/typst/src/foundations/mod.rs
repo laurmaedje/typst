@@ -395,11 +395,9 @@ pub trait PlainText {
 }
 
 /// Defines the `ElemFunc` for styled elements.
-#[elem(Repr, PartialEq)]
+#[ty]
 pub struct StyledElem {
-    #[required]
     pub child: Prehashed<Value>,
-    #[required]
     pub styles: Styles,
 }
 
@@ -416,25 +414,10 @@ impl Repr for StyledElem {
 }
 
 /// Defines the `ElemFunc` for sequences.
-#[elem(Repr, PartialEq)]
+#[ty]
+#[derive(Default, PartialEq)]
 pub struct SequenceElem {
-    #[required]
     pub children: Vec<Prehashed<Value>>,
-}
-
-impl Default for SequenceElem {
-    fn default() -> Self {
-        Self { children: Default::default() }
-    }
-}
-
-impl PartialEq for SequenceElem {
-    fn eq(&self, other: &Self) -> bool {
-        self.children
-            .iter()
-            .map(|c| &**c)
-            .eq(other.children.iter().map(|c| &**c))
-    }
 }
 
 impl Repr for SequenceElem {

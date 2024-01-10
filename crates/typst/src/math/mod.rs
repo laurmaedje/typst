@@ -248,7 +248,7 @@ impl LayoutMath for Value {
         }
 
         if let Some(styled) = self.to::<StyledElem>() {
-            if TextElem::font_in(ctx.styles().chain(styled.styles()))
+            if TextElem::font_in(ctx.styles().chain(&styled.styles))
                 != TextElem::font_in(ctx.styles())
             {
                 let frame = ctx.layout_content(self)?;
@@ -256,11 +256,11 @@ impl LayoutMath for Value {
                 return Ok(());
             }
 
-            let prev_map = std::mem::replace(&mut ctx.local, styled.styles().clone());
+            let prev_map = std::mem::replace(&mut ctx.local, styled.styles.clone());
             let prev_size = ctx.size;
             ctx.local.apply(prev_map.clone());
             ctx.size = TextElem::size_in(ctx.styles());
-            styled.child().layout_math(ctx)?;
+            styled.child.layout_math(ctx)?;
             ctx.size = prev_size;
             ctx.local = prev_map;
             return Ok(());

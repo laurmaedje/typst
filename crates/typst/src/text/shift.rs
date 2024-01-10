@@ -136,7 +136,7 @@ fn search_text(content: &Value, sub: bool) -> Option<EcoString> {
         convert_script(elem.text(), sub)
     } else if let Some(sequence) = content.to::<SequenceElem>() {
         let mut full = EcoString::new();
-        for item in sequence.children() {
+        for item in &sequence.children {
             match search_text(item, sub) {
                 Some(text) => full.push_str(&text),
                 None => return None,

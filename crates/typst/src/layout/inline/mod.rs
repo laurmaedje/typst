@@ -436,8 +436,8 @@ fn collect<'a>(
         let outer = styles;
         let mut styles = *styles;
         if let Some(styled) = child.to::<StyledElem>() {
-            child = &styled.child();
-            styles = outer.chain(styled.styles());
+            child = &styled.child;
+            styles = outer.chain(&styled.styles);
         }
 
         let segment = if child.is::<SpaceElem>() {
@@ -474,9 +474,9 @@ fn collect<'a>(
                     region,
                     SmartQuoteElem::alternative_in(styles),
                 );
-                let peeked = iter.peek().and_then(|child| {
+                let peeked = iter.peek().and_then(|&child| {
                     let child = if let Some(elem) = child.to::<StyledElem>() {
-                        &**elem.child()
+                        &*elem.child
                     } else {
                         child
                     };
@@ -757,7 +757,7 @@ fn shared_get<T: PartialEq>(
     children
         .iter()
         .filter_map(|child| child.to::<StyledElem>())
-        .all(|styled| getter(styles.chain(styled.styles())) == value)
+        .all(|styled| getter(styles.chain(&styled.styles)) == value)
         .then_some(value)
 }
 
