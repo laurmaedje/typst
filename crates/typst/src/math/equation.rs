@@ -217,8 +217,10 @@ impl Layout for Packed<EquationElem> {
 
         if let Some(numbering) = (**self).numbering(styles) {
             let pod = Regions::one(regions.base(), Axes::splat(false));
-            let counter = Counter::of(EquationElem::ty())
-                .display(self.span(), Some(numbering), false)
+            let counter = Counter::of(Self::ty())
+                .display(Some(numbering), false)
+                .pack()
+                .spanned(self.span())
                 .layout(engine, styles, pod)?
                 .into_frame();
 

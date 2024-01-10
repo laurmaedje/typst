@@ -25,7 +25,7 @@ enum LineKind {
 /// ```example
 /// $ underline(1 + 2 + ... + 5) $
 /// ```
-#[elem(LayoutMath)]
+#[ty(LayoutMath)]
 pub struct UnderlineElem {
     /// The content above the line.
     #[required]
@@ -35,7 +35,7 @@ pub struct UnderlineElem {
 impl LayoutMath for Packed<UnderlineElem> {
     #[typst_macros::time(name = "math.underline", span = self.span())]
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()> {
-        layout_underoverline(ctx, self.body(), self.span(), LineKind::Under)
+        layout_underoverline(ctx, &self.body, self.span(), LineKind::Under)
     }
 }
 
@@ -44,7 +44,7 @@ impl LayoutMath for Packed<UnderlineElem> {
 /// ```example
 /// $ overline(1 + 2 + ... + 5) $
 /// ```
-#[elem(LayoutMath)]
+#[ty(LayoutMath)]
 pub struct OverlineElem {
     /// The content below the line.
     #[required]
@@ -54,7 +54,7 @@ pub struct OverlineElem {
 impl LayoutMath for Packed<OverlineElem> {
     #[typst_macros::time(name = "math.overline", span = self.span())]
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()> {
-        layout_underoverline(ctx, self.body(), self.span(), LineKind::Over)
+        layout_underoverline(ctx, &self.body, self.span(), LineKind::Over)
     }
 }
 

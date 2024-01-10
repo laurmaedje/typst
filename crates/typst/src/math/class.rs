@@ -18,7 +18,7 @@ use crate::math::{LayoutMath, MathContext};
 ///
 /// $x loves y and y loves 5$
 /// ```
-#[elem(LayoutMath)]
+#[ty(LayoutMath)]
 pub struct ClassElem {
     /// The class to apply to the content.
     #[required]
@@ -32,11 +32,11 @@ pub struct ClassElem {
 impl LayoutMath for Packed<ClassElem> {
     #[typst_macros::time(name = "math.class", span = self.span())]
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()> {
-        ctx.style(ctx.style.with_class(*self.class()));
-        let mut fragment = ctx.layout_fragment(self.body())?;
+        ctx.style(ctx.style.with_class(self.class));
+        let mut fragment = ctx.layout_fragment(&self.body)?;
         ctx.unstyle();
 
-        fragment.set_class(*self.class());
+        fragment.set_class(self.class);
         ctx.push(fragment);
         Ok(())
     }

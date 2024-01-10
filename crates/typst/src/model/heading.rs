@@ -156,8 +156,9 @@ impl Show for Packed<HeadingElem> {
         let mut realized = self.body().clone();
         if let Some(numbering) = (**self).numbering(styles).as_ref() {
             realized = Value::sequence([
-                Counter::of(HeadingElem::ty())
-                    .display(self.span(), Some(numbering.clone()), false)
+                Counter::of(Self::ty())
+                    .display(Some(numbering.clone()), false)
+                    .pack()
                     .spanned(self.span()),
                 HElem::new(Em::new(0.3).into()).with_weak(true).pack(),
                 realized,

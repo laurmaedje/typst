@@ -18,8 +18,6 @@ use crate::syntax::Span;
 /// ```
 #[func]
 pub fn locate(
-    /// The span of the `locate` call.
-    span: Span,
     /// A function that receives a [`location`]($location). Its return value is
     /// displayed in the document.
     ///
@@ -28,14 +26,13 @@ pub fn locate(
     /// content that depends on its own location in the document.
     func: Func,
 ) -> Value {
-    LocateElem::new(func).pack().spanned(span)
+    LocateElem::new(func).pack()
 }
 
 /// Executes a `locate` call.
-#[elem(Locatable, Show)]
+#[ty(Locatable, Show)]
 struct LocateElem {
     /// The function to call with the location.
-    #[required]
     func: Func,
 }
 
@@ -44,7 +41,7 @@ impl Show for Packed<LocateElem> {
     fn show(&self, engine: &mut Engine, _: StyleChain) -> SourceResult<Value> {
         Ok(engine.delayed(|engine| {
             let location = self.location().unwrap();
-            self.func().call(engine, [location])
+            self.func.call(engine, [location])
         }))
     }
 }

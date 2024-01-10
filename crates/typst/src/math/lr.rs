@@ -103,7 +103,7 @@ impl LayoutMath for Packed<LrElem> {
 /// ```example
 /// $ { x mid(|) sum_(i=1)^n w_i|f_i (x)| < 1 } $
 /// ```
-#[elem(LayoutMath)]
+#[ty(LayoutMath)]
 pub struct MidElem {
     /// The content to be scaled.
     #[required]
@@ -113,7 +113,7 @@ pub struct MidElem {
 impl LayoutMath for Packed<MidElem> {
     #[typst_macros::time(name = "math.mid", span = self.span())]
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()> {
-        let mut fragments = ctx.layout_fragments(self.body())?;
+        let mut fragments = ctx.layout_fragments(&self.body)?;
 
         for fragment in &mut fragments {
             match fragment {

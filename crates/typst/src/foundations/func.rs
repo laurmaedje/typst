@@ -265,19 +265,6 @@ impl Func {
             }
         }
     }
-
-    /// The function's span.
-    pub fn span(&self) -> Span {
-        self.span
-    }
-
-    /// Attach a span to this function if it doesn't already have one.
-    pub fn spanned(mut self, span: Span) -> Self {
-        if self.span.is_detached() {
-            self.span = span;
-        }
-        self
-    }
 }
 
 #[scope]

@@ -89,17 +89,23 @@ impl LayoutMath for Packed<AttachElem> {
 /// This function has dedicated syntax: use apostrophes instead of primes. They
 /// will automatically attach to the previous element, moving superscripts to
 /// the next level.
-#[elem(LayoutMath)]
+#[ty(LayoutMath)]
 pub struct PrimesElem {
     /// The number of grouped primes.
     #[required]
     pub count: usize,
 }
 
+impl PrimesElem {
+    pub fn new(count: usize) -> Self {
+        Self { count }
+    }
+}
+
 impl LayoutMath for Packed<PrimesElem> {
     #[typst_macros::time(name = "math.primes", span = self.span())]
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()> {
-        match *self.count() {
+        match self.count {
             count @ 1..=4 => {
                 let f = ctx.layout_fragment(&TextElem::packed(match count {
                     1 => '′',
@@ -135,7 +141,7 @@ impl LayoutMath for Packed<PrimesElem> {
 /// ```example
 /// $ scripts(sum)_1^2 != sum_1^2 $
 /// ```
-#[elem(LayoutMath)]
+#[ty(LayoutMath)]
 pub struct ScriptsElem {
     /// The base to attach the scripts to.
     #[required]
@@ -145,7 +151,7 @@ pub struct ScriptsElem {
 impl LayoutMath for Packed<ScriptsElem> {
     #[typst_macros::time(name = "math.scripts", span = self.span())]
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()> {
-        let mut fragment = ctx.layout_fragment(self.body())?;
+        let mut fragment = ctx.layout_fragment(&self.body)?;
         fragment.set_limits(Limits::Never);
         ctx.push(fragment);
         Ok(())

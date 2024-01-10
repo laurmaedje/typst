@@ -22,18 +22,19 @@ use crate::text::TextElem;
 #[doc(hidden)]
 macro_rules! __select_where {
     ($ty:ty $(, $field:ident => $value:expr)* $(,)?) => {{
-        #[allow(unused_mut)]
-        let mut fields = ::smallvec::SmallVec::new();
-        $(
-            fields.push((
-                <$ty as $crate::foundations::ElementFields>::Fields::$field as u8,
-                $crate::foundations::IntoValue::into_value($value),
-            ));
-        )*
-        $crate::foundations::Selector::Where(
-            <$ty as $crate::foundations::NativeType>::ty(),
-            fields,
-        )
+        // #[allow(unused_mut)]
+        // let mut fields = ::smallvec::SmallVec::new();
+        // $(
+        //     fields.push((
+        //         <$ty as $crate::foundations::ElementFields>::Fields::$field as u8,
+        //         $crate::foundations::IntoValue::into_value($value),
+        //     ));
+        // )*
+        // $crate::foundations::Selector::Where(
+        //     <$ty as $crate::foundations::NativeType>::ty(),
+        //     fields,
+        // )
+        todo!()
     }};
 }
 

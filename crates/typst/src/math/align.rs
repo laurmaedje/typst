@@ -4,8 +4,14 @@ use crate::layout::Abs;
 use crate::math::{LayoutMath, MathContext, MathFragment, MathRow};
 
 /// A math alignment point: `&`, `&&`.
-#[elem(title = "Alignment Point", LayoutMath)]
+#[ty(title = "Alignment Point", LayoutMath)]
 pub struct AlignPointElem {}
+
+impl AlignPointElem {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
 
 impl LayoutMath for Packed<AlignPointElem> {
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()> {

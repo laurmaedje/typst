@@ -237,9 +237,9 @@ impl State {
         let mut stops = eco_vec![state.clone()];
 
         for elem in introspector.query(&self.selector()) {
-            let elem = elem.to::<UpdateElem>().unwrap();
-            match elem.update() {
-                StateUpdate::Set(value) => state = value.clone(),
+            let elem = elem.into_inner().unpack::<StateUpdater>().unwrap();
+            match elem.update {
+                StateUpdate::Set(value) => state = value,
                 StateUpdate::Func(func) => state = func.call(&mut engine, [state])?,
             }
             stops.push(state.clone());
@@ -250,37 +250,23 @@ impl State {
 
     /// The selector for this state's updates.
     fn selector(&self) -> Selector {
-        select_where!(UpdateElem, Key => self.key.clone())
+        select_where!(UpdateElem, State => self.clone())
     }
 }
 
 #[scope]
 impl State {
-    /// Create a new state identified by a key.
-    #[func(constructor)]
-    pub fn construct(
-        /// The key that identifies this state.
-        key: Str,
-        /// The initial value of the state.
-        #[default]
-        init: Value,
-    ) -> State {
-        Self::new(key, init)
-    }
-
     /// Displays the current value of the state.
     #[func]
     pub fn display(
         self,
-        /// The span of the `display` call.
-        span: Span,
         /// A function which receives the value of the state and can return
         /// arbitrary content which is then displayed. If this is omitted, the
         /// value is directly displayed.
         #[default]
         func: Option<Func>,
-    ) -> Value {
-        DisplayElem::new(self, func).pack().spanned(span)
+    ) -> StateDisplayer {
+        StateDisplayer { state: self, func }
     }
 
     /// Update the value of the state.
@@ -294,14 +280,12 @@ impl State {
     #[func]
     pub fn update(
         self,
-        /// The span of the `update` call.
-        span: Span,
         /// If given a non function-value, sets the state to that value. If
         /// given a function, that function receives the previous state and has
         /// to return the new state.
         update: StateUpdate,
-    ) -> Value {
-        UpdateElem::new(self.key, update).pack().spanned(span)
+    ) -> StateUpdater {
+        StateUpdater { state: self, update }
     }
 
     /// Get the value of the state at the given location.
@@ -351,47 +335,22 @@ impl Repr for State {
     }
 }
 
-/// An update to perform on a state.
-#[ty(cast, Repr)]
-#[derive(Debug, Clone, PartialEq, Hash)]
-pub enum StateUpdate {
-    /// Set the state to the specified value.
-    Set(Value),
-    /// Apply the given function to the state.
-    Func(Func),
-}
-
-impl Repr for StateUpdate {
-    fn repr(&self) -> EcoString {
-        "..".into()
-    }
-}
-
-cast! {
-    type StateUpdate,
-    v: Func => Self::Func(v),
-    v: Value => Self::Set(v),
-}
-
 /// Executes a display of a state.
-#[elem(Locatable, Show)]
-struct DisplayElem {
+#[ty(Show, Locatable)]
+pub struct StateDisplayer {
     /// The state.
-    #[required]
     state: State,
-
     /// The function to display the state with.
-    #[required]
     func: Option<Func>,
 }
 
-impl Show for Packed<DisplayElem> {
+impl Show for Packed<StateDisplayer> {
     #[typst_macros::time(name = "state.display", span = self.span())]
     fn show(&self, engine: &mut Engine, _: StyleChain) -> SourceResult<Value> {
         Ok(engine.delayed(|engine| {
             let location = self.location().unwrap();
-            let value = self.state().at(engine, location)?;
-            match self.func() {
+            let value = self.state.at(engine, location)?;
+            match &self.func {
                 Some(func) => func.call(engine, [value]),
                 None => Ok(value),
             }
@@ -400,19 +359,31 @@ impl Show for Packed<DisplayElem> {
 }
 
 /// Executes a display of a state.
-#[elem(Locatable, Show)]
-struct UpdateElem {
+#[ty(Show, Locatable)]
+pub struct StateUpdater {
     /// The key that identifies the state.
-    #[required]
-    key: Str,
-
+    state: State,
     /// The update to perform on the state.
-    #[required]
     update: StateUpdate,
 }
 
-impl Show for Packed<UpdateElem> {
+impl Show for Packed<StateUpdater> {
     fn show(&self, _: &mut Engine, _: StyleChain) -> SourceResult<Value> {
         Ok(Value::none())
     }
+}
+
+/// An update to perform on a state.
+#[derive(Debug, Clone, PartialEq, Hash)]
+pub enum StateUpdate {
+    /// Set the state to the specified value.
+    Set(Value),
+    /// Apply the given function to the state.
+    Func(Func),
+}
+
+cast! {
+    StateUpdate,
+    v: Func => Self::Func(v),
+    v: Value => Self::Set(v),
 }

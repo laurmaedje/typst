@@ -17,16 +17,22 @@ use crate::introspection::{Meta, MetaElem};
 /// Hello Jane \
 /// #hide[Hello] Joe
 /// ```
-#[elem(Show)]
+#[ty(Show)]
 pub struct HideElem {
     /// The content to hide.
     #[required]
     pub body: Value,
 }
 
+impl HideElem {
+    pub fn new(body: Value) -> Self {
+        Self { body }
+    }
+}
+
 impl Show for Packed<HideElem> {
     #[typst_macros::time(name = "hide", span = self.span())]
     fn show(&self, _: &mut Engine, _: StyleChain) -> SourceResult<Value> {
-        Ok(self.body().clone().styled(MetaElem::set_data(smallvec![Meta::Hide])))
+        Ok(self.body.clone().styled(MetaElem::set_data(smallvec![Meta::Hide])))
     }
 }

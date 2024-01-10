@@ -5,26 +5,60 @@ use syn::punctuated::Punctuated;
 use syn::{Attribute, Ident, Result, Token};
 
 use crate::util::{
-    determine_name_and_title, documentation, foundations, kw, parse_flag, parse_string,
-    parse_string_array, BareType,
+    determine_name_and_title, documentation, foundations, has_attr, kw, parse_flag,
+    parse_string, parse_string_array, BareType,
 };
 
 /// Expand the `#[ty]` macro.
-pub fn ty(stream: TokenStream, item: syn::Item) -> Result<TokenStream> {
-    let meta: Meta = syn::parse2(stream)?;
+pub fn ty(stream: TokenStream, mut item: syn::Item) -> Result<TokenStream> {
     let bare: BareType;
-    let (ident, attrs, keep) = match &item {
-        syn::Item::Struct(item) => (&item.ident, &item.attrs, true),
-        syn::Item::Type(item) => (&item.ident, &item.attrs, true),
+
+    let meta: Meta = syn::parse2(stream)?;
+    let (ident, attrs, keep) = match &mut item {
+        // A struct. This is the most common case, which profits the most from
+        // the macro. It implements various traits, generates accessor methods
+        // for fields, etc.
+        syn::Item::Struct(item) => {
+            process_struct(item);
+            (&item.ident, &item.attrs, true)
+        }
+
+        // An enum. Always opaque because Typst doesn't have them.
+        // They cannot have an auto-generated constructor, Repr, etc.
         syn::Item::Enum(item) => (&item.ident, &item.attrs, true),
+
+        // A bare type like `type f64`. This is only used for a few primitives.
         syn::Item::Verbatim(item) => {
             bare = syn::parse2(item.clone())?;
             (&bare.ident, &bare.attrs, false)
         }
+
         _ => bail!(item, "invalid type item"),
     };
+
     let ty = parse(meta, ident.clone(), attrs)?;
     Ok(create(&ty, keep.then_some(&item)))
+}
+
+/// Rewrites a struct definition.
+fn process_struct(item: &mut syn::ItemStruct) {
+    for field in &mut item.fields {
+        for s in [
+            "required",
+            "ghost",
+            "positional",
+            "variadic",
+            "parse",
+            "external",
+            "resolve",
+            "fold",
+            "borrowed",
+            "internal",
+            "default",
+        ] {
+            let _ = has_attr(&mut field.attrs, s);
+        }
+    }
 }
 
 /// Holds all relevant parsed data about a type.
@@ -83,14 +117,28 @@ fn parse(meta: Meta, ident: Ident, attrs: &[Attribute]) -> Result<Type> {
 
 /// Produce the output of the macro.
 fn create(ty: &Type, item: Option<&syn::Item>) -> TokenStream {
+    let Type { ident, .. } = ty;
+
     let native_type = create_native_type_impl(ty);
     let cast = create_cast_impl(ty);
     let repr = create_repr_impl(ty);
     let construct = create_construct_impl(ty);
     let set = create_set_impl(ty);
     let locatable = create_locatable_impl(ty);
+
+    let hack = item.map(|_|quote!{
+        impl #ident {
+            pub fn span(&self) -> ::typst::syntax::Span { todo!() }
+            pub fn spanned(self, _span: ::typst::syntax::Span) -> Self { todo!() }
+            pub fn location(&self) -> ::std::option::Option<::typst::introspection::Location> { todo!() }
+            pub fn set_location(&self, _loc: ::typst::introspection::Location) { todo!() }
+            pub fn pack(self) -> #foundations::Value { todo!() }
+        }
+    });
+
     quote! {
         #item
+        #hack
         #native_type
         #cast
         #repr
@@ -159,7 +207,31 @@ fn create_cast_impl(ty: &Type) -> Option<TokenStream> {
 
     let Type { ident, .. } = ty;
     Some(quote! {
-       ::typst::foundations::cast! { type #ident, }
+        impl #foundations::Reflect for #ident {
+            fn input() -> #foundations::CastInfo {
+                todo!()
+            }
+
+            fn output() -> #foundations::CastInfo {
+                todo!()
+            }
+
+            fn castable(value: &#foundations::Value) -> bool {
+                todo!()
+            }
+        }
+
+        impl #foundations::IntoValue for #ident {
+            fn into_value(self) -> #foundations::Value {
+                todo!()
+            }
+        }
+
+        impl #foundations::FromValue for #ident {
+            fn from_value(value: #foundations::Value) -> ::typst::diag::StrResult<Self> {
+                todo!()
+            }
+        }
     })
 }
 
@@ -174,7 +246,7 @@ fn create_repr_impl(ty: &Type) -> Option<TokenStream> {
     Some(quote! {
         impl #foundations::Repr for #ident {
             fn repr(&self) -> ::ecow::EcoString {
-                ::ecow::EcoString::new()
+                todo!()
             }
         }
     })

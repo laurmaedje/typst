@@ -27,7 +27,7 @@ use crate::util::Numeric;
 ///   Berlin, the 22nd of December, 2022
 /// ]
 /// ```
-#[elem(Layout)]
+#[ty(Layout)]
 pub struct RepeatElem {
     /// The content to repeat.
     #[required]
@@ -43,7 +43,7 @@ impl Layout for Packed<RepeatElem> {
         regions: Regions,
     ) -> SourceResult<Fragment> {
         let pod = Regions::one(regions.size, Axes::new(false, false));
-        let piece = self.body().layout(engine, styles, pod)?.into_frame();
+        let piece = self.body.layout(engine, styles, pod)?.into_frame();
         let align = AlignElem::alignment_in(styles).resolve(styles);
 
         let fill = regions.size.x;

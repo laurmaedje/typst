@@ -425,11 +425,10 @@ impl Packed<PageElem> {
                 Numbering::Func(_) => true,
             };
 
-            let mut counter = Counter::new(CounterKey::Page).display(
-                self.span(),
-                Some(numbering.clone()),
-                both,
-            );
+            let mut counter = Counter::new(CounterKey::Page)
+                .display(Some(numbering.clone()), both)
+                .pack()
+                .spanned(self.span());
 
             // We interpret the Y alignment as selecting header or footer
             // and then ignore it for aligning the actual number.

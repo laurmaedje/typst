@@ -1,6 +1,6 @@
 use crate::diag::SourceResult;
 use crate::engine::Engine;
-use crate::foundations::{dict, elem, func, Func, Packed, StyleChain, Value};
+use crate::foundations::{dict, func, ty, Func, StyleChain, Value};
 use crate::layout::{Fragment, Layout, Regions, Size};
 use crate::syntax::Span;
 
@@ -44,8 +44,6 @@ use crate::syntax::Span;
 /// the page width or height is `auto`, respectively.
 #[func]
 pub fn layout(
-    /// The call span of this function.
-    span: Span,
     /// A function to call with the outer container's size. Its return value is
     /// displayed in the document.
     ///
@@ -57,11 +55,11 @@ pub fn layout(
     /// content that depends on the size of the container it is inside of.
     func: Func,
 ) -> Value {
-    LayoutElem::new(func).pack().spanned(span)
+    LayoutElem::new(func).pack()
 }
 
 /// Executes a `layout` call.
-#[elem(Layout)]
+#[ty(Layout)]
 struct LayoutElem {
     /// The function to call with the outer container's (or page's) size.
     #[required]
@@ -79,7 +77,7 @@ impl Layout for Packed<LayoutElem> {
         // Gets the current region's base size, which will be the size of the
         // outer container, or of the page if there is no such container.
         let Size { x, y } = regions.base();
-        self.func()
+        self.func
             .call(engine, [dict! { "width" => x, "height" => y }])?
             .layout(engine, styles, regions)
     }

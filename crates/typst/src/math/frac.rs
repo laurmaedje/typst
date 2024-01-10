@@ -24,7 +24,7 @@ const FRAC_AROUND: Em = Em::new(0.1);
 /// expressions into a fraction. Multiple atoms can be grouped into a single
 /// expression using round grouping parenthesis. Such parentheses are removed
 /// from the output, but you can nest multiple to force them.
-#[elem(title = "Fraction", LayoutMath)]
+#[ty(title = "Fraction", LayoutMath)]
 pub struct FracElem {
     /// The fraction's numerator.
     #[required]
@@ -35,10 +35,16 @@ pub struct FracElem {
     pub denom: Value,
 }
 
+impl FracElem {
+    pub fn new(num: Value, denom: Value) -> Self {
+        Self { num, denom }
+    }
+}
+
 impl LayoutMath for Packed<FracElem> {
     #[typst_macros::time(name = "math.frac", span = self.span())]
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()> {
-        layout(ctx, self.num(), std::slice::from_ref(self.denom()), false, self.span())
+        layout(ctx, &self.num, std::slice::from_ref(&self.denom), false, self.span())
     }
 }
 
@@ -49,7 +55,7 @@ impl LayoutMath for Packed<FracElem> {
 /// $ binom(n, k) $
 /// $ binom(n, k_1, k_2, k_3, ..., k_m) $
 /// ```
-#[elem(title = "Binomial", LayoutMath)]
+#[ty(title = "Binomial", LayoutMath)]
 pub struct BinomElem {
     /// The binomial's upper index.
     #[required]
@@ -72,7 +78,7 @@ pub struct BinomElem {
 impl LayoutMath for Packed<BinomElem> {
     #[typst_macros::time(name = "math.binom", span = self.span())]
     fn layout_math(&self, ctx: &mut MathContext) -> SourceResult<()> {
-        layout(ctx, self.upper(), self.lower(), true, self.span())
+        layout(ctx, &self.upper, &self.lower, true, self.span())
     }
 }
 

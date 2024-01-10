@@ -16,7 +16,6 @@ use crate::introspection::{Introspector, Locatable, Location, Locator, Meta};
 use crate::layout::{Frame, FrameItem, PageElem};
 use crate::math::EquationElem;
 use crate::model::{FigureElem, HeadingElem, Numbering, NumberingPattern};
-use crate::syntax::Span;
 use crate::util::NonZeroExt;
 use crate::World;
 
@@ -207,19 +206,30 @@ use crate::World;
 /// The `counter` type is closely related to [state]($state) type. Read its
 /// documentation for more details on state management in Typst and why it
 /// doesn't just use normal variables for counters.
-#[ty(scope, Repr)]
+#[ty(scope)]
 #[derive(Debug, Clone, PartialEq, Hash)]
-pub struct Counter(CounterKey);
+pub struct Counter {
+    /// The key that identifies this counter.
+    ///
+    /// - If it is a string, creates a custom counter that is only affected
+    ///   by manual updates,
+    /// - If this is a `{<label>}`, counts through all elements with that
+    ///   label,
+    /// - If this is an element function or selector, counts through its
+    ///   elements,
+    /// - If this is the [`page`]($page) function, counts through pages.
+    pub key: CounterKey,
+}
 
 impl Counter {
     /// Create a new counter identified by a key.
     pub fn new(key: CounterKey) -> Counter {
-        Self(key)
+        Self { key }
     }
 
     /// The counter for the given element.
     pub fn of(ty: Type) -> Self {
-        Self::construct(CounterKey::Selector(Selector::Type(ty)))
+        Self::new(CounterKey::Selector(Selector::Type(ty)))
     }
 
     /// Gets the current and final value of the state combined in one state.
@@ -282,7 +292,7 @@ impl Counter {
             tracer,
         };
 
-        let mut state = CounterState::init(&self.0);
+        let mut state = CounterState::init(&self.key);
         let mut page = NonZeroUsize::ONE;
         let mut stops = eco_vec![(state.clone(), page)];
 
@@ -312,9 +322,9 @@ impl Counter {
 
     /// The selector relevant for this counter's updates.
     fn selector(&self) -> Selector {
-        let mut selector = select_where!(UpdateElem, Key => self.0.clone());
+        let mut selector = select_where!(UpdateElem, Counter => self.clone());
 
-        if let CounterKey::Selector(key) = &self.0 {
+        if let CounterKey::Selector(key) = &self.key {
             selector = Selector::Or(eco_vec![selector, key.clone()]);
         }
 
@@ -323,35 +333,16 @@ impl Counter {
 
     /// Whether this is the page counter.
     fn is_page(&self) -> bool {
-        self.0 == CounterKey::Page
+        self.key == CounterKey::Page
     }
 }
 
 #[scope]
 impl Counter {
-    /// Create a new counter identified by a key.
-    #[func(constructor)]
-    pub fn construct(
-        /// The key that identifies this counter.
-        ///
-        /// - If it is a string, creates a custom counter that is only affected
-        ///   by manual updates,
-        /// - If this is a `{<label>}`, counts through all elements with that
-        ///   label,
-        /// - If this is an element function or selector, counts through its
-        ///   elements,
-        /// - If this is the [`page`]($page) function, counts through pages.
-        key: CounterKey,
-    ) -> Counter {
-        Self(key)
-    }
-
     /// Displays the current value of the counter.
     #[func]
     pub fn display(
         self,
-        /// The call span of the display.
-        span: Span,
         /// A [numbering pattern or a function]($numbering), which specifies how
         /// to display the counter. If given a function, that function receives
         /// each number of the counter as a separate argument. If the amount of
@@ -370,8 +361,8 @@ impl Counter {
         #[named]
         #[default(false)]
         both: bool,
-    ) -> Value {
-        DisplayElem::new(self, numbering, both).pack().spanned(span)
+    ) -> CounterDisplayer {
+        CounterDisplayer { counter: self, numbering, both }
     }
 
     /// Increases the value of the counter by one.
@@ -385,14 +376,12 @@ impl Counter {
     #[func]
     pub fn step(
         self,
-        /// The call span of the update.
-        span: Span,
         /// The depth at which to step the counter. Defaults to `{1}`.
         #[named]
         #[default(NonZeroUsize::ONE)]
         level: NonZeroUsize,
-    ) -> Value {
-        self.update(span, CounterUpdate::Step(level))
+    ) -> CounterUpdater {
+        self.update(CounterUpdate::Step(level))
     }
 
     /// Updates the value of the counter.
@@ -402,15 +391,13 @@ impl Counter {
     #[func]
     pub fn update(
         self,
-        /// The call span of the update.
-        span: Span,
         /// If given an integer or array of integers, sets the counter to that
         /// value. If given a function, that function receives the previous
         /// counter value (with each number as a separate argument) and has to
         /// return the new value (integer or array).
         update: CounterUpdate,
-    ) -> Value {
-        UpdateElem::new(self.0, update).pack().spanned(span)
+    ) -> CounterUpdater {
+        CounterUpdater { counter: self, update }
     }
 
     /// Gets the value of the counter at the given location. Always returns an
@@ -468,12 +455,6 @@ impl Counter {
     }
 }
 
-impl Repr for Counter {
-    fn repr(&self) -> EcoString {
-        eco_format!("counter({})", self.0.repr())
-    }
-}
-
 /// Identifies a counter.
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub enum CounterKey {
@@ -509,14 +490,19 @@ impl Repr for CounterKey {
     fn repr(&self) -> EcoString {
         match self {
             Self::Page => "page".into(),
-            Self::Selector(selector) => selector.repr(),
-            Self::Str(str) => str.repr(),
+            Self::Selector(v) => v.repr(),
+            Self::Str(v) => v.repr(),
         }
     }
 }
 
+/// Elements that have special counting behaviour.
+pub trait Count {
+    /// Get the counter update for this element.
+    fn update(&self) -> Option<CounterUpdate>;
+}
+
 /// An update to perform on a counter.
-#[ty(cast, Repr)]
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub enum CounterUpdate {
     /// Set the counter to the specified state.
@@ -527,22 +513,10 @@ pub enum CounterUpdate {
     Func(Func),
 }
 
-impl Repr for CounterUpdate {
-    fn repr(&self) -> EcoString {
-        "..".into()
-    }
-}
-
 cast! {
-    type CounterUpdate,
+    CounterUpdate,
     v: CounterState => Self::Set(v),
     v: Func => Self::Func(v),
-}
-
-/// Elements that have special counting behaviour.
-pub trait Count {
-    /// Get the counter update for this element.
-    fn update(&self) -> Option<CounterUpdate>;
 }
 
 /// Counts through elements with different levels.
@@ -616,32 +590,27 @@ cast! {
 }
 
 /// Executes a display of a state.
-#[elem(Locatable, Show)]
-struct DisplayElem {
+#[ty(Locatable, Show)]
+pub struct CounterDisplayer {
     /// The counter.
-    #[required]
     counter: Counter,
-
     /// The numbering to display the counter with.
-    #[required]
     numbering: Option<Numbering>,
-
     /// Whether to display both the current and final value.
-    #[required]
     both: bool,
 }
 
-impl Show for Packed<DisplayElem> {
+impl Show for Packed<CounterDisplayer> {
     #[typst_macros::time(name = "counter.display", span = self.span())]
     fn show(&self, engine: &mut Engine, styles: StyleChain) -> SourceResult<Value> {
         Ok(engine.delayed(|engine| {
             let location = self.location().unwrap();
-            let counter = self.counter();
             let numbering = self
-                .numbering()
+                .numbering
                 .clone()
                 .or_else(|| {
-                    let CounterKey::Selector(Selector::Type(ty)) = counter.0 else {
+                    let CounterKey::Selector(Selector::Type(ty)) = self.counter.key
+                    else {
                         return None;
                     };
 
@@ -657,10 +626,10 @@ impl Show for Packed<DisplayElem> {
                 })
                 .unwrap_or_else(|| NumberingPattern::from_str("1.1").unwrap().into());
 
-            let state = if *self.both() {
-                counter.both(engine, location)?
+            let state = if self.both {
+                self.counter.both(engine, location)?
             } else {
-                counter.at(engine, location)?
+                self.counter.at(engine, location)?
             };
 
             state.display(engine, &numbering)
@@ -669,24 +638,21 @@ impl Show for Packed<DisplayElem> {
 }
 
 /// Executes an update of a counter.
-#[elem(Locatable, Show, Count)]
-struct UpdateElem {
+#[ty(Locatable, Show, Count)]
+pub struct CounterUpdater {
     /// The key that identifies the counter.
-    #[required]
-    key: CounterKey,
-
+    counter: Counter,
     /// The update to perform on the counter.
-    #[required]
     update: CounterUpdate,
 }
 
-impl Show for Packed<UpdateElem> {
+impl Show for Packed<CounterUpdater> {
     fn show(&self, _: &mut Engine, _: StyleChain) -> SourceResult<Value> {
         Ok(Value::none())
     }
 }
 
-impl Count for Packed<UpdateElem> {
+impl Count for Packed<CounterUpdater> {
     fn update(&self) -> Option<CounterUpdate> {
         Some(self.update.clone())
     }
@@ -722,8 +688,8 @@ impl ManualPageCounter {
             match item {
                 FrameItem::Group(group) => self.visit(engine, &group.frame)?,
                 FrameItem::Meta(Meta::Elem(elem), _) => {
-                    let Some(elem) = elem.to::<UpdateElem>() else { continue };
-                    if *elem.key() == CounterKey::Page {
+                    let Some(elem) = elem.to::<CounterUpdater>() else { continue };
+                    if elem.counter.key == CounterKey::Page {
                         let mut state = CounterState(smallvec![self.logical]);
                         state.update(engine, elem.update.clone())?;
                         self.logical = state.first();
