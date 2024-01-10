@@ -244,7 +244,7 @@ impl PartialOrd for Type {
 }
 
 /// A Typst type that is defined by a native Rust type.
-pub trait NativeType {
+pub trait NativeType: 'static {
     /// The type's name.
     ///
     /// In contrast to `data()`, this is usable in const contexts.
