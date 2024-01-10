@@ -48,10 +48,6 @@ pub struct Args {
     pub items: EcoVec<Arg>,
 }
 
-cast! {
-    type Args,
-}
-
 impl Args {
     /// Create positional arguments from a span and values.
     pub fn new<T: IntoValue>(span: Span, values: impl IntoIterator<Item = T>) -> Self {

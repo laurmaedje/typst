@@ -46,10 +46,6 @@ impl Serialize for NoneValue {
 }
 
 cast! {
-    type NoneValue,
-}
-
-cast! {
     (),
     self => NoneValue.into_value(),
     _: NoneValue => (),

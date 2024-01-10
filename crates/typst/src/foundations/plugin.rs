@@ -148,10 +148,6 @@ struct MemoryError {
     write: bool,
 }
 
-cast! {
-    type Plugin,
-}
-
 #[scope]
 impl Plugin {
     /// Creates a new plugin from a WebAssembly file.

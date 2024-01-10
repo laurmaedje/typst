@@ -61,10 +61,6 @@ impl Fr {
     }
 }
 
-cast! {
-    type Fr,
-}
-
 impl Numeric for Fr {
     fn zero() -> Self {
         Self::zero()

@@ -11,10 +11,6 @@ use crate::foundations::{cast, func, repr, scope, ty, Repr};
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Duration(time::Duration);
 
-cast! {
-    type Duration,
-}
-
 impl Duration {
     /// Whether the duration is empty / zero.
     pub fn is_zero(&self) -> bool {

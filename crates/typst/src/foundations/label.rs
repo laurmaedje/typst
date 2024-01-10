@@ -35,10 +35,6 @@ use crate::util::PicoStr;
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Label(PicoStr);
 
-cast! {
-    type Label,
-}
-
 impl Label {
     /// Creates a label from a string, interning it.
     pub fn new(name: impl Into<PicoStr>) -> Self {

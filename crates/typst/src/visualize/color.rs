@@ -184,10 +184,6 @@ pub enum Color {
     Hsv(Hsv),
 }
 
-cast! {
-    type Color,
-}
-
 #[scope]
 impl Color {
     /// The module of preset color maps.

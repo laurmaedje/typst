@@ -192,8 +192,8 @@ impl Parse for Meta {
 fn parse(stream: TokenStream, body: &syn::ItemStruct) -> Result<Elem> {
     let meta: Meta = syn::parse2(stream)?;
     let (name, title) = determine_name_and_title(
-        meta.name,
-        meta.title,
+        &meta.name,
+        &meta.title,
         &body.ident,
         Some(|base| base.trim_end_matches("Elem")),
     )?;

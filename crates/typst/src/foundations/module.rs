@@ -42,10 +42,6 @@ struct Repr {
     content: Value,
 }
 
-cast! {
-    type Module,
-}
-
 impl Module {
     /// Create a new module.
     pub fn new(name: impl Into<EcoString>, scope: Scope) -> Self {

@@ -166,10 +166,6 @@ impl Length {
     }
 }
 
-cast! {
-    type Length,
-}
-
 impl Debug for Length {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match (self.abs.is_zero(), self.em.is_zero()) {

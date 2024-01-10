@@ -31,10 +31,6 @@ impl Repr for AutoValue {
     }
 }
 
-cast! {
-    type AutoValue,
-}
-
 /// A value that can be automatically determined.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum Smart<T> {

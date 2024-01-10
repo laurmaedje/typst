@@ -112,10 +112,6 @@ struct Repr {
     relative: Smart<RelativeTo>,
 }
 
-cast! {
-    type Pattern,
-}
-
 #[scope]
 impl Pattern {
     /// Construct a new pattern.

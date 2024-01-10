@@ -72,10 +72,6 @@ pub use crate::__array as array;
 #[serde(transparent)]
 pub struct Array(EcoVec<Value>);
 
-cast! {
-    type Array,
-}
-
 impl Array {
     /// Create a new, empty array.
     pub fn new() -> Self {

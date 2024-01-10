@@ -154,8 +154,8 @@ pub fn eat_comma(input: ParseStream) {
 
 /// Determine the normal and title case name of a function, type, or element.
 pub fn determine_name_and_title(
-    specified_name: Option<String>,
-    specified_title: Option<String>,
+    specified_name: &Option<String>,
+    specified_title: &Option<String>,
     ident: &syn::Ident,
     trim: Option<fn(&str) -> &str>,
 ) -> Result<(String, String)> {
@@ -165,7 +165,7 @@ pub fn determine_name_and_title(
         if specified_name.as_ref() == Some(&default) {
             bail!(ident, "name was specified unncessarily");
         }
-        specified_name.unwrap_or(default)
+        specified_name.clone().unwrap_or(default)
     };
 
     let title = {
@@ -173,7 +173,7 @@ pub fn determine_name_and_title(
         if specified_title.as_ref() == Some(&default) {
             bail!(ident, "title was specified unncessarily");
         }
-        specified_title.unwrap_or(default)
+        specified_title.clone().unwrap_or(default)
     };
 
     Ok((name, title))

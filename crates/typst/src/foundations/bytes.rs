@@ -43,10 +43,6 @@ use crate::foundations::{
 #[derive(Clone, Hash, Eq, PartialEq)]
 pub struct Bytes(Arc<Prehashed<Cow<'static, [u8]>>>);
 
-cast! {
-    type Bytes,
-}
-
 impl Bytes {
     /// Create a buffer from a static byte slice.
     pub fn from_static(slice: &'static [u8]) -> Self {

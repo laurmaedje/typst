@@ -120,10 +120,6 @@ pub enum Datetime {
     Datetime(time::PrimitiveDateTime),
 }
 
-cast! {
-    type Datetime,
-}
-
 impl Datetime {
     /// Create a datetime from year, month, and day.
     pub fn from_ymd(year: i32, month: u8, day: u8) -> Option<Self> {

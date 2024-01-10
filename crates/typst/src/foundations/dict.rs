@@ -68,10 +68,6 @@ pub use crate::__dict as dict;
 #[derive(Default, Clone, PartialEq)]
 pub struct Dict(Arc<IndexMap<Str, Value>>);
 
-cast! {
-    type Dict,
-}
-
 impl Dict {
     /// Create a new, empty dictionary.
     pub fn new() -> Self {

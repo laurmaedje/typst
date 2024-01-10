@@ -18,12 +18,9 @@ pub fn func(stream: TokenStream, item: &syn::ItemFn) -> Result<TokenStream> {
 
 /// Details about a function.
 struct Func {
+    meta: Meta,
     name: String,
     title: String,
-    scope: bool,
-    constructor: bool,
-    keywords: Vec<String>,
-    parent: Option<syn::Type>,
     docs: String,
     vis: syn::Visibility,
     ident: Ident,
@@ -91,7 +88,7 @@ impl Parse for Meta {
 fn parse(stream: TokenStream, item: &syn::ItemFn) -> Result<Func> {
     let meta: Meta = syn::parse2(stream)?;
     let (name, title) =
-        determine_name_and_title(meta.name, meta.title, &item.sig.ident, None)?;
+        determine_name_and_title(&meta.name, &meta.title, &item.sig.ident, None)?;
 
     let docs = documentation(&item.attrs);
 
@@ -111,12 +108,9 @@ fn parse(stream: TokenStream, item: &syn::ItemFn) -> Result<Func> {
     }
 
     Ok(Func {
+        meta,
         name,
         title,
-        scope: meta.scope,
-        constructor: meta.constructor,
-        keywords: meta.keywords,
-        parent: meta.parent,
         docs,
         vis: item.vis.clone(),
         ident: item.sig.ident.clone(),
@@ -237,20 +231,10 @@ fn create(func: &Func, item: &syn::ItemFn) -> TokenStream {
 
 /// Create native function data for the function.
 fn create_func_data(func: &Func) -> TokenStream {
-    let Func {
-        ident,
-        name,
-        title,
-        docs,
-        keywords,
-        returns,
-        scope,
-        parent,
-        constructor,
-        ..
-    } = func;
+    let Func { ident, name, title, docs, returns, meta, .. } = func;
+    let Meta { keywords, parent, .. } = meta;
 
-    let scope = if *scope {
+    let scope = if meta.scope {
         quote! { <#ident as #foundations::NativeScope>::scope() }
     } else {
         quote! { #foundations::Scope::new() }
@@ -259,7 +243,7 @@ fn create_func_data(func: &Func) -> TokenStream {
     let closure = create_wrapper_closure(func);
     let params = func.special.self_.iter().chain(&func.params).map(create_param_info);
 
-    let name = if *constructor {
+    let name = if meta.constructor {
         quote! { <#parent as #foundations::NativeType>::NAME }
     } else {
         quote! { #name }
@@ -281,7 +265,7 @@ fn create_func_data(func: &Func) -> TokenStream {
 
 /// Create a type that shadows the function.
 fn create_func_ty(func: &Func) -> Option<TokenStream> {
-    if func.parent.is_some() {
+    if func.meta.parent.is_some() {
         return None;
     }
 
@@ -331,7 +315,7 @@ fn create_wrapper_closure(func: &Func) -> TokenStream {
 
     // This is the whole wrapped closure.
     let ident = &func.ident;
-    let parent = func.parent.as_ref().map(|ty| quote! { #ty:: });
+    let parent = func.meta.parent.as_ref().map(|ty| quote! { #ty:: });
     quote! {
         |engine, args| {
             let __typst_func = #parent #ident;

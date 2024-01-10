@@ -68,10 +68,6 @@ impl Ratio {
     }
 }
 
-cast! {
-    type Ratio,
-}
-
 impl Debug for Ratio {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{:?}%", self.get())

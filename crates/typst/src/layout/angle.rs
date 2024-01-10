@@ -117,10 +117,6 @@ impl Angle {
     }
 }
 
-cast! {
-    type Angle,
-}
-
 impl Numeric for Angle {
     fn zero() -> Self {
         Self::zero()

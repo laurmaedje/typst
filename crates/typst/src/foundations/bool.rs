@@ -24,7 +24,3 @@ impl Repr for bool {
         }
     }
 }
-
-cast! {
-    type bool,
-}
