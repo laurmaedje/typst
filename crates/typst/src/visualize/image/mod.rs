@@ -19,8 +19,8 @@ use crate::foundations::{
     cast, elem, func, scope, Bytes, Cast, Packed, Resolve, Smart, StyleChain, Value,
 };
 use crate::layout::{
-    Abs, Axes, FixedAlign, Fragment, Frame, FrameItem, Layout, Length, Point, Regions,
-    Rel, Size,
+    Abs, Axes, FixedAlignment, Fragment, Frame, FrameItem, Layout, Length, Point,
+    Regions, Rel, Size,
 };
 use crate::loading::Readable;
 use crate::model::Figurable;
@@ -231,7 +231,7 @@ impl Layout for Packed<ImageElem> {
         // process.
         let mut frame = Frame::soft(fitted);
         frame.push(Point::zero(), FrameItem::Image(image, fitted, self.span()));
-        frame.resize(target, Axes::splat(FixedAlign::Center));
+        frame.resize(target, Axes::splat(FixedAlignment::Center));
 
         // Create a clipping group if only part of the image should be visible.
         if fit == ImageFit::Cover && !target.fits(fitted) {

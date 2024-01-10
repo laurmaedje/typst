@@ -4,7 +4,7 @@ use crate::diag::SourceResult;
 use crate::engine::Engine;
 use crate::foundations::{cast, elem, Packed, Resolve, StyleChain, StyledElem, Value};
 use crate::layout::{
-    Abs, AlignElem, Axes, Axis, Dir, FixedAlign, Fr, Fragment, Frame, Layout, Point,
+    Abs, AlignElem, Axes, Axis, Dir, FixedAlignment, Fr, Fragment, Frame, Layout, Point,
     Regions, Size, Spacing,
 };
 use crate::util::{Get, Numeric};
@@ -146,7 +146,7 @@ enum StackItem {
     /// Fractional spacing between other items.
     Fractional(Fr),
     /// A frame for a layouted block.
-    Frame(Frame, Axes<FixedAlign>),
+    Frame(Frame, Axes<FixedAlignment>),
 }
 
 impl<'a> StackLayouter<'a> {
@@ -262,7 +262,7 @@ impl<'a> StackLayouter<'a> {
 
         let mut output = Frame::hard(size);
         let mut cursor = Abs::zero();
-        let mut ruler: FixedAlign = self.dir.start().into();
+        let mut ruler: FixedAlignment = self.dir.start().into();
 
         // Place all frames.
         for item in self.items.drain(..) {

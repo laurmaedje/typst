@@ -5,8 +5,8 @@ use crate::foundations::{
     Smart, StyleChain, Value,
 };
 use crate::layout::{
-    Abs, Alignment, Axes, Dir, Fr, Fragment, Frame, FrameItem, Layout, Length, Point,
-    Regions, Rel, Sides, Size, Sizing,
+    Abs, AlignElem, Alignment, Axes, Dir, Fr, Fragment, Frame, FrameItem, Layout, Length,
+    Point, Regions, Rel, Sides, Size, Sizing,
 };
 use crate::syntax::Span;
 use crate::text::TextElem;

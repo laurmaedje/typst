@@ -16,7 +16,7 @@ use crate::eval::Tracer;
 use crate::foundations::{Packed, Resolve, Smart, StyleChain, StyledElem, Value};
 use crate::introspection::{Introspector, Locator, MetaElem};
 use crate::layout::{
-    Abs, AlignElem, Axes, BoxElem, Dir, Em, FixedAlign, Fr, Fragment, Frame, HElem,
+    Abs, AlignElem, Axes, BoxElem, Dir, Em, FixedAlignment, Fr, Fragment, Frame, HElem,
     Layout, Point, Regions, Size, Sizing, Spacing,
 };
 use crate::math::{EquationElem, MathParItem};
@@ -119,7 +119,7 @@ struct Preparation<'a> {
     /// The text language if it's the same for all children.
     lang: Option<Lang>,
     /// The paragraph's resolved horizontal alignment.
-    align: FixedAlign,
+    align: FixedAlignment,
     /// Whether to justify the paragraph.
     justify: bool,
     /// The paragraph's hanging indent.
