@@ -1,6 +1,6 @@
 // Test font fallback.
 
----
+--- shaping-font-fallback ---
 // Font fallback for emoji.
 A😀B
 

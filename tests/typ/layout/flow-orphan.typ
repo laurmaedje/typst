@@ -1,13 +1,13 @@
 // Test that lines and headings doesn't become orphan.
 
----
+--- flow-heading-no-orphan ---
 #set page(height: 100pt)
 #lorem(12)
 
 = Introduction
 This is the start and it goes on.
 
----
+--- flow-par-no-orphan-and-widow-lines ---
 #set page("a8", height: 140pt)
 #set text(weight: 700)
 

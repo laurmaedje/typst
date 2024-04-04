@@ -1,3 +1,4 @@
+--- raw-highlight-typ ---
 #set page(width: auto)
 
 ```typ

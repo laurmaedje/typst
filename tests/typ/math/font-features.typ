@@ -1,6 +1,6 @@
 // Test that setting font features in math.equation has an effect.
 
----
+--- math-font-features ---
 $ nothing $
 $ "hi ∅ hey" $
 $ sum_(i in NN) 1 + i $

@@ -1,6 +1,6 @@
 // Test line in raw code.
 
----
+--- raw-line ---
 #set page(width: 200pt)
 
 ```rs
@@ -24,7 +24,7 @@ fn main() {
 }
 ```
 
----
+--- raw-line-alternating-fill ---
 #set page(width: 200pt)
 #show raw: it => stack(dir: ttb, ..it.lines)
 #show raw.line: it => {
@@ -55,7 +55,7 @@ Hello, world!
 = A heading for good measure
 ```
 
----
+--- raw-line-text-fill ---
 #set page(width: 200pt)
 #show raw.line: set text(fill: red)
 
@@ -72,8 +72,7 @@ print(x)
 print(y)
 ```
 
----
-// Ref: false
+--- raw-line-scripting ---
 
 // Test line extraction works.
 

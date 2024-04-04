@@ -3,7 +3,7 @@
 // line or frame (here, there are two lines, but they are one
 // unit due to orphan prevention).
 
----
+--- issue-multiple-footnote-in-one-line ---
 #set page(height: 100pt)
 #v(40pt)
 A #footnote[a] \

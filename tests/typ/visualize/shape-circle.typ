@@ -1,11 +1,11 @@
 // Test the `circle` function.
 
----
+--- circle ---
 // Default circle.
 #box(circle())
 #box(circle[Hey])
 
----
+--- circle-auto-sizing ---
 // Test auto sizing.
 #set circle(inset: 0pt)
 
@@ -32,12 +32,12 @@ Rect in auto-sized circle.
 Expanded by height.
 #circle(stroke: black, align(center)[A \ B \ C])
 
----
+--- circle-directly-in-rect ---
 // Ensure circle directly in rect works.
 #rect(width: 40pt, height: 30pt, fill: forest,
   circle(fill: conifer))
 
----
+--- circle-relative-sizing ---
 // Test relative sizing.
 #set text(fill: white)
 #show: rect.with(width: 100pt, height: 50pt, inset: 0pt, fill: rgb("aaa"))
@@ -52,7 +52,7 @@ Expanded by height.
   1fr,
 )
 
----
+--- circle-radius-width-and-height ---
 // Radius wins over width and height.
 // Error: 23-34 unexpected argument: width
 #circle(radius: 10pt, width: 50pt, height: 100pt, fill: eastern)

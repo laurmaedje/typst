@@ -1,5 +1,4 @@
-
----
+--- par-justify ---
 #set page(width: 180pt)
 #set block(spacing: 5pt)
 #set par(justify: true, first-line-indent: 14pt, leading: 5pt)
@@ -9,30 +8,30 @@ forms a "block" with flush edges at both sides.
 
 First line indents and hyphenation play nicely with justified text.
 
----
+--- par-justify-manual-linebreak ---
 // Test that lines with hard breaks aren't justified.
 #set par(justify: true)
 A B C \
 D
 
----
+--- par-justify-justified-linebreak ---
 // Test forced justification with justified break.
 A B C #linebreak(justify: true)
 D E F #linebreak(justify: true)
 
----
+--- par-justify-basically-empty ---
 // Test that there are no hick-ups with justification enabled and
 // basically empty paragraph.
 #set par(justify: true)
 #""
 
----
+--- par-justify-shrink-last-line ---
 // Test that the last line can be shrunk
 #set page(width: 155pt)
 #set par(justify: true)
 This text can be fitted in one line.
 
----
+--- par-justify-avoid-runts ---
 // Test that runts are avoided when it's not too costly to do so.
 #set page(width: 124pt)
 #set par(justify: true)
@@ -41,7 +40,7 @@ This text can be fitted in one line.
 }
 #"d"
 
----
+--- par-justify-no-leading-spaces ---
 // Test that justification cannot lead to a leading space
 #set par(justify: true)
 #set text(size: 12pt)
@@ -51,9 +50,8 @@ lorem ipsum 1234, lorem ipsum dolor sit amet
 
 #"  leading whitespace should still be displayed"
 
----
+--- par-justify-code-blocks ---
 // Test that justification doesn't break code blocks
-
 #set par(justify: true)
 
 ```cpp
@@ -62,4 +60,3 @@ int main() {
   return 0;
 }
 ```
-

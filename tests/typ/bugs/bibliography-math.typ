@@ -1,3 +1,4 @@
+--- bibliography-math ---
 #set page(width: 200pt)
 
 @Zee04

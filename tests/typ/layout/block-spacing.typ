@@ -1,6 +1,6 @@
 // Test block spacing.
 
----
+--- block-spacing-basic ---
 #set block(spacing: 10pt)
 Hello
 

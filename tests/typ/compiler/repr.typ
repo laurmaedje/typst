@@ -1,13 +1,13 @@
 // Test representation of values in the document.
 
----
+--- repr-literals ---
 // Literal values.
 #auto \
 #none (empty) \
 #true \
 #false
 
----
+--- repr-numerical ---
 // Numerical values.
 #1 \
 #1.0e-4 \
@@ -28,7 +28,7 @@
 #(100% - 2pt) \
 #2.3fr
 
----
+--- repr-misc ---
 // Colors and strokes.
 #set text(0.8em)
 #rgb("f7a205") \

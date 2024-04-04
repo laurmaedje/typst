@@ -1,4 +1,3 @@
-// Ref: false
 
 #import "cycle1.typ": *
 #let val = "much cycle"

@@ -1,3 +1,4 @@
+--- par-justify-knuth ---
 #set page(width: auto, height: auto)
 #set par(leading: 4pt, justify: true)
 #set text(font: "New Computer Modern")

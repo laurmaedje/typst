@@ -1,11 +1,11 @@
 // General tests for set.
 
----
+--- set-instantiation-site ---
 // Test that text is affected by instantiation-site bold.
 #let x = [World]
 Hello *#x*
 
----
+--- set-instantiation-site-markup ---
 // Test that lists are affected by correct indents.
 #let fruit = [
   - Apple
@@ -18,7 +18,7 @@ Hello *#x*
  #fruit]
 - No more fruit
 
----
+--- set-text-override ---
 // Test that that block spacing and text style are respected from
 // the outside, but the more specific fill is respected.
 #set block(spacing: 4pt)
@@ -26,7 +26,7 @@ Hello *#x*
 #let x = [And the forest #parbreak() lay silent!]
 #text(fill: forest, x)
 
----
+--- set-scoped-in-code-block ---
 // Test that scoping works as expected.
 #{
   if true {
@@ -36,7 +36,7 @@ Hello *#x*
   [Not blue]
 }
 
----
+--- closure-path-resolve-in-layout-phase ---
 // Test relative path resolving in layout phase.
 #let choice = ("monkey.svg", "rhino.png", "tiger.jpg")
 #set enum(numbering: n => {
@@ -48,7 +48,7 @@ Hello *#x*
 + Rhino
 + Tiger
 
----
+--- set-if ---
 // Test conditional set.
 #show ref: it => {
   set text(red) if it.target == <unknown>
@@ -57,10 +57,10 @@ Hello *#x*
 
 @hello from the @unknown
 
----
+--- set-if-bad-type ---
 // Error: 19-24 expected boolean, found integer
 #set text(red) if 1 + 2
 
----
+--- set-in-expr ---
 // Error: 12-26 set is only allowed directly in code and content blocks
 #{ let x = set text(blue) }

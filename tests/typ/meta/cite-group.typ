@@ -1,6 +1,6 @@
 // Test citation grouping.
 
----
+--- cite-group ---
 A#[@netwok@arrgh]B \
 A@netwok@arrgh B \
 A@netwok @arrgh B \

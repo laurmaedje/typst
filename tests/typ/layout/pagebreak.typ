@@ -1,18 +1,18 @@
 // Test forced page breaks.
 
----
+--- pagebreak ---
 // Just a pagebreak.
 // Should result in two pages.
 #pagebreak()
 
----
+--- pagebreak-around-set-page ---
 // Pagebreak, empty with styles and then pagebreak
 // Should result in one auto-sized page and two conifer-colored 2cm wide pages.
 #pagebreak()
 #set page(width: 2cm, fill: conifer)
 #pagebreak()
 
----
+--- pagebreak-weak-after-set-page ---
 // Two text bodies separated with and surrounded by weak pagebreaks.
 // Should result in two aqua-colored pages.
 #set page(fill: aqua)
@@ -22,7 +22,7 @@ First
 Second
 #pagebreak(weak: true)
 
----
+--- pagebreak-set-page-mixed ---
 // Test a combination of pagebreaks, styled pages and pages with bodies.
 // Should result in three five pages, with the fourth one being forest-colored.
 #set page(width: 80pt, height: 30pt)
@@ -33,7 +33,7 @@ Third
 #page(height: 20pt, fill: forest)[]
 Fif#[#set page();th]
 
----
+--- pagebreak-followed-by-page-call ---
 // Test hard and weak pagebreak followed by page with body.
 // Should result in three navy-colored pages.
 #set page(fill: navy)

@@ -1,6 +1,6 @@
 // Test pattern with different `relative`.
 
----
+--- pattern-relative-self ---
 // Test with relative set to `"self"`
 #let pat(..args) = pattern(size: (30pt, 30pt), ..args)[
   #place(top + left, line(start: (0%, 0%), end: (100%, 100%), stroke: 1pt))
@@ -11,7 +11,7 @@
 
 #rect(fill: pat(relative: "self"), width: 100%, height: 100%, stroke: 1pt)
 
----
+--- pattern-relative-parent ---
 // Test with relative set to `"parent"`
 #let pat(..args) = pattern(size: (30pt, 30pt), ..args)[
   #place(top + left, line(start: (0%, 0%), end: (100%, 100%), stroke: 1pt))

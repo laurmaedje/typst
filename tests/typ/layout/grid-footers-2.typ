@@ -1,3 +1,4 @@
+--- grid-header-footer-block-with-fixed-height ---
 #set page(height: 17em)
 #table(
   rows: (auto, 2.5em, auto),
@@ -6,7 +7,7 @@
   table.footer[*Bye*][*World*],
 )
 
----
+--- grid-header-footer-and-rowspan-non-contiguous-1 ---
 // Rowspan sizing algorithm doesn't do the best job at non-contiguous content
 // ATM.
 #set page(height: 20em)
@@ -18,7 +19,7 @@
   table.footer[*Ok*][*Bye*],
 )
 
----
+--- grid-header-footer-and-rowspan-non-contiguous-2 ---
 // This should look right
 #set page(height: 20em)
 

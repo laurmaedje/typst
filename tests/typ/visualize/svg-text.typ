@@ -1,6 +1,6 @@
 // Test SVG with text.
 
----
+--- svg-text ---
 #set page(width: 250pt)
 
 #figure(
@@ -8,7 +8,7 @@
   caption: [A textful diagram],
 )
 
----
+--- svg-text-font ---
 #set page(width: 250pt)
 #show image: set text(font: ("Roboto", "Noto Serif CJK SC"))
 

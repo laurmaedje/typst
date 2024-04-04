@@ -1,6 +1,6 @@
 // Test citation in other introspection.
 
----
+--- issue-785-cite-locate ---
 #set page(width: 180pt)
 #set heading(numbering: "1")
 

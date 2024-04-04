@@ -1,6 +1,6 @@
 // Test footnotes in containers.
 
----
+--- footnote-in-caption ---
 // Test footnote in caption.
 Read the docs #footnote[https://typst.app/docs]!
 #figure(
@@ -11,7 +11,7 @@ Read the docs #footnote[https://typst.app/docs]!
 )
 More #footnote[just for ...] footnotes #footnote[... testing. :)]
 
----
+--- footnote-duplicate ---
 // Test duplicate footnotes.
 #let lang = footnote[Languages.]
 #let nums = footnote[Numbers.]

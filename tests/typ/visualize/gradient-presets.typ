@@ -1,6 +1,6 @@
 // Test all gradient presets.
 
----
+--- gradient-presets ---
 #set page(width: 200pt, height: auto, margin: 0pt)
 #set text(fill: white, size: 18pt)
 #set text(top-edge: "bounds", bottom-edge: "bounds")

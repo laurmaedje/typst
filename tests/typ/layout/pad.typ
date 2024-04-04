@@ -1,6 +1,6 @@
 // Test the `pad` function.
 
----
+--- pad-basic ---
 // Use for indentation.
 #pad(left: 10pt, [Indented!])
 
@@ -14,17 +14,17 @@
 
 Hi #box(pad(left: 10pt)[A]) there
 
----
+--- pad-expanding-contents ---
 // Pad can grow.
 #pad(left: 10pt, right: 10pt)[PL #h(1fr) PR]
 
----
+--- pad-followed-by-content ---
 // Test that the pad element doesn't consume the whole region.
 #set page(height: 6cm)
 #align(left)[Before]
 #pad(10pt, image("/assets/images/tiger.jpg"))
 #align(right)[After]
 
----
+--- pad-adding-to-100-percent ---
 // Test that padding adding up to 100% does not panic.
 #pad(50%)[]

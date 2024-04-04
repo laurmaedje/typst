@@ -1,6 +1,6 @@
 // Test line and block comments.
 
----
+--- comments ---
 // Line comment acts as spacing.
 A// you
 B
@@ -25,7 +25,7 @@ E
 This is a comment.
 */*/
 
----
+--- block-comment-unclosed ---
 // End should not appear without start.
 // Error: 7-9 unexpected end of block comment
 /* */ */

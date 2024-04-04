@@ -1,3 +1,4 @@
+--- math-prime-after-code-expr ---
 // Test prime symbols after code mode.
 #let g = $f$
 #let gg = $f$

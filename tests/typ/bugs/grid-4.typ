@@ -1,6 +1,6 @@
 // Ensure gutter rows at the top or bottom of a region are skipped.
 
----
+--- issue-grid-gutter-skip ---
 #set page(height: 10em)
 
 #table(

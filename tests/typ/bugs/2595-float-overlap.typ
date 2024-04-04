@@ -1,3 +1,4 @@
+--- issue-2595-float-overlap ---
 #set page(height: 80pt)
 
 Start.

@@ -1,13 +1,13 @@
 // Test the quote element.
 
----
+--- quote-dir-author-pos ---
 // Text direction affects author positioning
 And I quote: #quote(attribution: [René Descartes])[cogito, ergo sum].
 
 #set text(lang: "ar")
 #quote(attribution: [عالم])[مرحبًا]
 
----
+--- quote-dir-align ---
 // Text direction affects block alignment
 #set quote(block: true)
 #quote(attribution: [René Descartes])[cogito, ergo sum]
@@ -15,7 +15,7 @@ And I quote: #quote(attribution: [René Descartes])[cogito, ergo sum].
 #set text(lang: "ar")
 #quote(attribution: [عالم])[مرحبًا]
 
----
+--- quote-block-spacing ---
 // Spacing with other blocks
 #set quote(block: true)
 #set text(8pt)
@@ -24,7 +24,7 @@ And I quote: #quote(attribution: [René Descartes])[cogito, ergo sum].
 #quote(lorem(10))
 #lorem(10)
 
----
+--- quote-inline ---
 // Inline citation
 #set text(8pt)
 #quote(attribution: <tolkien54>)[In a hole in the ground there lived a hobbit.]
@@ -32,7 +32,7 @@ And I quote: #quote(attribution: [René Descartes])[cogito, ergo sum].
 #set text(0pt)
 #bibliography("/assets/bib/works.bib")
 
----
+--- quote-cite-format-label-or-numeric ---
 // Citation-format: label or numeric
 #set text(8pt)
 #set quote(block: true)
@@ -41,7 +41,7 @@ And I quote: #quote(attribution: [René Descartes])[cogito, ergo sum].
 #set text(0pt)
 #bibliography("/assets/bib/works.bib", style: "ieee")
 
----
+--- quote-cite-format-note ---
 // Citation-format: note
 #set text(8pt)
 #set quote(block: true)
@@ -50,7 +50,7 @@ And I quote: #quote(attribution: [René Descartes])[cogito, ergo sum].
 #set text(0pt)
 #bibliography("/assets/bib/works.bib", style: "chicago-notes")
 
----
+--- quote-cite-format-author-date ---
 // Citation-format: author-date or author
 #set text(8pt)
 #set quote(block: true)

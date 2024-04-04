@@ -1,8 +1,6 @@
 // Test code blocks.
-// Ref: false
 
----
-// Ref: true
+--- code-block-basic-syntax ---
 
 // Evaluates to join of none, [My ] and the two loop bodies.
 #{
@@ -22,19 +20,23 @@
   [you] + "?"
 }
 
----
+--- code-block-empty ---
 // Nothing evaluates to none.
 #test({}, none)
 
+--- code-block-let ---
 // Let evaluates to none.
 #test({ let v = 0 }, none)
 
+--- code-block-single-expression ---
 // Evaluates to single expression.
 #test({ "hello" }, "hello")
 
+--- code-block-multiple-expressions-single-line ---
 // Evaluates to string.
 #test({ let x = "m"; x + "y" }, "my")
 
+--- code-block-join-let-with-expression ---
 // Evaluated to int.
 #test({
   let x = 1
@@ -42,13 +44,14 @@
   x + y
 }, 3)
 
+--- code-block-join-expression-with-none ---
 // String is joined with trailing none, evaluates to string.
 #test({
   type("")
   none
 }, str)
 
----
+--- code-block-join-int-with-content ---
 // Some things can't be joined.
 #{
   [A]
@@ -57,14 +60,14 @@
   [B]
 }
 
----
+--- code-block-scope-in-markup ---
 // Block directly in markup also creates a scope.
 #{ let x = 1 }
 
 // Error: 7-8 unknown variable: x
 #test(x, 1)
 
----
+--- code-block-scope-in-let ---
 // Block in expression does create a scope.
 #let a = {
   let b = 1
@@ -76,7 +79,7 @@
 // Error: 3-4 unknown variable: b
 #{b}
 
----
+--- code-block-double-scope ---
 // Double block creates a scope.
 #{{
   import "module.typ": b
@@ -86,7 +89,7 @@
 // Error: 2-3 unknown variable: b
 #b
 
----
+--- code-block-nested-scopes ---
 // Multiple nested scopes.
 #{
   let a = "a1"
@@ -102,29 +105,28 @@
   test(a, "a1")
 }
 
----
+--- content-block-in-markup-scope ---
 // Content blocks also create a scope.
 #[#let x = 1]
 
 // Error: 2-3 unknown variable: x
 #x
 
----
-// Multiple unseparated expressions in one line.
-
+--- number-invalid-suffix ---
 // Error: 2-4 invalid number suffix: u
 #1u
 
-// Should output `1`.
+--- code-block-multiple-literals-without-semicolon ---
+// Multiple unseparated expressions in one line.
 // Error: 4 expected semicolon or line break
 #{1 2}
 
-// Should output `2`.
+--- code-block-multiple-expressions-without-semicolon ---
 // Error: 13 expected semicolon or line break
 // Error: 23 expected semicolon or line break
 #{let x = -1 let y = 3 x + y}
 
-// Should output `3`.
+--- code-block-incomplete-expressions ---
 #{
   // Error: 7-10 expected pattern, found string
   for "v"
@@ -136,10 +138,10 @@
   z
 }
 
----
+--- code-block-unclosed ---
 // Error: 2-3 unclosed delimiter
 #{
 
----
+--- code-block-unopened ---
 // Error: 2-3 unexpected closing brace
 #}

@@ -1,6 +1,6 @@
 // Test that squares and circles respect their 1-1 aspect ratio.
 
----
+--- square-relative-size ---
 // Test relative width and height and size that is smaller
 // than default size.
 #set page(width: 120pt, height: 70pt)
@@ -17,7 +17,7 @@
   ),
 )
 
----
+--- square-circle-alignment ---
 // Test alignment in automatically sized square and circle.
 #set text(8pt)
 #box(square(inset: 4pt)[
@@ -25,7 +25,7 @@
 ])
 #box(circle(align(center + horizon, [Hey.])))
 
----
+--- square-circle-overspecified ---
 // Test that minimum wins if both width and height are given.
 #stack(
   dir: ltr,
@@ -34,12 +34,12 @@
   circle(width: 20%, height: 100pt),
 )
 
----
+--- square-height-limited-stack ---
 // Test square that is limited by region size.
 #set page(width: 20pt, height: 10pt, margin: 0pt)
 #stack(dir: ltr, square(fill: forest), square(fill: conifer))
 
----
+--- circle-sizing-options ---
 // Test different ways of sizing.
 #set page(width: 120pt, height: 40pt)
 #stack(
@@ -50,13 +50,13 @@
   circle(height: 50%),
 )
 
----
+--- square-overflow ---
 // Test that square doesn't overflow due to its aspect ratio.
 #set page(width: 40pt, height: 25pt, margin: 5pt)
 #square(width: 100%)
 #square(width: 100%)[Hello there]
 
----
+--- square-size-relative-invalid ---
 // Size cannot be relative because we wouldn't know
 // relative to which axis.
 // Error: 15-18 expected length or auto, found ratio

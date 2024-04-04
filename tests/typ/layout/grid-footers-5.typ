@@ -1,3 +1,4 @@
+--- grid-footer-rowspan ---
 // General footer-only tests
 #set page(height: 9em)
 #table(
@@ -13,13 +14,13 @@
   )
 )
 
----
+--- grid-footer-bare-1 ---
 #set page(height: 5em)
 #table(
   table.footer[a][b][c]
 )
 
----
+--- grid-footer-bare-2 ---
 #table(table.footer[a][b][c])
 
 #table(
@@ -27,7 +28,7 @@
   table.footer[a][b][c]
 )
 
----
+--- grid-footer-stroke-edge-cases ---
 // Test footer stroke priority edge case
 #set page(height: 10em)
 #table(
@@ -40,7 +41,7 @@
   )
 )
 
----
+--- grid-footer-hline-and-vline-1 ---
 // Footer should appear at the bottom. Red line should be above the footer.
 // Green line should be on the left border.
 #set page(margin: 2pt)
@@ -59,7 +60,7 @@
   table.cell(x: 1, y: 3)[c]
 )
 
----
+--- grid-footer-hline-and-vline-2 ---
 // Table should be just one row. [c] appears at the third column.
 #set page(margin: 2pt)
 #set text(6pt)
@@ -75,7 +76,7 @@
   )
 )
 
----
+--- grid-footer-below-rowspans ---
 // Footer should go below the rowspans.
 #set page(margin: 2pt)
 #set text(6pt)

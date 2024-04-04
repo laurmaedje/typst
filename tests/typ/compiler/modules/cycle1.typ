@@ -1,4 +1,3 @@
-// Ref: false
 
 #import "cycle2.typ": *
 #let inaccessible = "wow"

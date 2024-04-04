@@ -1,3 +1,4 @@
+--- grid-header-block-with-fixed-height ---
 #set page(height: 15em)
 #table(
   rows: (auto, 2.5em, auto),
@@ -8,7 +9,7 @@
   block(width: 2em, height: 20em, fill: red)
 )
 
----
+--- grid-header-and-rowspan-non-contiguous-1 ---
 // Rowspan sizing algorithm doesn't do the best job at non-contiguous content
 // ATM.
 #set page(height: 15em)
@@ -22,7 +23,7 @@
   table.cell(rowspan: 3, lorem(40))
 )
 
----
+--- grid-header-and-rowspan-non-contiguous-2 ---
 // Rowspan sizing algorithm doesn't do the best job at non-contiguous content
 // ATM.
 #set page(height: 15em)
@@ -37,7 +38,7 @@
   table.cell(rowspan: 3, lorem(40))
 )
 
----
+--- grid-header-and-rowspan-non-contiguous-3 ---
 // This should look right
 #set page(height: 15em)
 

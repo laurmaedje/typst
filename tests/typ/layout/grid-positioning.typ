@@ -1,6 +1,6 @@
 // Test cell positioning in grids.
 
----
+--- grid-cell-show-x-y ---
 #{
   show grid.cell: it => (it.x, it.y)
   grid(
@@ -22,7 +22,7 @@
   )
 }
 
----
+--- grid-cell-position-out-of-order ---
 // Positioning cells in a different order than they appear
 #grid(
   columns: 2,
@@ -31,7 +31,7 @@
   grid.cell(x: 1, y: 1)[E], grid.cell(x: 0, y: 1)[F],
 )
 
----
+--- grid-cell-position-extra-rows ---
 // Creating more rows by positioning out of bounds
 #grid(
   columns: 3,
@@ -52,7 +52,7 @@
   table.cell(x: 2, y: 3)[B]
 )
 
----
+--- grid-cell-position-collide ---
 // Error: 3:3-3:42 attempted to place a second cell at column 0, row 0
 // Hint: 3:3-3:42 try specifying your cells in a different order
 #grid(
@@ -60,7 +60,7 @@
   grid.cell(x: 0, y: 0)[This shall error]
 )
 
----
+--- table-cell-position-collide ---
 // Error: 3:3-3:43 attempted to place a second cell at column 0, row 0
 // Hint: 3:3-3:43 try specifying your cells in a different order
 #table(
@@ -68,14 +68,14 @@
   table.cell(x: 0, y: 0)[This shall error]
 )
 
----
+--- grid-cell-position-automatic-skip-manual ---
 // Automatic position cell skips custom position cell
 #grid(
   grid.cell(x: 0, y: 0)[This shall not error],
   [A]
 )
 
----
+--- grid-cell-position-x-out-of-bounds ---
 // Error: 4:3-4:36 cell could not be placed at invalid column 2
 #grid(
   columns: 2,
@@ -83,7 +83,7 @@
   grid.cell(x: 2)[This shall error]
 )
 
----
+--- grid-cell-position-partial ---
 // Partial positioning
 #grid(
   columns: 3,
@@ -105,7 +105,7 @@
   table.cell(x: 1, fill: orange)[I]
 )
 
----
+--- grid-cell-position-partial-collide ---
 // Error: 4:3-4:21 cell could not be placed in row 0 because it was full
 // Hint: 4:3-4:21 try specifying your cells in a different order
 #grid(
@@ -114,7 +114,7 @@
   grid.cell(y: 0)[C]
 )
 
----
+--- table-cell-position-partial-collide ---
 // Error: 4:3-4:22 cell could not be placed in row 0 because it was full
 // Hint: 4:3-4:22 try specifying your cells in a different order
 #table(
@@ -123,8 +123,7 @@
   table.cell(y: 0)[C]
 )
 
----
-// Doc example 1
+--- grid-calendar ---
 #set page(width: auto)
 #show grid.cell: it => {
   if it.y == 0 {
@@ -173,8 +172,7 @@
   grid.cell(y: 2, fill: aqua)[Walk],
 )
 
----
-// Doc example 2
+--- grid-exam ---
 #set page(width: auto)
 #show table.cell: it => {
   if it.x == 0 or it.y == 0 {

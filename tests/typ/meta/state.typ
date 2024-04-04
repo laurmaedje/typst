@@ -1,6 +1,6 @@
 // Test state.
 
----
+--- state-basic ---
 #let s = state("hey", "a")
 #let double(it) = 2 * it
 
@@ -15,7 +15,7 @@ Was: #context {
   s.at(it.location())
 }.
 
----
+--- state-multiple-calls-same-key ---
 // Try same key with different initial value.
 #context state("key", 2).get()
 #state("key").update(x => x + 1)
@@ -24,7 +24,7 @@ Was: #context {
 #state("key").update(x => x + 1)
 #context state("key", 2).get()
 
----
+--- state-nested ---
 #set page(width: 200pt)
 #set text(8pt)
 
@@ -47,7 +47,7 @@ Was: #context {
 #trait[Fear]
 #trait[Anger]
 
----
+--- state-no-convergence ---
 // Make sure that a warning is produced if the layout fails to converge.
 // Warning: layout did not converge within 5 attempts
 // Hint: check if any states or queries are updating themselves

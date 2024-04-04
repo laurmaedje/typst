@@ -1,6 +1,6 @@
 // Test grid cells that overflow to the next region.
 
----
+--- grid-cell-breaking ---
 #set page(width: 5cm, height: 3cm)
 #grid(
   columns: 2,
@@ -15,7 +15,7 @@
   [Rampage],
 )
 
----
+--- grid-consecutive-rows-breaking ---
 // Test a column that starts overflowing right after another row/column did
 // that.
 #set page(width: 5cm, height: 2cm)
@@ -30,7 +30,7 @@
   [Ha!\ ] * 3,
 )
 
----
+--- grid-same-row-multiple-columns-breaking ---
 // Test two columns in the same row overflowing by a different amount.
 #set page(width: 5cm, height: 2cm)
 #grid(
@@ -46,7 +46,7 @@
   [my old]
 )
 
----
+--- grid-nested-breaking ---
 // Test grid within a grid, overflowing.
 #set page(width: 5cm, height: 2.25cm)
 #grid(

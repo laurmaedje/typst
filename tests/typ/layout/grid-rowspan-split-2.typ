@@ -1,6 +1,6 @@
 // Rowspan split without ending at the auto row
 
----
+--- grid-rowspan-split-9 ---
 #set page(height: 6em)
 #table(
   rows: (4em,) * 7 + (auto,) + (4em,) * 7,
@@ -12,7 +12,7 @@
   [] * 15
 )
 
----
+--- grid-rowspan-split-10 ---
 #set page(height: 6em)
 #table(
   rows: (4em,) * 7 + (auto,) + (4em,) * 7,
@@ -24,7 +24,7 @@
   [] * 15
 )
 
----
+--- grid-rowspan-split-11 ---
 #set page(height: 6em)
 #table(
   rows: (3em,) * 15,

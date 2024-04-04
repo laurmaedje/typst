@@ -1,6 +1,6 @@
 // Test figure captions.
 
----
+--- figure-caption-show ---
 // Test figure.caption element
 #show figure.caption: emph
 
@@ -9,7 +9,7 @@
   caption: [Italicized],
 )
 
----
+--- figure-caption-where-selector ---
 // Test figure.caption element for specific figure kinds
 #show figure.caption.where(kind: table): underline
 
@@ -23,7 +23,7 @@
   caption: [Underlined],
 )
 
----
+--- figure-and-caption-show ---
 // Test creating custom figure and custom caption
 
 #let gap = 0.7em
@@ -55,10 +55,9 @@
   supplement: [B],
 )
 
----
-// Ref: false
+--- figure-caption-position ---
 #set figure.caption(position: top)
 
----
+--- figure-caption-position-bad ---
 // Error: 31-38 expected `top` or `bottom`, found horizon
 #set figure.caption(position: horizon)

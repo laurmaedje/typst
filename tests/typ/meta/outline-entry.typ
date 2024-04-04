@@ -1,6 +1,6 @@
 // Tests outline entry.
 
----
+--- outline-entry ---
 #set page(width: 150pt)
 #set heading(numbering: "1.")
 
@@ -23,7 +23,7 @@
 = Analysis
 == Setup
 
----
+--- outline-entry-complex ---
 #set page(width: 150pt, numbering: "I", margin: (bottom: 20pt))
 #set heading(numbering: "1.")
 #show outline.entry.where(level: 1): it => [
@@ -53,7 +53,7 @@
 == Middle heading
 === Lower heading
 
----
+--- outline-bad-element ---
 // Error: 2-27 cannot outline metadata
 #outline(target: metadata)
 #metadata("hello")

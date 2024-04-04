@@ -1,6 +1,6 @@
 // Test symbols.
 
----
+--- symbol ---
 #emoji.face
 #emoji.woman.old
 #emoji.turtle
@@ -13,6 +13,6 @@
 
 #sym.arrow.r;this and this#sym.arrow.l;
 
----
+--- symbol-unknown-modifier ---
 // Error: 13-20 unknown symbol modifier
 #emoji.face.garbage

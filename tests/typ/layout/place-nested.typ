@@ -1,6 +1,6 @@
 // Test vertical alignment with nested placement.
 
----
+--- place-bottom-in-box ---
 #box(
   fill: aqua,
   width: 30pt,
@@ -10,7 +10,7 @@
   )
 )
 
----
+--- place-horizon-in-boxes ---
 #box(
   fill: aqua,
   width: 30pt,
@@ -24,7 +24,7 @@
   }
 )
 
----
+--- place-bottom-right-in-box ---
 #box(fill: aqua)[
   #place(bottom + right)[Hi]
   Hello World \
@@ -32,7 +32,7 @@
   you?
 ]
 
----
+--- place-top-left-in-box ---
 #box(fill: aqua)[
   #place(top + left, dx: 50%, dy: 50%)[Hi]
   #v(30pt)

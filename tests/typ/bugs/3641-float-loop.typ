@@ -4,7 +4,7 @@
 // This is not yet ideal: The heading should not move to the second page, but
 // that's a separate bug and not a regression.
 
----
+--- issue-3641-float-loop ---
 #set page(height: 40pt)
 
 = Heading

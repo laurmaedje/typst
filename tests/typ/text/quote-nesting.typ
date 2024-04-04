@@ -1,6 +1,6 @@
 // Test quote nesting.
 
----
+--- quote-nesting ---
 // Test quote selection.
 #set page(width: auto)
 #set text(lang: "en")
@@ -21,7 +21,7 @@
 #quote[Satz mit #quote[Zitat]] \
 #quote[A #quote[very #quote[nested]] quote]
 
----
+--- quote-nesting-custom ---
 // With custom quotes.
 #set smartquote(quotes: (single: ("<", ">"), double: ("(", ")")))
 #quote[A #quote[nested] quote]

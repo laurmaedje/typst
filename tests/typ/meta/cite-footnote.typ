@@ -1,3 +1,4 @@
+--- cite-footnote ---
 Hello @netwok
 And again: @netwok
 

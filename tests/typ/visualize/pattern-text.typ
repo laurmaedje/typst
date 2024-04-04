@@ -1,6 +1,6 @@
 // Test a pattern on some text
 
----
+--- pattern-text ---
 // You shouldn't be able to see the text, if you can then
 // that means that the transform matrices are not being
 // applied to the text correctly.

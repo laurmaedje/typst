@@ -1,6 +1,6 @@
 // Test relative sizing inside grids.
 
----
+--- grid-column-sizing-auto-base ---
 // Test that auto and relative columns use the correct base.
 #grid(
   columns: (auto, 60%),
@@ -10,7 +10,7 @@
   rect(width: 50%, height: 0.5cm, fill: forest),
 )
 
----
+--- grid-column-sizing-fr-base ---
 // Test that fr columns use the correct base.
 #grid(
   columns: (1fr,) * 4,
@@ -21,7 +21,7 @@
   rect(width: 50%, fill: forest),
 )
 
----
+--- grid-column-sizing-mixed-base ---
 // Test that all three kinds of rows use the correct bases.
 #set page(height: 4cm, margin: 0cm)
 #grid(

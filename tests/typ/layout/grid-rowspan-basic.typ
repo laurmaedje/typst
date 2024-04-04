@@ -1,3 +1,4 @@
+--- grid-rowspan ---
 #grid(
   columns: 4,
   fill: (x, y) => if calc.odd(x + y) { blue.lighten(50%) } else { blue.lighten(10%) },
@@ -22,7 +23,7 @@
   [Left B], [Left B], table.cell(colspan: 2, rowspan: 3, fill: orange)[Wide and Long]
 )
 
----
+--- grid-rowspan-gutter ---
 #grid(
   columns: 4,
   fill: (x, y) => if calc.odd(x + y) { blue.lighten(50%) } else { blue.lighten(10%) },
@@ -49,7 +50,7 @@
   [Left B], [Left B], table.cell(colspan: 2, rowspan: 3, fill: orange)[Wide and Long]
 )
 
----
+--- grid-rowspan-fixed-size ---
 // Fixed-size rows
 #set page(height: 10em)
 #grid(
@@ -68,7 +69,7 @@
   [m], [n]
 )
 
----
+--- grid-rowspan-cell-coordinates ---
 // Cell coordinate tests
 #set page(height: 10em)
 #show table.cell: it => [(#it.x, #it.y)]
@@ -90,7 +91,7 @@
   table.cell(colspan: 2)[b],
 )
 
----
+--- grid-rowspan-over-auto-row ---
 // Auto row expansion
 #set page(height: 10em)
 #grid(
@@ -105,7 +106,7 @@
   [d]
 )
 
----
+--- grid-rowspan-excessive ---
 // Excessive rowspan (no gutter)
 #set page(height: 10em)
 #table(
@@ -117,7 +118,7 @@
   [b],
 )
 
----
+--- grid-rowspan-excessive-gutter ---
 // Excessive rowspan (with gutter)
 #set page(height: 10em)
 #table(
@@ -130,7 +131,7 @@
   [b],
 )
 
----
+--- grid-rowspan-over-fr-row-at-end ---
 // Fractional rows
 // They cause the auto row to expand more than needed.
 #set page(height: 10em)
@@ -144,7 +145,7 @@
   [e], [f]
 )
 
----
+--- grid-rowspan-over-fr-row-at-start ---
 // Fractional rows
 #set page(height: 10em)
 #grid(
@@ -157,7 +158,7 @@
   [e], [f]
 )
 
----
+--- grid-rowspan-cell-order ---
 // Cell order
 #let count = counter("count")
 #show grid.cell: it => {
@@ -180,7 +181,7 @@
   [s], [t], [u]
 )
 
----
+--- grid-rowspan-unbreakable-1 ---
 #table(
     columns: 3,
     rows: (auto, auto, auto, 2em),
@@ -190,7 +191,7 @@
     [g]
 )
 
----
+--- grid-rowspan-unbreakable-2 ---
 // Test cell breakability
 #show grid.cell: it => {
   assert.eq(it.breakable, (it.x, it.y) != (0, 6) and (it.y in (2, 5, 6) or (it.x, it.y) in ((0, 1), (2, 3), (1, 7))))
@@ -210,7 +211,7 @@
   grid.cell(y: 7, breakable: false)[o], grid.cell(y: 7, breakable: true)[p], grid.cell(y: 7, breakable: auto)[q]
 )
 
----
+--- grid-rowspan-in-all-columns-stroke ---
 #table(
   columns: 2,
   table.cell(stroke: (bottom: red))[a], [b],
@@ -220,7 +221,7 @@
   [g]
 )
 
----
+--- grid-rowspan-in-all-columns-stroke-gutter ---
 #table(
   columns: 2,
   gutter: 3pt,
@@ -231,7 +232,7 @@
   [g]
 )
 
----
+--- grid-rowspan-block-full-height ---
 // Block below shouldn't expand to the end of the page, but stay within its
 // rows' boundaries.
 #set page(height: 9em)
@@ -242,7 +243,7 @@
   [a]
 )
 
----
+--- grid-rowspan-block-overflow ---
 #set page(height: 7em)
 #table(
   columns: 3,

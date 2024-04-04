@@ -1,3 +1,4 @@
+--- issue-3082-chinese-punctuation ---
 #set text(font: "Noto Serif CJK TC", lang: "zh")
 #set page(width: 230pt)
 

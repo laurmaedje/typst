@@ -1,7 +1,7 @@
 // Test equation number, and its interaction with equation
 // block's alignment and text direction.
 
----
+--- math-equation-number-align ---
 #set math.equation(numbering: "(1)")
 
 $ a + b = c $
@@ -19,7 +19,7 @@ $ a + b = c $
 #show math.equation: set align(end)
 $ a + b = c $
 
----
+--- math-equation-number-align-start ---
 #set math.equation(numbering: "(1)", number-align: start)
 
 $ a + b = c $
@@ -37,7 +37,7 @@ $ a + b = c $
 #show math.equation: set align(end)
 $ a + b = c $
 
----
+--- math-equation-number-align-end ---
 #set math.equation(numbering: "(1)", number-align: end)
 
 $ a + b = c $
@@ -55,7 +55,7 @@ $ a + b = c $
 #show math.equation: set align(end)
 $ a + b = c $
 
----
+--- math-equation-number-align-left ---
 #set math.equation(numbering: "(1)", number-align: left)
 
 $ a + b = c $
@@ -73,7 +73,7 @@ $ a + b = c $
 #show math.equation: set align(end)
 $ a + b = c $
 
----
+--- math-equation-number-align-right ---
 #set math.equation(numbering: "(1)", number-align: right)
 
 $ a + b = c $
@@ -91,34 +91,34 @@ $ a + b = c $
 #show math.equation: set align(end)
 $ a + b = c $
 
----
+--- math-equation-number-align-center ---
 // Error: 52-58 expected `start`, `left`, `right`, or `end`, found center
 #set math.equation(numbering: "(1)", number-align: center)
 
----
+--- math-equation-number-align-center-bottom ---
 // Error: 52-67 expected `start`, `left`, `right`, or `end`, found center
 #set math.equation(numbering: "(1)", number-align: center + bottom)
 
----
+--- math-equation-number-align-multiline ---
 #set math.equation(numbering: "(1)")
 
 $ p &= ln a b \
     &= ln a + ln b $
 
----
+--- math-equation-number-align-multiline-top-start ---
 #set math.equation(numbering: "(1)", number-align: top+start)
 
 $ p &= ln a b \
     &= ln a + ln b $
 
----
+--- math-equation-number-align-multiline-bottom ---
 #show math.equation: set align(left)
 #set math.equation(numbering: "(1)", number-align: bottom)
 
 $ q &= ln sqrt(a b) \
     &= 1/2 (ln a + ln b) $
 
----
+--- math-equation-number-align-multiline-expand ---
 // Tests that if the numbering's layout box vertically exceeds the box of
 // the equation frame's boundary, the latter's frame is resized correctly
 // to encompass the numbering. #box() below delineates the resized frame.

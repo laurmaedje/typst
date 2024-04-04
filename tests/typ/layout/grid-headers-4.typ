@@ -1,3 +1,4 @@
+--- grid-header-containing-rowspan ---
 // When a header has a rowspan with an empty row, it should be displayed
 // properly
 #set page(height: 10em)
@@ -15,7 +16,7 @@
 )
 #count.display()
 
----
+--- grid-header-expand ---
 // Ensure header expands to fit cell placed in it after its declaration
 #set page(height: 10em)
 #table(
@@ -27,7 +28,7 @@
   table.cell(x: 1, y: 1, rowspan: 2, lorem(80))
 )
 
----
+--- grid-nested-with-headers ---
 // Nested table with header should repeat both headers
 #set page(height: 10em)
 #table(
@@ -42,7 +43,7 @@
   )
 )
 
----
+--- grid-nested-headers ---
 #set page(height: 12em)
 #table(
   table.header(
@@ -57,7 +58,7 @@
   [a\ b]
 )
 
----
+--- grid-header-stroke-edge-cases ---
 // Test header stroke priority edge case (last header row removed)
 #set page(height: 8em)
 #table(
@@ -70,7 +71,7 @@
   ..(table.cell(stroke: aqua)[d],) * 8,
 )
 
----
+--- grid-header-hline-bottom ---
 // Yellow line should be kept here
 #set text(6pt)
 #table(
@@ -83,7 +84,7 @@
   table.cell(rowspan: 2)[b]
 )
 
----
+--- grid-header-hline-bottom-manually ---
 // Red line should be kept here
 #set page(height: 6em)
 #set text(6pt)
@@ -98,7 +99,7 @@
   table.cell(stroke: aqua)[b]
 )
 
----
+--- grid-header-rowspan-base ---
 #set page(height: 7em)
 #set text(6pt)
 #let full-block = block(width: 2em, height: 100%, fill: red)

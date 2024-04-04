@@ -1,6 +1,6 @@
 // Test rounded rectangles and squares.
 
----
+--- square-rect-rounded ---
 #set square(size: 20pt, stroke: 4pt)
 
 // no radius for non-rounded corners

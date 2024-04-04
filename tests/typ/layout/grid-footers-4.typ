@@ -1,3 +1,4 @@
+--- grid-header-and-footer-containing-rowspan ---
 // When a footer has a rowspan with an empty row, it should be displayed
 // properly
 #set page(height: 14em, width: auto)
@@ -19,7 +20,7 @@
 )
 #count.display()
 
----
+--- grid-nested-with-footers ---
 // Nested table with footer should repeat both footers
 #set page(height: 10em, width: auto)
 #table(
@@ -30,7 +31,7 @@
   table.footer[a],
 )
 
----
+--- grid-nested-footers ---
 #set page(height: 12em, width: auto)
 #table(
   [a\ b\ c\ d],

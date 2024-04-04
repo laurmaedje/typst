@@ -1,3 +1,4 @@
+--- grid-header-lack-of-space ---
 // Test lack of space for header + text.
 #set page(height: 9em)
 
@@ -11,7 +12,7 @@
   table.cell(rowspan: 3, lorem(80))
 )
 
----
+--- grid-header-orphan-prevention ---
 // Orphan header prevention test
 #set page(height: 12em)
 #v(8em)
@@ -24,7 +25,7 @@
   ..([Test], [Test], [Test]) * 20
 )
 
----
+--- grid-header-empty ---
 // Empty header should just be a repeated blank row
 #set page(height: 12em)
 #table(

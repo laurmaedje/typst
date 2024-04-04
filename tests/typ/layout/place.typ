@@ -1,6 +1,6 @@
 // Test the `place` function.
 
----
+--- place-basic ---
 #set page("a8")
 #place(bottom + center)[© Typst]
 
@@ -24,7 +24,7 @@ the line breaks still had to be inserted manually.
   ]
 )
 
----
+--- place-block-spacing ---
 // Test how the placed element interacts with paragraph spacing around it.
 #set page("a8", height: 60pt)
 

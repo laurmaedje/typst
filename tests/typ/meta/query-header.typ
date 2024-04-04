@@ -1,6 +1,6 @@
 // Test creating a header with the query function.
 
----
+--- query-running-header ---
 #set page(
   paper: "a7",
   margin: (y: 1cm, x: 0.5cm),

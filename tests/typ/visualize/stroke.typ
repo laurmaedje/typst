@@ -1,6 +1,6 @@
 // Test lines.
 
----
+--- line-stroke ---
 // Some simple test lines
 #line(length: 60pt, stroke: red)
 #v(3pt)
@@ -12,7 +12,7 @@
 #v(3pt)
 #line(length: 60pt, stroke: (paint: red, thickness: 4pt, cap: "round"))
 
----
+--- line-stroke-set ---
 // Set rules with stroke
 #set line(stroke: (paint: red, thickness: 1pt, cap: "butt", dash: "dash-dotted"))
 #line(length: 60pt)
@@ -21,7 +21,7 @@
 #v(3pt)
 #line(length: 60pt, stroke: (dash: none))
 
----
+--- rect-stroke ---
 // Rectangle strokes
 #rect(width: 20pt, height: 20pt, stroke: red)
 #v(3pt)
@@ -29,7 +29,7 @@
 #v(3pt)
 #rect(width: 20pt, height: 20pt, stroke: (thickness: 5pt, join: "round"))
 
----
+--- line-stroke-dash ---
 // Dashing
 #line(length: 60pt, stroke: (paint: red, thickness: 1pt, dash: ("dot", 1pt)))
 #v(3pt)
@@ -41,7 +41,7 @@
 #v(3pt)
 #line(length: 60pt, stroke: (paint: red, thickness: 1pt, dash: (1pt, 3pt, 9pt)))
 
----
+--- polygon-line-join ---
 // Line joins
 #stack(
   dir: ltr,
@@ -55,15 +55,16 @@
   polygon(stroke: (thickness: 4pt, paint: blue, join: "miter", miter-limit: 20.0),
     (0pt, 20pt), (15pt, 0pt), (0pt, 40pt), (15pt, 45pt)),
 )
----
+
+--- line-stroke-field-typo ---
 // Error: 29-56 unexpected key "thicknes", valid keys are "paint", "thickness", "cap", "join", "dash", and "miter-limit"
 #line(length: 60pt, stroke: (paint: red, thicknes: 1pt))
 
----
+--- line-stroke-bad-dash-kind ---
 // Error: 29-55 expected "solid", "dotted", "densely-dotted", "loosely-dotted", "dashed", "densely-dashed", "loosely-dashed", "dash-dotted", "densely-dash-dotted", "loosely-dash-dotted", array, dictionary, none, or auto
 #line(length: 60pt, stroke: (paint: red, dash: "dash"))
 
----
+--- stroke-zero-thickness ---
 // 0pt strokes must function exactly like 'none' strokes and not draw anything
 #rect(width: 10pt, height: 10pt, stroke: none)
 #rect(width: 10pt, height: 10pt, stroke: 0pt)
@@ -96,7 +97,7 @@
   ((50%, 0%), (4%, 4%)),
 )
 
----
+--- stroke-constructor ---
 // Converting to stroke
 #assert.eq(stroke(red).paint, red)
 #assert.eq(stroke(red).thickness, auto)
@@ -105,11 +106,12 @@
 #assert.eq(stroke((cap: auto, paint: blue)).cap, auto)
 #assert.eq(stroke((cap: auto, paint: blue)).thickness, auto)
 
-// Error: 9-21 unexpected key "foo", valid keys are "paint", "thickness", "cap", "join", "dash", and "miter-limit"
-#stroke((foo: "bar"))
-
 // Constructing with named arguments
 #assert.eq(stroke(paint: blue, thickness: 8pt), 8pt + blue)
 #assert.eq(stroke(thickness: 2pt), stroke(2pt))
 #assert.eq(stroke(cap: "round").thickness, auto)
 #assert.eq(stroke(cap: "round", thickness: auto).thickness, auto)
+
+--- stroke-constructor-unknown-key ---
+// Error: 9-21 unexpected key "foo", valid keys are "paint", "thickness", "cap", "join", "dash", and "miter-limit"
+#stroke((foo: "bar"))

@@ -1,6 +1,6 @@
 // Test counters.
 
----
+--- counter-basic-1 ---
 // Count with string key.
 #let mine = counter("mine!")
 
@@ -15,7 +15,7 @@ Second: #context mine.display("I")
 #mine.update(n => n * 2)
 #mine.step()
 
----
+--- counter-label ---
 // Count labels.
 #let label = <heya>
 #let count = context counter(label).display()
@@ -24,7 +24,7 @@ Second: #context mine.display("I")
 #elem[hey, there!] #count \
 #elem[more here!] #count
 
----
+--- counter-heading ---
 // Count headings.
 #set heading(numbering: "1.a.")
 #show heading: set text(10pt)
@@ -43,7 +43,7 @@ At Beta, it was #context {
   numbering(it.numbering, ..counter(heading).at(it.location()))
 }
 
----
+--- counter-figure ---
 // Count figures.
 #figure(numbering: "A", caption: [Four 'A's], kind: image, supplement: "Figure")[_AAAA!_]
 #figure(numbering: none, caption: [Four 'B's], kind: image, supplement: "Figure")[_BBBB!_]

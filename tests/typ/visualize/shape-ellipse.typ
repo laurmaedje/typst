@@ -1,10 +1,10 @@
 // Test the `ellipse` function.
 
----
+--- ellipse ---
 // Default ellipse.
 #ellipse()
 
----
+--- ellipse-auto-sizing ---
 #set rect(inset: 0pt)
 #set ellipse(inset: 0pt)
 

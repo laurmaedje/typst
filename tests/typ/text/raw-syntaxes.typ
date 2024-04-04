@@ -1,6 +1,6 @@
 // Test code highlighting with custom syntaxes.
 
----
+--- raw-syntaxes ---
 #set page(width: 180pt)
 #set text(6pt)
 #set raw(syntaxes: "/assets/syntaxes/SExpressions.sublime-syntax")

@@ -1,7 +1,7 @@
 // Test footnotes in tables. When the table spans multiple pages, the footnotes
 // will all be after the table, but it shouldn't create any empty pages.
----
 
+--- footnote-in-table ---
 #set page(height: 100pt)
 
 = Tables

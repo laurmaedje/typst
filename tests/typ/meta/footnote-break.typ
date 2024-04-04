@@ -1,6 +1,6 @@
 // Test footnotes that break across pages.
 
----
+--- footnote-break-across-pages ---
 #set page(height: 200pt)
 
 #lorem(5)

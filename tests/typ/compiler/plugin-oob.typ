@@ -1,13 +1,12 @@
 // Test Out Of Bound read/write in WebAssembly plugins communication.
-// Ref: false
 
----
+--- plugin-out-of-bounds-read ---
 #let p = plugin("/assets/plugins/plugin-oob.wasm")
 
 // Error: 2-14 plugin tried to read out of bounds: pointer 0x40000000 is out of bounds for read of length 1
 #p.read_oob()
 
----
+--- plugin-out-of-bounds-write ---
 #let p = plugin("/assets/plugins/plugin-oob.wasm")
 
 // Error: 2-27 plugin tried to write out of bounds: pointer 0x40000000 is out of bounds for write of length 3

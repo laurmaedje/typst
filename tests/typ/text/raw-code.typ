@@ -1,6 +1,6 @@
 // Test code highlighting.
 
----
+--- raw-highlight ---
 #set page(width: 180pt)
 #set text(6pt)
 #show raw: it => rect(
@@ -70,7 +70,7 @@ end
     </html>
     ```
 
----
+--- raw-inline-multiline ---
 #set page(width: 180pt)
 #set text(6pt)
 #set raw(lang:"python")

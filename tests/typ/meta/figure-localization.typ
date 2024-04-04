@@ -1,6 +1,6 @@
 // Test localization-related figure features.
 
----
+--- figure-localization-fr ---
 // Test French
 #set text(lang: "fr")
 #figure(
@@ -8,7 +8,7 @@
   caption: [Un cercle.],
 )
 
----
+--- figure-localization-zh ---
 // Test Chinese
 #set text(lang: "zh")
 #figure(
@@ -16,7 +16,7 @@
   caption: [一个矩形],
 )
 
----
+--- figure-localization-ru ---
 // Test Russian
 #set text(lang: "ru")
 
@@ -25,7 +25,7 @@
     caption: [Пятиугольник],
 )
 
----
+--- figure-localization-gr ---
 // Test Greek
 #set text(lang: "gr")
 #figure(

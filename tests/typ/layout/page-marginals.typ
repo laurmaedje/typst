@@ -1,3 +1,4 @@
+--- page-marginals ---
 #set page(
   paper: "a8",
   margin: (x: 15pt, y: 30pt),

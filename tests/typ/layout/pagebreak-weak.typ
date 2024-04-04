@@ -1,6 +1,6 @@
 // Test page breaks on basically empty pages.
 
----
+--- pagebreak-weak-place ---
 // After place
 // Should result in three pages.
 First
@@ -9,7 +9,7 @@ First
 #pagebreak(weak: true)
 Third
 
----
+--- pagebreak-weak-meta ---
 // After only ignorables & invisibles
 // Should result in two pages.
 First
@@ -19,7 +19,7 @@ First
 #pagebreak(weak: true)
 Second
 
----
+--- pagebreak-meta ---
 // After only ignorables, but regular break
 // Should result in three pages.
 First

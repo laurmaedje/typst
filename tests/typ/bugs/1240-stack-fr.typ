@@ -4,11 +4,11 @@
 //
 // https://github.com/typst/typst/issues/1240
 
----
+--- issue-1240-stack-h-fr ---
 #stack(dir: ltr, [a], 1fr, [b], 1fr, [c])
 #stack(dir: ltr, [a], h(1fr), [b], h(1fr), [c])
 
----
+--- issue-1240-stack-v-fr ---
 #set page(height: 60pt)
 #stack(
   dir: ltr,

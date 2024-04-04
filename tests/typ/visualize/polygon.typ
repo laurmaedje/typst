@@ -1,6 +1,6 @@
 // Test polygons.
 
----
+--- polygon ---
 #set page(width: 50pt)
 #set polygon(stroke: 0.75pt, fill: blue)
 
@@ -31,6 +31,6 @@
 // Regular polygon; should have equal side lengths
 #for k in range(3, 9) {polygon.regular(size: 30pt, vertices: k,)}
 
----
+--- polygon-bad-point-array ---
 // Error: 10-17 point array must contain exactly two entries
 #polygon((50pt,))

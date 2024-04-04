@@ -1,6 +1,6 @@
 // Test clipping with the `box` and `block` containers.
 
----
+--- box-clip-rect ---
 // Test box clipping with a rectangle
 Hello #box(width: 1em, height: 1em, clip: false)[#rect(width: 3em, height: 3em, fill: red)]
 world 1
@@ -10,7 +10,7 @@ Space
 Hello #box(width: 1em, height: 1em, clip: true)[#rect(width: 3em, height: 3em, fill: red)]
 world 2
 
----
+--- block-clip-text ---
 // Test cliping text
 #block(width: 5em, height: 2em, clip: false, stroke: 1pt + black)[
   But, soft! what light through
@@ -23,15 +23,14 @@ world 2
   is the sun.
 ]
 
----
+--- block-clip-svg-glyphs ---
 // Test clipping svg glyphs
 Emoji: #box(height: 0.5em, stroke: 1pt + black)[🐪, 🌋, 🏞]
 
 Emoji: #box(height: 0.5em, clip: true, stroke: 1pt + black)[🐪, 🌋, 🏞]
 
----
+--- block-clipping-multiple-pages ---
 // Test block clipping over multiple pages.
-
 #set page(height: 60pt)
 
 First!
@@ -41,9 +40,8 @@ First!
   is the sun.
 ]
 
----
+--- box-clip-radius ---
 // Test clipping with `radius`.
-
 #set page(height: 60pt)
 
 #box(
@@ -54,9 +52,9 @@ First!
   clip: true,
   image("/assets/images/rhino.png", width: 30pt)
 )
----
-// Test clipping with `radius`, but without `stroke`.
 
+--- box-clip-radius-without-stroke ---
+// Test clipping with `radius`, but without `stroke`.
 #set page(height: 60pt)
 
 #box(

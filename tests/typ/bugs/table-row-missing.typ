@@ -1,6 +1,6 @@
 // Test that a table row isn't wrongly treated like a gutter row.
 
----
+--- issue-1388-table-row-missing ---
 #set page(height: 70pt)
 #table(
   rows: 16pt,

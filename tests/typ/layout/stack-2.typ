@@ -1,6 +1,6 @@
 // Test fr units in stacks.
 
----
+--- stack-fr ---
 #set page(height: 3.5cm)
 #stack(
   dir: ltr,
@@ -14,7 +14,7 @@ from #h(1fr) the #h(1fr) wonderful
 #v(1fr)
 World! 🌍
 
----
+--- flow-fr ---
 #set page(height: 2cm)
 #set text(white)
 #rect(fill: forest)[

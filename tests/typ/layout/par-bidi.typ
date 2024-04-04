@@ -1,20 +1,20 @@
 // Test bidirectional text and language configuration.
 
----
+--- bidi-en-he-top-level ---
 // Test reordering with different top-level paragraph directions.
 #let content = par[Text טֶקסט]
 #text(lang: "he", content)
 #text(lang: "de", content)
 
----
-// Test that consecutive, embedded  LTR runs stay LTR.
+--- bidi-consecutive-embedded-ltr-runs ---
+// Test that consecutive, embedded LTR runs stay LTR.
 // Here, we have two runs: "A" and italic "B".
 #let content = par[أنت A#emph[B]مطرC]
 #set text(font: ("PT Sans", "Noto Sans Arabic"))
 #text(lang: "ar", content)
 #text(lang: "de", content)
 
----
+--- bidi-consecutive-embedded-rtl-runs ---
 // Test that consecutive, embedded RTL runs stay RTL.
 // Here, we have three runs: "גֶ", bold "שֶׁ", and "ם".
 #let content = par[Aגֶ#strong[שֶׁ]םB]
@@ -22,41 +22,40 @@
 #text(lang: "he", content)
 #text(lang: "de", content)
 
----
+--- bidi-nesting ---
 // Test embedding up to level 4 with isolates.
 #set text(dir: rtl)
 א\u{2066}A\u{2067}Bב\u{2069}?
 
----
+--- bidi-manual-linebreak ---
 // Test hard line break (leads to two paragraphs in unicode-bidi).
 #set text(lang: "ar", font: ("Noto Sans Arabic", "PT Sans"))
 Life المطر هو الحياة \
 الحياة تمطر is rain.
 
----
+--- bidi-spacing ---
 // Test spacing.
 L #h(1cm) ריווחR \
 Lריווח #h(1cm) R
 
----
+--- bidi-obj ---
 // Test inline object.
 #set text(lang: "he")
 קרנפיםRh#box(image("/assets/images/rhino.png", height: 11pt))inoחיים
 
----
+--- bidi-whitespace-reset ---
 // Test whether L1 whitespace resetting destroys stuff.
 الغالب #h(70pt) ن#" "ة
 
----
+--- bidi-explicit-dir ---
 // Test explicit dir
 #set text(dir: rtl)
-#text("8:00 - 9:00",dir:ltr) בבוקר
+#text("8:00 - 9:00", dir: ltr) בבוקר
 #linebreak()
-ב #text("12:00 - 13:00",dir:ltr) בצהריים
+ב #text("12:00 - 13:00", dir: ltr) בצהריים
 
----
+--- text-dir-vertical ---
 // Test setting a vertical direction.
-// Ref: false
 
 // Error: 16-19 text direction must be horizontal
 #set text(dir: ttb)

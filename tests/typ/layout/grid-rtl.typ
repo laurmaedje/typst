@@ -1,14 +1,14 @@
 // Test RTL grid.
 
----
+--- list-rtl ---
 #set text(dir: rtl)
 - מימין לשמאל
 
----
+--- grid-rtl ---
 #set text(dir: rtl)
 #table(columns: 2)[A][B][C][D]
 
----
+--- grid-rtl-colspan ---
 // Test interaction between RTL and colspans
 #set text(dir: rtl)
 #grid(
@@ -42,7 +42,7 @@
   [10], grid.cell(colspan: 2, fill: orange.darken(10%))[11], [12]
 )
 
----
+--- grid-rtl-colspan-stroke ---
 #set text(dir: rtl)
 #table(
   columns: 4,
@@ -75,7 +75,7 @@
   [10], table.cell(colspan: 2, fill: orange.darken(10%))[11], [12]
 )
 
----
+--- grid-rtl-multiple-regions ---
 // Test multiple regions
 #set page(height: 5em)
 #set text(dir: rtl)
@@ -89,7 +89,7 @@
   grid.cell(colspan: 4)[eeee e e e]
 )
 
----
+--- grid-rtl-vline-position ---
 // Test left and right for vlines in RTL
 #set text(dir: rtl)
 #grid(
@@ -130,7 +130,7 @@
   grid.vline(stroke: 2pt, position: start)
 )
 
----
+--- grid-rtl-vline-out-of-bounds ---
 // Error: 3:8-3:34 cannot place vertical line at the 'end' position of the end border (x = 1)
 // Hint: 3:8-3:34 set the line's position to 'start' or place it at a smaller 'x' index
 #set text(dir: rtl)
@@ -138,7 +138,7 @@
   [a], grid.vline(position: left)
 )
 
----
+--- grid-rtl-complex ---
 #set text(dir: rtl)
 
 #grid(
@@ -166,7 +166,7 @@
   [Left B], [Left B], table.cell(colspan: 2, rowspan: 3, fill: orange)[Wide and Long]
 )
 
----
+--- grid-rtl-rowspan ---
 #set page(height: 10em)
 #set text(dir: rtl)
 #table(
@@ -179,7 +179,7 @@
   [f]
 )
 
----
+--- grid-rtl-header ---
 // Headers
 #set page(height: 15em)
 #set text(dir: rtl)

@@ -1,6 +1,6 @@
 // Test hyphenation.
 
----
+--- text-hyphenate ---
 // Test hyphenating english and greek.
 #set text(hyphenate: true)
 #set page(width: auto)
@@ -10,7 +10,7 @@
   text(lang: "el")[διαμερίσματα. \ λατρευτός],
 )
 
----
+--- text-hyphenate-off-temporarily ---
 // Test disabling hyphenation for short passages.
 #set page(width: 110pt)
 #set text(hyphenate: true)
@@ -25,13 +25,13 @@ Welcome to wonde#text(hyphenate: false)[rf]ul experiences. \
 Welcome to wonderful experiences. \
 Welcome to wo#text(hyphenate: true)[nd]erful experiences. \
 
----
+--- text-hyphenate-between-shape-runs ---
 // Hyphenate between shape runs.
 #set page(width: 80pt)
 #set text(hyphenate: true)
 It's a #emph[Tree]beard.
 
----
+--- text-hyphenate-shy ---
 // Test shy hyphens.
 #set text(lang: "de", hyphenate: true)
 #grid(
@@ -41,7 +41,7 @@ It's a #emph[Tree]beard.
   [Bar-?ankauf],
 )
 
----
+--- text-hyphenate-punctuation ---
 // This sequence would confuse hypher if we passed trailing / leading
 // punctuation instead of just the words. So this tests that we don't
 // do that. The test passes if there's just one hyphenation between

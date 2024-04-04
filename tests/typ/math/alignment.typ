@@ -1,6 +1,6 @@
 // Test implicit alignment math.
 
----
+--- math-align-weird ---
 // Test alignment step functions.
 #set page(width: 225pt)
 $
@@ -10,7 +10,7 @@ $
 &= x && "Even longer" \
 $
 
----
+--- math-align-post-fix ---
 // Test post-fix alignment.
 $
 & "right" \
@@ -18,7 +18,7 @@ $
 "left" \
 $
 
----
+--- math-align-implicit ---
 // Test no alignment.
 $
 "right" \
@@ -26,7 +26,7 @@ $
 "left" \
 $
 
----
+--- math-align-toggle ---
 // Test #460 equations.
 $
 a &=b & quad c&=d \

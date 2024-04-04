@@ -1,5 +1,4 @@
-
----
+--- grid-trailing-linebreak-region-overflow ---
 // Test that trailing linebreak doesn't overflow the region.
 #set page(height: 2cm)
 #grid[
@@ -10,7 +9,7 @@
   World
 ]
 
----
+--- grid-breaking-expand-vertically ---
 // Test that broken cell expands vertically.
 #set page(height: 2.25cm)
 #grid(
@@ -29,7 +28,7 @@
   align(top)[B],
 )
 
----
+--- grid-complete-rows ---
 // Ensure grids expand enough for the given rows.
 #grid(
   columns: (2em, 2em),

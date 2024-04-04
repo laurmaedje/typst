@@ -2,6 +2,7 @@
 // The styles should not be applied to the pagebreak empty page,
 // it should only be applied after that.
 
+--- issue-2162-pagebreak-set-style ---
 #pagebreak(to: "even") // We should now skip to page 2
 
 Some text on page 2

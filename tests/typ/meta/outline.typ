@@ -1,3 +1,4 @@
+--- outline ---
 #set page("a7", margin: 20pt, numbering: "1")
 #set heading(numbering: "(1/a)")
 #show heading.where(level: 1): set text(12pt)

@@ -1,5 +1,4 @@
 // A file to import in import / include tests.
-// Ref: false
 
 #let a
 #let b = 1

@@ -1,7 +1,6 @@
 // Test creation and conversion functions.
-// Ref: false
 
----
+--- color-mix ---
 // Compare both ways.
 #test-repr(rgb(0%, 30.2%, 70.2%), rgb("004db3"))
 
@@ -38,7 +37,7 @@
 // Error: 6-51 cannot mix more than two colors in a hue-based space
 #rgb(color.mix(red, blue, white, space: color.hsl))
 
----
+--- color-conversion ---
 // Test color conversion method kinds
 #test(rgb(rgb(10, 20, 30)).space(), rgb)
 #test(color.linear-rgb(rgb(10, 20, 30)).space(), color.linear-rgb)
@@ -112,59 +111,57 @@
 #test(cmyk(luma(10%)).space(), cmyk)
 #test(luma(luma(10%)).space(), luma)
 
----
+--- color-luma ---
 // Test gray color conversion.
-// Ref: true
 #stack(dir: ltr, rect(fill: luma(0)), rect(fill: luma(80%)))
 
----
+--- color-rgb-out-of-range ---
 // Error for values that are out of range.
 // Error: 11-14 number must be between 0 and 255
 #test(rgb(-30, 15, 50))
 
----
+--- color-rgb-bad-string ---
 // Error: 6-11 color string contains non-hexadecimal letters
 #rgb("lol")
 
----
+--- color-rgb-missing-argument-red ---
 // Error: 2-7 missing argument: red component
 #rgb()
 
----
+--- color-rgb-missing-argument-blue ---
 // Error: 2-11 missing argument: blue component
 #rgb(0, 1)
 
----
+--- color-rgb-bad-type ---
 // Error: 21-26 expected integer or ratio, found boolean
 #rgb(10%, 20%, 30%, false)
 
----
+--- color-luma-unexpected-argument ---
 // Error: 10-20 unexpected argument: key
 #luma(1, key: "val")
 
----
+--- color-mix-bad-amount-type ---
 // Error: 12-24 expected float or ratio, found string
 // Error: 26-39 expected float or ratio, found string
 #color.mix((red, "yes"), (green, "no"), (green, 10%))
 
----
+--- color-mix-bad-value ---
 // Error: 12-23 expected a color or color-weight pair
 #color.mix((red, 1, 2))
 
----
+--- color-mix-bad-space-type ---
 // Error: 31-38 expected `rgb`, `luma`, `cmyk`, `oklab`, `oklch`, `color.linear-rgb`, `color.hsl`, or `color.hsv`, found string
 #color.mix(red, green, space: "cyber")
 
----
+--- color-mix-bad-space-value-1 ---
 // Error: 31-36 expected `rgb`, `luma`, `cmyk`, `oklab`, `oklch`, `color.linear-rgb`, `color.hsl`, or `color.hsv`
 #color.mix(red, green, space: image)
 
----
+--- color-mix-bad-space-value-2 ---
 // Error: 31-41 expected `rgb`, `luma`, `cmyk`, `oklab`, `oklch`, `color.linear-rgb`, `color.hsl`, or `color.hsv`
 #color.mix(red, green, space: calc.round)
 
----
-// Ref: true
+--- symbol-constructor ---
 #let envelope = symbol(
   "🖂",
   ("stamped", "🖃"),
@@ -180,11 +177,11 @@
 #envelope.lightning
 #envelope.fly
 
----
+--- symbol-constructor-empty ---
 // Error: 2-10 expected at least one variant
 #symbol()
 
----
+--- str-constructor ---
 // Test conversion to string.
 #test(str(123), "123")
 #test(str(123, base: 3), "11120")
@@ -193,43 +190,40 @@
 #test(str(50.14), "50.14")
 #test(str(10 / 3).len() > 10, true)
 
----
+--- str-constructor-bad-type ---
 // Error: 6-8 expected integer, float, version, bytes, label, type, or string, found content
 #str([])
 
----
+--- str-constructor-bad-base ---
 // Error: 17-19 base must be between 2 and 36
 #str(123, base: 99)
 
----
+--- str-constructor-unsupported-base ---
 // Error: 18-19 base is only supported for integers
 #str(1.23, base: 2)
 
----
+--- str-from-and-to-unicode ---
 // Test the unicode function.
 #test(str.from-unicode(97), "a")
 #test(str.to-unicode("a"), 97)
 
----
+--- str-from-unicode-bad-type ---
 // Error: 19-22 expected integer, found content
 #str.from-unicode([a])
 
----
+--- str-to-unicode-bad-type ---
 // Error: 17-21 expected exactly one character
 #str.to-unicode("ab")
 
----
+--- str-from-unicode-negative ---
 // Error: 19-21 number must be at least zero
 #str.from-unicode(-1)
 
----
+--- str-from-unicode-bad-value ---
 // Error: 2-28 0x110000 is not a valid codepoint
 #str.from-unicode(0x110000) // 0x10ffff is the highest valid code point
 
----
-#assert(range(2, 5) == (2, 3, 4))
-
----
+--- datetime-display ---
 // Test displaying of dates.
 #test(datetime(year: 2023, month: 4, day: 29).display(), "2023-04-29")
 #test(datetime(year: 2023, month: 4, day: 29).display("[year]"), "2023")
@@ -283,34 +277,34 @@
 #test(datetime.today(offset: auto).display(), "1970-01-01")
 #test(datetime.today(offset: 2).display(), "1970-01-01")
 
----
+--- datetime-constructor-empty ---
 // Error: 2-12 at least one of date or time must be fully specified
 #datetime()
 
----
+--- datetime-constructor-time-invalid ---
 // Error: 2-42 time is invalid
 #datetime(hour: 25, minute: 0, second: 0)
 
----
+--- datetime-constructor-date-invalid ---
 // Error: 2-41 date is invalid
 #datetime(year: 2000, month: 2, day: 30)
 
----
+--- datetime-display-missing-closing-bracket ---
 // Error: 27-34 missing closing bracket for bracket at index 0
 #datetime.today().display("[year")
 
----
+--- datetime-display-invalid-component ---
 // Error: 27-38 invalid component name 'nothing' at index 1
 #datetime.today().display("[nothing]")
 
----
+--- datetime-display-invalid-modifier ---
 // Error: 27-50 invalid modifier 'wrong' at index 6
 #datetime.today().display("[year wrong:last_two]")
 
----
+--- datetime-display-expected-component ---
 // Error: 27-33 expected component name at index 2
 #datetime.today().display("  []")
 
----
+--- datetime-display-insufficient-information ---
 // Error: 2-36 failed to format datetime (insufficient information)
 #datetime.today().display("[hour]")

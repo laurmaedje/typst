@@ -1,7 +1,6 @@
 // Test new raw parser
-// Ref: false
 
----
+--- raw-blocky ---
 #let empty = (
   name: "empty",
   input: ``,

@@ -1,6 +1,6 @@
 // Test if-else expressions.
 
----
+--- if-markup ---
 // Test condition evaluation.
 #if 1 < 2 [
   One.
@@ -10,7 +10,7 @@
   {Bad}, but we {dont-care}!
 ]
 
----
+--- if-condition-complex ---
 // Braced condition.
 #if {true} [
   One.
@@ -54,9 +54,8 @@
   Seven.
 ]
 
----
+--- if-else-if-else ---
 // Test else if.
-// Ref: false
 
 #let nth(n) = {
   str(n)
@@ -72,9 +71,8 @@
 #test(nth(4), "4th")
 #test(nth(5), "5th")
 
----
+--- if-expression ---
 // Value of if expressions.
-// Ref: false
 
 #{
   let x = 1
@@ -94,18 +92,18 @@
   test(z, none)
 }
 
----
+--- if-condition-string-invalid ---
 // Condition must be boolean.
 // If it isn't, neither branch is evaluated.
 // Error: 5-14 expected boolean, found string
 #if "a" + "b" { nope } else { nope }
 
----
+--- if-condition-invalid-and-wrong-type ---
 // Make sure that we don't complain twice.
 // Error: 5-12 cannot add integer and string
 #if 1 + "2" {}
 
----
+--- if-incomplete ---
 // Error: 4 expected expression
 #if
 

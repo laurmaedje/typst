@@ -1,17 +1,20 @@
 // Test the `hide` function.
 
----
+--- hide-text ---
 AB #h(1fr) CD \
 #hide[A]B #h(1fr) C#hide[D]
----
+
+--- hide-line ---
 Hidden:
 #hide[#line(length: 100%)]
 #line(length: 100%)
----
+
+--- hide-table ---
 Hidden:
 #hide(table(rows: 2, columns: 2)[a][b][c][d])
 #table(rows: 2, columns: 2)[a][b][c][d]
----
+
+--- hide-polygon ---
 Hidden:
 #hide[
   #polygon((20%, 0pt),
@@ -23,7 +26,8 @@ Hidden:
   (60%, 0pt),
   (80%, 2cm),
   (0%,  2cm),)
----
+
+--- hide-rect ---
 #set rect(
   inset: 8pt,
   fill: rgb("e4e5ea"),
@@ -51,8 +55,8 @@ Hidden:
   rect[C],
   rect(height: 100%)[D],
 )
----
 
+--- hide-list ---
 Hidden:
 #hide[
 - 1
@@ -69,7 +73,7 @@ Hidden:
   2. B
 - 3
 
----
+--- hide-image ---
 Hidden:
 #hide(image("/assets/images/tiger.jpg", width: 5cm, height: 1cm,))
 

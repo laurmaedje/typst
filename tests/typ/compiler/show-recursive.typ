@@ -1,11 +1,11 @@
 // Test recursive show rules.
 
----
+--- show-recursive-identity ---
 // Test basic identity.
 #show heading: it => it
 = Heading
 
----
+--- show-multiple-rules ---
 // Test more recipes down the chain.
 #show list: scale.with(origin: left, x: 80%)
 #show heading: []
@@ -15,7 +15,7 @@
 - List
 = Nope
 
----
+--- show-rule-in-function ---
 // Test show rule in function.
 #let starwars(body) = {
   show list: it => block({
@@ -38,7 +38,7 @@
 
 - Normal list
 
----
+--- show-recursive-multiple ---
 // Test multi-recursion with nested lists.
 #set rect(inset: 3pt)
 #show list: rect.with(stroke: blue)

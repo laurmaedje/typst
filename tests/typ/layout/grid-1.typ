@@ -1,6 +1,6 @@
 // Test grid layouts.
 
----
+--- grid-columns-sizings-rect ---
 #let cell(width, color) = rect(width: width, height: 2cm, fill: color)
 #set page(width: 100pt, height: 140pt)
 #grid(
@@ -19,7 +19,7 @@
   cell(100%,  rgb("00ff00")),
 )
 
----
+--- grid-gutter-fr ---
 #set rect(inset: 0pt)
 #grid(
   columns: (auto, auto, 40%),
@@ -30,7 +30,7 @@
   rect(fill: rgb("dddddd"))[aaa],
 )
 
----
+--- grid-row-sizing-manual-align ---
 #set page(height: 3cm, margin: 0pt)
 #grid(
   columns: (1fr,),

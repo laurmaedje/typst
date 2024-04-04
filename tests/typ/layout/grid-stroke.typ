@@ -1,3 +1,4 @@
+--- grid-stroke-pattern ---
 #let double-line = pattern(size: (1.5pt, 1.5pt), {
   place(line(stroke: .6pt, start: (0%, 50%), end: (100%, 50%)))
 })
@@ -13,7 +14,7 @@
   [Joseph], [35], [D]
 )
 
----
+--- grid-stroke-folding ---
 // Test folding
 #set grid(stroke: red)
 #set grid(stroke: 5pt)
@@ -29,7 +30,7 @@
   [e], grid.cell(stroke: aqua)[f]
 )
 
----
+--- grid-stroke-set-on-cell-and-line ---
 // Test set rules on cells and folding
 #set table.cell(stroke: 4pt)
 #set table.cell(stroke: blue)
@@ -48,7 +49,7 @@
   [g], [h], [i],
 )
 
----
+--- grid-stroke-field-in-show ---
 // Test stroke field on cell show rules
 #set grid.cell(stroke: (x: 4pt))
 #set grid.cell(stroke: (x: blue))
@@ -63,7 +64,7 @@
   grid.cell(stroke: (top: 1pt))[a], grid.vline(stroke: yellow),
 )
 
----
+--- grid-stroke-complex ---
 #table(
   columns: 3,
   [a], table.cell(colspan: 2)[b c],
@@ -73,7 +74,7 @@
   table.cell(stroke: 3pt)[m], [n], table.cell(stroke: (dash: "loosely-dotted"))[o],
 )
 
----
+--- grid-stroke-array ---
 // Test per-column stroke array
 #let t = table(
   columns: 3,
@@ -86,7 +87,7 @@
 #set text(dir: rtl)
 #t
 
----
+--- grid-stroke-func ---
 #grid(
   columns: 3,
   inset: 3pt,
@@ -101,7 +102,7 @@
   [b], [c]
 )
 
----
+--- grid-stroke-manually-positioned-lines ---
 #set page(height: 5em)
 #table(
   columns: 3,
@@ -117,7 +118,7 @@
   [a], [b], [c],
 )
 
----
+--- grid-stroke-automatically-positioned-lines ---
 // Automatically positioned lines
 // Plus stroke thickness ordering
 #table(
@@ -136,7 +137,7 @@
   [a], table.hline(stroke: green + 2pt), table.vline(stroke: 2pt), [b], [c],
 )
 
----
+--- grid-stroke-priority-line ---
 // Line specification order priority
 // The last line should be blue, not red.
 // The middle aqua line should be gone due to the 'none' override.
@@ -152,7 +153,7 @@
   grid.hline(stroke: blue),
 )
 
----
+--- grid-stroke-hline-position-bottom-gutter ---
 // Position: bottom and position: end with gutter should have a visible effect
 // of moving the lines after the next track.
 #table(
@@ -168,7 +169,7 @@
   table.hline(end: 2, stroke: green),
 )
 
----
+--- grid-stroke-hline-position-bottom ---
 // Using position: bottom and position: end without gutter should be the same
 // as placing a line after the next track.
 #table(
@@ -184,7 +185,7 @@
   table.hline(end: 2, stroke: red),
 )
 
----
+--- grid-stroke-vline-position-left-and-right ---
 // Test left and right for grid vlines.
 #grid(
   columns: 3,
@@ -205,7 +206,7 @@
   grid.vline(stroke: 2pt, position: left)
 )
 
----
+--- table-stroke-vline-position-left-and-right ---
 // Test left and right for table vlines.
 #table(
   columns: 3,
@@ -226,7 +227,7 @@
   table.vline(stroke: 2pt, position: left)
 )
 
----
+--- grid-stroke-priority-line-cell ---
 // Hlines and vlines should always appear on top of cell strokes.
 #table(
   columns: 3,
@@ -247,7 +248,7 @@
   [g], table.cell(stroke: blue)[h], [i],
 )
 
----
+--- grid-stroke-priority-cell ---
 // Ensure cell stroke overrides always appear on top.
 #table(
   columns: 2,
@@ -262,7 +263,7 @@
   [c], [d],
 )
 
----
+--- grid-stroke-hline-position-bad ---
 // Error: 7:3-7:32 cannot place horizontal line at the 'bottom' position of the bottom border (y = 2)
 // Hint: 7:3-7:32 set the line's position to 'top' or place it at a smaller 'y' index
 #table(
@@ -274,7 +275,7 @@
   table.hline(position: bottom)
 )
 
----
+--- grid-stroke-border-partial ---
 // Test partial border line overrides
 #set page(width: auto, height: 7em, margin: (bottom: 1em))
 #table(
@@ -288,7 +289,7 @@
   table.hline(stroke: blue, start: 1, end: 2),
 )
 
----
+--- grid-stroke-vline-colspan ---
 // - Vline should be placed after the colspan.
 // - Hline should be placed under the full-width rowspan.
 #table(
@@ -301,7 +302,7 @@
   table.cell(colspan: 3, rowspan: 2)[a], table.vline(stroke: blue), table.hline(stroke: red)
 )
 
----
+--- grid-stroke-hline-rowspan ---
 // Red line should be above [c] (hline skips the shortest rowspan).
 #set text(6pt)
 #table(
@@ -313,7 +314,7 @@
   [c]
 )
 
----
+--- grid-stroke-hline-position-bottom-out-of-bounds ---
 // Error: 8:3-8:32 cannot place horizontal line at the 'bottom' position of the bottom border (y = 2)
 // Hint: 8:3-8:32 set the line's position to 'top' or place it at a smaller 'y' index
 #table(
@@ -326,7 +327,7 @@
   table.hline(position: bottom)
 )
 
----
+--- grid-stroke-vline-position-bottom-out-of-bounds ---
 // Error: 6:3-6:28 cannot place vertical line at the 'end' position of the end border (x = 2)
 // Hint: 6:3-6:28 set the line's position to 'start' or place it at a smaller 'x' index
 #grid(
@@ -337,7 +338,7 @@
   grid.vline(position: end)
 )
 
----
+--- grid-stroke-vline-position-bottom-out-of-bounds-gutter ---
 // Error: 7:3-7:28 cannot place vertical line at the 'end' position of the end border (x = 2)
 // Hint: 7:3-7:28 set the line's position to 'start' or place it at a smaller 'x' index
 #grid(
@@ -349,7 +350,7 @@
   grid.vline(position: end)
 )
 
----
+--- grid-stroke-hline-out-of-bounds ---
 // Error: 4:3-4:19 cannot place horizontal line at invalid row 3
 #grid(
   [a],
@@ -357,7 +358,7 @@
   grid.hline(y: 3)
 )
 
----
+--- grid-stroke-hline-out-of-bounds-gutter ---
 // Error: 5:3-5:19 cannot place horizontal line at invalid row 3
 #grid(
   gutter: 3pt,
@@ -366,7 +367,7 @@
   grid.hline(y: 3)
 )
 
----
+--- grid-stroke-vline-out-of-bounds ---
 // Error: 4:3-4:20 cannot place vertical line at invalid column 3
 #table(
   columns: 2,
@@ -374,7 +375,7 @@
   table.vline(x: 3)
 )
 
----
+--- grid-stroke-vline-out-of-bounds-gutter ---
 // Error: 5:3-5:20 cannot place vertical line at invalid column 3
 #table(
   columns: 2,
@@ -383,23 +384,23 @@
   table.vline(x: 3)
 )
 
----
+--- table-hline-in-grid ---
 // Error: 7-20 cannot use `table.hline` as a grid line; use `grid.hline` instead
 #grid(table.hline())
 
----
+--- table-vline-in-grid ---
 // Error: 7-20 cannot use `table.vline` as a grid line; use `grid.vline` instead
 #grid(table.vline())
 
----
+--- grid-hline-in-table ---
 // Error: 8-20 cannot use `grid.hline` as a table line; use `table.hline` instead
 #table(grid.hline())
 
----
+--- grid-vline-in-table ---
 // Error: 8-20 cannot use `grid.vline` as a table line; use `table.vline` instead
 #table(grid.vline())
 
----
+--- grid-hline-end-before-start-1 ---
 // Error: 3:3-3:31 line cannot end before it starts
 #grid(
   columns: 3,
@@ -407,7 +408,7 @@
   [a], [b], [c],
 )
 
----
+--- grid-hline-end-before-start-2 ---
 // Error: 3:3-3:32 line cannot end before it starts
 #table(
   columns: 3,
@@ -417,18 +418,18 @@
   [g], [h], [i],
 )
 
----
+--- grid-hline-position-horizon ---
 // Error: 24-31 expected `top` or `bottom`, found horizon
 #table.hline(position: horizon)
 
----
+--- grid-vline-position-center ---
 // Error: 24-30 expected `start`, `left`, `right`, or `end`, found center
 #table.vline(position: center)
 
----
+--- grid-hline-position-right ---
 // Error: 24-29 expected `top` or `bottom`, found right
 #table.hline(position: right)
 
----
+--- grid-vline-position-top ---
 // Error: 24-27 expected `start`, `left`, `right`, or `end`, found top
 #table.vline(position: top)

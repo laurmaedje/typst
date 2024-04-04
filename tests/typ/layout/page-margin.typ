@@ -1,6 +1,6 @@
 // Test page margins.
 
----
+--- page-margin-uniform ---
 // Set all margins at once.
 #[
   #set page(height: 20pt, margin: 5pt)
@@ -8,7 +8,7 @@
   #place(bottom + right)[BR]
 ]
 
----
+--- page-margin-individual ---
 // Set individual margins.
 #set page(height: 40pt)
 #[#set page(margin: (left: 0pt)); #align(left)[Left]]

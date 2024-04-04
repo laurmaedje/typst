@@ -1,11 +1,10 @@
 // Test method calls.
-// Ref: false
 
----
+--- method-whitespace ---
 // Test whitespace around dot.
 #test( "Hi there" . split() , ("Hi", "there"))
 
----
+--- method-mutating ---
 // Test mutating indexed value.
 #{
   let matrix = (((1,), (2,)), ((3,), (4,)))
@@ -13,7 +12,7 @@
   test(matrix, (((1,), (2,)), ((3, 5), (4,))))
 }
 
----
+--- method-multiline ---
 // Test multiline chain in code block.
 #{
   let rewritten = "Hello. This is a sentence. And one more."
@@ -26,41 +25,41 @@
   test(rewritten, "Hello!\n This is a sentence!\n And one more!")
 }
 
----
+--- method-at-default ---
 // Test .at() default values for content.
 #test(auto, [a].at("doesn't exist", default: auto))
 
----
+--- method-unknown ---
 // Error: 2:10-2:13 type array has no method `fun`
 #let numbers = ()
 #numbers.fun()
 
----
+--- method-unknown-but-field-exists ---
 // Error: 2:4-2:10 type content has no method `stroke`
 // Hint: 2:4-2:10 did you mean to access the field `stroke`?
 #let l = line(stroke: red)
 #l.stroke()
 
----
+--- method-mutate-on-temporary ---
 // Error: 2:2-2:43 cannot mutate a temporary value
 #let numbers = (1, 2, 3)
 #numbers.map(v => v / 2).sorted().map(str).remove(4)
 
----
+--- assign-to-method-invalid ---
 // Error: 2:3-2:19 cannot mutate a temporary value
 #let numbers = (1, 2, 3)
 #(numbers.sorted() = 1)
 
----
+--- method-mutate-on-std-constant ---
 // Error: 2-5 cannot mutate a constant: box
 #box.push(1)
 
----
+--- content-fields ---
 // Test content fields method.
 #test([a].fields(), (text: "a"))
 #test([a *b*].fields(),  (children: ([a], [ ], strong[b])))
 
----
+--- length-to-unit ---
 // Test length unit conversions.
 #test((500.934pt).pt(), 500.934)
 #test((3.3453cm).cm(), 3.3453)
@@ -81,7 +80,7 @@
 #test(5em.abs.cm(), 0.0)
 #test((5em + 6in).abs.inches(), 6.0)
 
----
+--- length-to-absolute ---
 // Test length `to-absolute` method.
 #set text(size: 12pt)
 #context {
@@ -97,34 +96,34 @@
   test((10em).to-absolute(), 640pt)
 }
 
----
+--- length-ignore-em-pt-hint ---
 // Error: 2-21 cannot convert a length with non-zero em units (`-6pt + 10.5em`) to pt
 // Hint: 2-21 use `length.abs.pt()` instead to ignore its em component
 #(10.5em - 6pt).pt()
 
----
+--- length-ignore-em-cm-hint ---
 // Error: 2-12 cannot convert a length with non-zero em units (`3em`) to cm
 // Hint: 2-12 use `length.abs.cm()` instead to ignore its em component
 #(3em).cm()
 
----
+--- length-ignore-em-mm-hint ---
 // Error: 2-20 cannot convert a length with non-zero em units (`-226.77pt + 93em`) to mm
 // Hint: 2-20 use `length.abs.mm()` instead to ignore its em component
 #(93em - 80mm).mm()
 
----
+--- length-ignore-em-inches-hint ---
 // Error: 2-24 cannot convert a length with non-zero em units (`432pt + 4.5em`) to inches
 // Hint: 2-24 use `length.abs.inches()` instead to ignore its em component
 #(4.5em + 6in).inches()
 
----
+--- color-space-method ---
 // Test color kind method.
 #test(rgb(1, 2, 3, 4).space(), rgb)
 #test(cmyk(4%, 5%, 6%, 7%).space(), cmyk)
 #test(luma(40).space(), luma)
 #test(rgb(1, 2, 3, 4).space() != luma, true)
 
----
+--- color-components ---
 // Test color '.components()' without conversions
 
 #let test-components(col, ref, has-alpha: true) = {
@@ -135,7 +134,7 @@
     assert.eq(type(a), type(b))
     calc.abs(to-float(a) - to-float(b)) < epsilon
   }
-  
+
   let ref-without-alpha = if has-alpha { ref.slice(0, -1) } else { ref }
   assert.eq(col.components().len(), ref.len())
   assert(col.components().zip(ref).all(are-equal))
@@ -153,7 +152,7 @@
 #test-components(color.hsv(10deg, 20%, 30%), (10deg, 20%, 30%, 100%))
 #test-components(color.hsl(10deg, 20%, 30%), (10deg, 20%, 30%, 100%))
 
----
+--- color-conversions ---
 // Test color conversions.
 #test(rgb(1, 2, 3).to-hex(), "#010203")
 #test(rgb(1, 2, 3, 4).to-hex(), "#01020304")
@@ -176,15 +175,21 @@
 #test-repr(oklch(luma(40)), oklch(27.68%, 0.0, 72.49deg, 100%))
 #test-repr(oklch(rgb(1, 2, 3)), oklch(8.23%, 0.008, 240.75deg, 100%))
 
----
+--- gradient-kind ---
 // Test gradient functions.
 #test(gradient.linear(red, green, blue).kind(), gradient.linear)
+
+--- gradient-stops ---
 #test(gradient.linear(red, green, blue).stops(), ((red, 0%), (green, 50%), (blue, 100%)))
+
+--- gradient-sample ---
 #test(gradient.linear(red, green, blue, space: rgb).sample(0%), red)
 #test(gradient.linear(red, green, blue, space: rgb).sample(25%), rgb("#97873b"))
 #test(gradient.linear(red, green, blue, space: rgb).sample(50%), green)
 #test(gradient.linear(red, green, blue, space: rgb).sample(75%), rgb("#17a08c"))
 #test(gradient.linear(red, green, blue, space: rgb).sample(100%), blue)
+
+--- gradient-space ---
 #test(gradient.linear(red, green, space: rgb).space(), rgb)
 #test(gradient.linear(red, green, space: oklab).space(), oklab)
 #test(gradient.linear(red, green, space: oklch).space(), oklch)
@@ -193,14 +198,20 @@
 #test(gradient.linear(red, green, space: color.linear-rgb).space(), color.linear-rgb)
 #test(gradient.linear(red, green, space: color.hsl).space(), color.hsl)
 #test(gradient.linear(red, green, space: color.hsv).space(), color.hsv)
+
+--- gradient-relative ---
 #test(gradient.linear(red, green, relative: "self").relative(), "self")
 #test(gradient.linear(red, green, relative: "parent").relative(), "parent")
 #test(gradient.linear(red, green).relative(), auto)
+
+--- gradient-angle ---
 #test(gradient.linear(red, green).angle(), 0deg)
 #test(gradient.linear(red, green, dir: ltr).angle(), 0deg)
 #test(gradient.linear(red, green, dir: rtl).angle(), 180deg)
 #test(gradient.linear(red, green, dir: ttb).angle(), 90deg)
 #test(gradient.linear(red, green, dir: btt).angle(), 270deg)
+
+--- gradient-repeat ---
 #test(
   gradient.linear(red, green, blue).repeat(2).stops(),
   ((red, 0%), (green, 25%), (blue, 50%), (red, 50%), (green, 75%), (blue, 100%))
@@ -210,7 +221,7 @@
   ((red, 0%), (green, 25%), (blue, 50%), (green, 75%), (red, 100%))
 )
 
----
+--- align-axis ---
 // Test alignment methods.
 #test(start.axis(), "horizontal")
 #test(end.axis(), "horizontal")
@@ -220,6 +231,8 @@
 #test(top.axis(), "vertical")
 #test(bottom.axis(), "vertical")
 #test(horizon.axis(), "vertical")
+
+--- align-inv ---
 #test(start.inv(), end)
 #test(end.inv(), start)
 #test(left.inv(), right)
@@ -228,9 +241,6 @@
 #test(top.inv(), bottom)
 #test(bottom.inv(), top)
 #test(horizon.inv(), horizon)
-
----
-// Test 2d alignment methods.
 #test((start + top).inv(), (end + bottom))
 #test((end + top).inv(), (start + bottom))
 #test((left + top).inv(), (right + bottom))
@@ -250,26 +260,32 @@
 #test((bottom + end).inv(), (start + top))
 #test((horizon + center).inv(), (center + horizon))
 
----
+--- dir-axis ---
 // Test direction methods.
 #test(ltr.axis(), "horizontal")
 #test(rtl.axis(), "horizontal")
 #test(ttb.axis(), "vertical")
 #test(btt.axis(), "vertical")
+
+--- dir-start ---
 #test(ltr.start(), left)
 #test(rtl.start(), right)
 #test(ttb.start(), top)
 #test(btt.start(), bottom)
+
+--- dir-end ---
 #test(ltr.end(), right)
 #test(rtl.end(), left)
 #test(ttb.end(), bottom)
 #test(btt.end(), top)
+
+--- dir-inv ---
 #test(ltr.inv(), rtl)
 #test(rtl.inv(), ltr)
 #test(ttb.inv(), btt)
 #test(btt.inv(), ttb)
 
----
+--- angle-to-unit ---
 // Test angle methods.
 #test(1rad.rad(), 1.0)
 #test(1.23rad.rad(), 1.23)
@@ -278,7 +294,7 @@
 #test(2.94deg.deg(), 2.94)
 #test(0rad.deg(), 0.0)
 
----
+--- datetime-ordinal ---
 // Test date methods.
 #test(datetime(day: 1, month: 1, year: 2000).ordinal(), 1);
 #test(datetime(day: 1, month: 3, year: 2000).ordinal(), 31 + 29 + 1);

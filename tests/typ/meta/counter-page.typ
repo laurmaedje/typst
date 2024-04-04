@@ -1,5 +1,6 @@
 // Test the page counter.
 
+--- counter-page ---
 #set page(height: 50pt, margin: (bottom: 20pt, rest: 10pt))
 #lorem(12)
 #set page(numbering: "(i)")

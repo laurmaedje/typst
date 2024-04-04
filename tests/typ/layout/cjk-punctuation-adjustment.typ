@@ -1,3 +1,4 @@
+--- cjk-punctuation-adjustment-1 ---
 #set page(width: 15em)
 
 // In the following example, the space between 》！ and ？ should be squeezed.
@@ -15,14 +16,14 @@
 
 #set text(lang: "ja", font: "Noto Serif CJK JP")
 「本当に？」
----
 
+--- cjk-punctuation-adjustment-2 ---
 #set text(lang: "zh", region: "CN", font: "Noto Serif CJK SC")
 《书名〈章节〉》 // the space between 〉 and 》 should be squeezed
 
 〔茸毛〕：很细的毛 // the space between 〕 and ： should be squeezed
 
----
+--- cjk-punctuation-adjustment-3 ---
 #set page(width: 21em)
 #set text(lang: "zh", region: "CN", font: "Noto Serif CJK SC")
 

@@ -1,3 +1,4 @@
+--- text-stroke ---
 #set text(size: 20pt)
 #set page(width: auto)
 测试字体 #lorem(5)

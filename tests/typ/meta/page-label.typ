@@ -1,3 +1,4 @@
+--- page-numbering-pdf-label ---
 #set page(margin: (bottom: 20pt, rest: 10pt))
 #let filler = lorem(20)
 

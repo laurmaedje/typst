@@ -1,22 +1,22 @@
 // Test t and b attachments, part 2.
 
----
+--- math-attach-high ---
 // Test high subscript and superscript.
 $ sqrt(a_(1/2)^zeta), sqrt(a_alpha^(1/2)), sqrt(a_(1/2)^(3/4)) \
   sqrt(attach(a, tl: 1/2, bl: 3/4)),
   sqrt(attach(a, tl: 1/2, bl: 3/4, tr: 1/2, br: 3/4)) $
 
----
+--- math-attach-descender-collision ---
 // Test for no collisions between descenders/ascenders and attachments
 
 $ sup_(x in P_i) quad inf_(x in P_i) $
 $ op("fff",limits: #true)^(y) quad op("yyy", limits:#true)_(f) $
 
----
+--- math-attach-to-group ---
 // Test frame base.
 $ (-1)^n + (1/2 + 3)^(-1/2) $
 
----
+--- math-attach-horizontal-align ---
 #set text(size: 8pt)
 
 // Test that the attachments are aligned horizontally.

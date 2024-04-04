@@ -2,7 +2,7 @@
 // implement `PlainText`
 // https://github.com/typst/typst/issues/3662
 
----
+--- issue-3662-pdf-smartquotes ---
 = It's "Unnormal Heading"
 = It’s “Normal Heading”
 

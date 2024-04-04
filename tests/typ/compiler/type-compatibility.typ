@@ -1,7 +1,6 @@
 // Test compatibility between types and strings.
-// Ref: false
 
----
+--- compatibility-type-string ---
 #test(type(10), int)
 #test(type(10), "integer")
 #test("is " + type(10), "is integer")

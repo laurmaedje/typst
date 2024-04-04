@@ -1,5 +1,6 @@
 // Test CJK-Latin spacing.
 
+--- text-cjk-latin-spacing ---
 #set page(width: 50pt + 10pt, margin: (x: 5pt))
 #set text(lang: "zh", font: "Noto Serif CJK SC", cjk-latin-spacing: auto)
 #set par(justify: true)
@@ -14,7 +15,7 @@
 
 中文，中ab文a中，文ab中文
 
----
+--- issue-2538-cjk-latin-spacing-before-linebreak ---
 // Issue #2538
 #set text(cjk-latin-spacing: auto)
 

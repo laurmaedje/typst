@@ -1,6 +1,6 @@
 // Test gradients with direction.
 
----
+--- gradient-linear-angled ---
 #set page(width: 900pt)
 #for i in range(0, 360, step: 15){
   box(

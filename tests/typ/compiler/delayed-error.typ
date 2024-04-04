@@ -1,6 +1,6 @@
 // Test that errors in show rules are delayed: There can be multiple at once.
 
----
+--- show-delayed-error ---
 // Error: 21-34 panicked with: "hey1"
 #show heading: _ => panic("hey1")
 

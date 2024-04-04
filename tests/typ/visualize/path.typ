@@ -1,6 +1,6 @@
 // Test paths.
 
----
+--- path ---
 #set page(height: 200pt, width: 200pt)
 #table(
   columns: (1fr, 1fr),
@@ -39,14 +39,14 @@
   ),
 )
 
----
+--- path-bad-vertex ---
 // Error: 7-9 path vertex must have 1, 2, or 3 points
 #path(())
 
----
+--- path-bad-point-count ---
 // Error: 7-47 path vertex must have 1, 2, or 3 points
 #path(((0%, 0%), (0%, 0%), (0%, 0%), (0%, 0%)))
 
----
+--- path-bad-point-array ---
 // Error: 7-31 point array must contain exactly two entries
 #path(((0%, 0%), (0%, 0%, 0%)))

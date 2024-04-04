@@ -6,10 +6,8 @@ desktop.ini
 .DS_Store
 
 # Tests and benchmarks
-tests/png
-tests/pdf
-tests/svg
-tests/target
+tests/store
+tests/report.html
 tests/typ/**/*.pdf
 tests/fuzz/target
 tests/fuzz/corpus

@@ -1,6 +1,6 @@
 // Test placing a background image on a page.
 
----
+--- place-background ---
 #set page(paper: "a10", flipped: true)
 #set text(fill: white)
 #place(

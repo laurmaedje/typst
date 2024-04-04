@@ -1,6 +1,6 @@
 // Test configuring font properties.
 
----
+--- text-call-basic ---
 // Set same font size in three different ways.
 #text(20pt)[A]
 #text(2em)[A]
@@ -41,7 +41,7 @@ Emoji: 🐪, 🌋, 🏞
 #set text(font: ("PT Sans", "Twitter Color Emoji"), fallback: false)
 2π = 𝛼 + 𝛽. ✅
 
----
+--- text-call-body ---
 // Test string body.
 #text("Text") \
 #text(red, "Text") \
@@ -49,18 +49,18 @@ Emoji: 🐪, 🌋, 🏞
 #text([Text], teal, font: "IBM Plex Serif") \
 #text(forest, font: "New Computer Modern", [Text]) \
 
----
+--- text-bad-argument ---
 // Error: 11-16 unexpected argument
 #set text(false)
 
----
+--- text-style-bad ---
 // Error: 18-24 expected "normal", "italic", or "oblique"
 #set text(style: "bold", weight: "thin")
 
----
+--- text-bad-extra-argument ---
 // Error: 23-27 unexpected argument
 #set text(size: 10pt, 12pt)
 
----
+--- text-bad-named-argument ---
 // Error: 11-31 unexpected argument: something
 #set text(something: "invalid")

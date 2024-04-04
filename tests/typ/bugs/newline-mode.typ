@@ -1,6 +1,6 @@
 // Test newline continuations.
 
----
+--- newline-continuation-code ---
 #{
   "hello"
     .clusters()
@@ -12,7 +12,7 @@
   }
 }
 
----
+--- newline-continuation-markup ---
 #"hello"
   .codepoints()
 
@@ -23,45 +23,39 @@ else {
   ("1", "2")
 }
 
----
-// Ref: false
+--- newline-continuation-method-blank ---
 #test({
   "hi 1"
 
     .clusters()
 }, ("h", "i", " ", "1"))
 
----
-// Ref: false
+--- newline-continuation-method-line-comment-after ---
 #test({
   "hi 2"// comment
     .clusters()
 }, ("h", "i", " ", "2"))
 
----
-// Ref: false
+--- newline-continuation-method-block-comment-after ---
 #test({
   "hi 3"/* comment */
     .clusters()
 }, ("h", "i", " ", "3"))
 
----
-// Ref: false
+--- newline-continuation-method-line-comment-between ---
 #test({
   "hi 4"
   // comment
     .clusters()
 }, ("h", "i", " ", "4"))
 
----
-// Ref: false
+--- newline-continuation-method-block-comment-between ---
 #test({
   "hi 5"
   /*comment*/.clusters()
 }, ("h", "i", " ", "5"))
 
----
-// Ref: false
+--- newline-continuation-method-comments-and-blanks ---
 #test({
   "hi 6"
   // comment
@@ -71,8 +65,7 @@ else {
     .clusters()
 }, ("h", "i", " ", "6"))
 
----
-// Ref: false
+--- newline-continuation-if-else-comment ---
 #test({
   let foo(x) = {
     if x < 0 { "negative" }

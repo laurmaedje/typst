@@ -1,6 +1,6 @@
 // Some splitting corner cases
 
----
+--- grid-rowspan-split-12 ---
 // Inside the larger rowspan's range, there's an unbreakable rowspan and a
 // breakable rowspan. This should work normally.
 // The auto row will also expand ignoring the last fractional row.
@@ -17,7 +17,7 @@
     [z]
 )
 
----
+--- grid-rowspan-split-13 ---
 // Inset moving to next region bug
 #set page(width: 10cm, height: 2.5cm, margin: 0.5cm)
 #set text(size: 11pt)
@@ -33,7 +33,7 @@
   [G],
 )
 
----
+--- grid-rowspan-split-14 ---
 // Second lorem must be sent to the next page, too big
 #set page(width: 10cm, height: 9cm, margin: 1cm)
 #set text(size: 11pt)
@@ -48,7 +48,7 @@
   [E],
 )
 
----
+--- grid-rowspan-split-15 ---
 // Auto row must expand properly in both cases
 #set text(10pt)
 #show table.cell: it => if it.x == 0 { it } else { layout(size => size.height) }
@@ -76,7 +76,7 @@
   [f]
 )
 
----
+--- grid-rowspan-split-16 ---
 // Expanding on unbreakable auto row
 #set page(height: 7em, margin: (bottom: 2em))
 #grid(
@@ -94,7 +94,7 @@
   [f], [g]
 )
 
----
+--- grid-rowspan-split-17 ---
 #show table.cell.where(x: 0): strong
 #show table.cell.where(y: 0): strong
 #set page(height: 13em)

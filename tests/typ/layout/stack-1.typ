@@ -1,6 +1,6 @@
 // Test stack layouts.
 
----
+--- stack-basic ---
 // Test stacks with different directions.
 #let widths = (
   30pt, 20pt, 40pt, 15pt,
@@ -19,7 +19,7 @@
 #set page(width: 50pt, margin: 0pt)
 #stack(dir: btt, ..items)
 
----
+--- stack-spacing ---
 // Test spacing.
 #set page(width: 50pt, margin: 0pt)
 
@@ -31,7 +31,7 @@
   stack(dir: ltr, spacing: 5pt, x, x, 7pt, 3pt, x),
 )
 
----
+--- stack-overflow ---
 // Test overflow.
 #set page(width: 50pt, height: 30pt, margin: 0pt)
 #box(stack(
@@ -39,7 +39,7 @@
   rect(width: 30pt, height: 13pt, fill: forest),
 ))
 
----
+--- stack-rtl-align-and-fr ---
 // Test aligning things in RTL stack with align function & fr units.
 #set page(width: 50pt, margin: 5pt)
 #set block(spacing: 5pt)

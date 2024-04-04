@@ -1,7 +1,7 @@
 // Test footnotes in columns, even those
 // that are not enabled via `set page`.
 
----
+--- footnote-in-columns ---
 #set page(height: 120pt)
 #align(center, strong[Title])
 #show: columns.with(2)

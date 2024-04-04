@@ -1,6 +1,6 @@
 // Test emph and strong.
 
----
+--- emph-syntax ---
 // Basic.
 _Emphasized and *strong* words!_
 
@@ -19,11 +19,11 @@ _Still #[
 
 ] emphasized._
 
----
+--- emph-and-strong-call-in-word ---
 // Inside of words can still use the functions.
 P#strong[art]ly em#emph[phas]ized.
 
----
+--- strong-delta ---
 // Adjusting the delta that strong applies on the weight.
 Normal
 
@@ -33,18 +33,18 @@ Normal
 #set strong(delta: 150)
 *Medium* and *#[*Bold*]*
 
----
+--- emph-unclosed ---
 // Error: 6-7 unclosed delimiter
 #box[_Scoped] to body.
 
----
+--- emph-ends-at-parbreak ---
 // Ends at paragraph break.
 // Error: 1-2 unclosed delimiter
 _Hello
 
 World
 
----
+--- emph-strong-unclosed-nested ---
 // Error: 11-12 unclosed delimiter
 // Error: 3-4 unclosed delimiter
 #[_Cannot *be interleaved]

@@ -1,6 +1,6 @@
 // Ensure no empty lines before a table that doesn't fit into the first page.
 
----
+--- issue-183-table-lines ---
 #set page(height: 50pt)
 
 Hello

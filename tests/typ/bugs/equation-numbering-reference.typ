@@ -1,9 +1,8 @@
 // In this bug, the hint and error messages for an equation
 // being reference mentioned that it was a "heading" and was
 // lacking the proper path.
-// Ref: false
 
----
+--- issue-numbering-hint ---
 #set page(height: 70pt)
 
 $

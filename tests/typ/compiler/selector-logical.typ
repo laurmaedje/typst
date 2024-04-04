@@ -1,6 +1,6 @@
 //Tests for logical (and/or) selectors
 
----
+--- selector-and-or ---
 = A
 == B
 #figure([Cat], kind: "cat", supplement: [Other])

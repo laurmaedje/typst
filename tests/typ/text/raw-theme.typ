@@ -1,6 +1,6 @@
 // Test code highlighting with custom theme.
 
----
+--- raw-theme ---
 #set page(width: 180pt)
 #set text(6pt)
 #set raw(theme: "/assets/themes/halcyon.tmTheme")

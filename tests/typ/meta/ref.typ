@@ -1,6 +1,6 @@
 // Test references.
 
----
+--- ref-basic ---
 #set heading(numbering: "1.")
 
 = Introduction <intro>
@@ -9,18 +9,18 @@ See @setup.
 == Setup <setup>
 As seen in @intro, we proceed.
 
----
+--- ref-label-missing ---
 // Error: 1-5 label `<foo>` does not exist in the document
 @foo
 
----
+--- ref-label-duplicate ---
 = First <foo>
 = Second <foo>
 
 // Error: 1-5 label `<foo>` occurs multiple times in the document
 @foo
 
----
+--- ref-supplements ---
 #set heading(numbering: "1.", supplement: [Chapter])
 #set math.equation(numbering: "(1)", supplement: [Eq.])
 

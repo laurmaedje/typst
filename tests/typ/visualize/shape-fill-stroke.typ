@@ -1,6 +1,6 @@
 // Test shape fill & stroke.
 
----
+--- shape-fill-stroke ---
 #let variant = rect.with(width: 20pt, height: 10pt)
 #let items = for (i, item) in (
   variant(stroke: none),
@@ -25,7 +25,7 @@
   ..items,
 )
 
----
+--- shape-stroke-folding ---
 // Test stroke folding.
 #let sq(..args) = box(square(size: 10pt, ..args))
 
@@ -39,7 +39,7 @@
 #sq(fill: teal, stroke: blue)
 #sq(fill: teal, stroke: 2pt + blue)
 
----
+--- shape-stroke-composition ---
 // Test stroke composition.
 #set square(stroke: 4pt)
 #set text(font: "Roboto")

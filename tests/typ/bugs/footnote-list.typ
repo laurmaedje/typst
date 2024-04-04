@@ -3,7 +3,7 @@
 // "footnote and its entry are on the same page" invariant somewhat, but at
 // least there shouldn't be extra page breaks.
 
----
+--- issue-1433-footnote-in-list ---
 #set page(height: 100pt)
 #block(height: 50pt, width: 100%, fill: aqua)
 

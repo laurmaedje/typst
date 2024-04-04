@@ -1,12 +1,10 @@
 // Test binary expressions.
-// Ref: false
 
----
+--- ops-add-content ---
 // Test adding content.
-// Ref: true
 #([*Hello* ] + [world!])
 
----
+--- ops-unary-basic ---
 // Test math operators.
 
 // Test plus and minus.
@@ -33,11 +31,11 @@
 #test((1, 2) + (3, 4), (1, 2, 3, 4))
 #test((a: 1) + (b: 2, c: 3), (a: 1, b: 2, c: 3))
 
----
+--- ops-add-too-large ---
 // Error: 3-26 value is too large
 #(9223372036854775807 + 1)
 
----
+--- ops-binary-basic ---
 // Subtraction.
 #test(1-4, 3*-1)
 #test(4cm - 2cm, 2cm)
@@ -114,27 +112,27 @@
   }
 }
 
----
+--- int-base-alternative ---
 // Test numbers with alternative bases.
 #test(0x10, 16)
 #test(0b1101, 13)
 #test(0xA + 0xa, 0x14)
 
----
+--- int-base-binary-invalid ---
 // Error: 2-7 invalid binary number: 0b123
 #0b123
 
----
+--- int-base-hex-invalid ---
 // Error: 2-8 invalid hexadecimal number: 0x123z
 #0x123z
 
----
+--- ops-multiply-inf-with-length ---
 // Test that multiplying infinite numbers by certain units does not crash.
 #(float("inf") * 1pt)
 #(float("inf") * 1em)
 #(float("inf") * (1pt + 1em))
 
----
+--- ops-attempt-nan-length ---
 // Test that trying to produce a NaN scalar (such as in lengths) does not crash.
 #let infpt = float("inf") * 1pt
 #test(infpt - infpt, 0pt)
@@ -142,7 +140,7 @@
 // TODO: this result is surprising
 #test(infpt / float("inf"), 0pt)
 
----
+--- ops-unary-bool ---
 // Test boolean operators.
 
 // Test not.
@@ -165,7 +163,7 @@
 #test(false and dont-care, false)
 #test(true or dont-care, true)
 
----
+--- ops-equality ---
 // Test equality operators.
 
 // Most things compare by value.
@@ -193,7 +191,7 @@
 #test(grid[a] == grid[a], true)
 #test(grid[a] == grid[b], false)
 
----
+--- ops-compare ---
 // Test comparison operators.
 
 #test(13 * 3 < 14 * 4, true)
@@ -219,7 +217,7 @@
 #test(() <= (1,), true)
 #test((1,) <= (), false)
 
----
+--- assign-op ---
 // Test assignment operators.
 
 #let x = 0
@@ -231,7 +229,7 @@
 #(x = "some")   #test(x, "some")
 #(x += "thing") #test(x, "something")
 
----
+--- assign-destructuring ---
 // Test destructuring assignments.
 
 #let a = none
@@ -273,7 +271,7 @@
 #test(a, ((2, 3, 4), 2))
 #test(b, 1)
 
----
+--- assign-destructuring-commas ---
 // Test comma placement in destructuring assignment.
 #let array = (1, 2, 3)
 #((key: array.at(1)) = (key: "hi"))
@@ -291,7 +289,7 @@
 #((array.at(1)) = ("hi",))
 #test(array, (1, ("hi",), 3))
 
----
+--- assign-destructuring-nested ---
 // Test nested destructuring assignment.
 #let a
 #let b
@@ -299,17 +297,13 @@
 #(((a, b), (key: c)) = ((1, 2), (key: 3)))
 #test((a, b, c), (1, 2, 3))
 
----
+--- assign-destructuring-nested-invalid ---
 #let array = (1, 2, 3)
 // Error: 3-17 cannot destructure string
 #((array.at(1),) = ("hi"))
 #test(array, (1, ("hi",), 3))
 
----
-// Error: 3-6 cannot mutate a constant: box
-#(box = 1)
-
----
+--- ops-in ---
 // Test `in` operator.
 #test("hi" in "worship", true)
 #test("hi" in ("we", "hi", "bye"), true)
@@ -324,11 +318,11 @@
 #test("a" not
 /* fun comment? */ in "abc", false)
 
----
+--- ops-not-trailing ---
 // Error: 10 expected keyword `in`
 #("a" not)
 
----
+--- func-with ---
 // Test `with` method.
 
 // Apply positional arguments.

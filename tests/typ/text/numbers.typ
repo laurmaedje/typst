@@ -1,6 +1,6 @@
 // Test how numbers are displayed.
 
----
+--- text-number ---
 // Test numbers in text mode.
 12 \
 12.0 \
@@ -31,7 +31,7 @@
 ٢٠٢٢-٢٠٢٣ \
 -500 -- -400
 
----
+--- int-display ---
 // Test integers.
 #12 \
 #1234567890 \
@@ -43,7 +43,7 @@
 #(-0987654321) \
 #(4 - 8)
 
----
+--- float-display ---
 // Test floats.
 #12.0 \
 #3.14 \
@@ -57,7 +57,7 @@
 #(-3.14) \
 #(4.0 - 8.0)
 
----
+--- int-to-str ---
 // Test the `str` function with integers.
 #str(12) \
 #str(1234567890) \
@@ -69,7 +69,7 @@
 #str(-0987654321) \
 #str(4 - 8)
 
----
+--- float-to-str ---
 // Test the `str` function with floats.
 #str(12.0) \
 #str(3.14) \
@@ -83,7 +83,7 @@
 #str(-3.14) \
 #str(4.0 - 8.0)
 
----
+--- int-repr ---
 // Test the `repr` function with integers.
 #repr(12) \
 #repr(1234567890) \
@@ -95,7 +95,7 @@
 #repr(-0987654321) \
 #repr(4 - 8)
 
----
+--- float-repr ---
 // Test the `repr` function with floats.
 #repr(12.0) \
 #repr(3.14) \

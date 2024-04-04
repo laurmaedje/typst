@@ -1,26 +1,26 @@
 // Tests content field access.
 
----
+--- content-field-materialized-table ---
 // Ensure that fields from set rules are materialized into the element before
 // a show rule runs.
 #set table(columns: (10pt, auto))
 #show table: it => it.columns
 #table[A][B][C][D]
 
----
+--- content-field-materialized-heading ---
 // Test it again with a different element.
 #set heading(numbering: "(I)")
 #show heading: set text(size: 11pt, weight: "regular")
 #show heading: it => it.numbering
 = Heading
 
----
+--- content-field-materialized-query ---
 // Test it with query.
 #set raw(lang: "rust")
 #context query(<myraw>).first().lang
 `raw` <myraw>
 
----
+--- content-fields-complex ---
 // Integrated test for content fields.
 #let compute(equation, ..vars) = {
   let vars = vars.named()

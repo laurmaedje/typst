@@ -1,6 +1,6 @@
 // Test alignment of block equations.
 
----
+--- math-equation-align-unnumbered ---
 // Test unnumbered
 #let eq(alignment) = {
   show math.equation: set align(alignment)
@@ -15,7 +15,7 @@
 #eq(start)
 #eq(end)
 
----
+--- math-equation-align-numbered ---
 // Test numbered
 #let eq(alignment) = {
   show math.equation: set align(alignment)

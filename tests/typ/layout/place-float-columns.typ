@@ -1,6 +1,6 @@
 // Test floats in columns.
 
----
+--- place-float-columns ---
 #set page(height: 200pt, width: 300pt)
 #show: columns.with(2)
 

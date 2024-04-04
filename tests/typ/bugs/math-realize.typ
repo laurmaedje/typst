@@ -1,7 +1,7 @@
 // Test that content in math can be realized without breaking
 // nested equations.
 
----
+--- issue-math-realize-show ---
 #let my = $pi$
 #let f1 = box(baseline: 10pt, [f])
 #let f2 = context f1
@@ -14,12 +14,12 @@ $ a x #link("url", $+ b$) $
 $ f f1 f2 $
 $ vec(1,2) * 2 $
 
----
+--- issue-math-realize-hide ---
 $ x^2 #hide[$(>= phi.alt) union y^2 0$] z^2 $
 Hello #hide[there $x$]
 and #hide[$ f(x) := x^2 $]
 
----
+--- issue-math-realize-scripting ---
 // Test equations can embed equation pieces built by functions
 #let foo(v1, v2) = {
   // Return an equation piece that would've been rendered in

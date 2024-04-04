@@ -1,6 +1,6 @@
 // Test equation numbering.
 
----
+--- math-equation-numbering ---
 #set page(width: 150pt)
 #set math.equation(numbering: "(I)")
 

@@ -1,5 +1,4 @@
 // Test that lone underscore works.
-// Ref: false
 
----
+--- args-lone-underscore ---
 #test((1, 2, 3).map(_ => {}).len(), 3)

@@ -1,6 +1,6 @@
 // Test representation of values in the document.
 
----
+--- repr-color ---
 // Colors
 #set page(width: 400pt)
 #set text(0.8em)
@@ -13,7 +13,7 @@
 #color.hsv(blue) \
 #luma(blue)
 
----
+--- repr-gradient ---
 // Gradients
 #set page(width: 400pt)
 #set text(0.8em)

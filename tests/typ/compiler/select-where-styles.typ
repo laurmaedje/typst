@@ -1,6 +1,6 @@
 // Test that where selectors also work with settable fields.
 
----
+--- selector-where-optional-field-raw ---
 // Test that where selectors also trigger on set rule fields.
 #show raw.where(block: false): box.with(
   fill: luma(220),
@@ -11,7 +11,7 @@
 
 This is #raw("fn main() {}") some text.
 
----
+--- selector-where-optional-field-text ---
 // Note: This show rule is horribly inefficient because it triggers for
 // every individual text element. But it should still work.
 #show text.where(lang: "de"): set text(red)
@@ -25,7 +25,7 @@ Hallo Welt!
 #set text(lang: "en")
 Hello World!
 
----
+--- selector-where-folding-text-size ---
 // Test that folding is taken into account.
 #set text(5pt)
 #set text(2em)
@@ -40,7 +40,7 @@ Hello World!
   10pt blue
 ]
 
----
+--- selector-where-folding-stroke ---
 // Test again that folding is taken into account.
 #set rect(width: 40pt, height: 10pt)
 #set rect(stroke: blue)
@@ -59,7 +59,7 @@ Hello World!
   rect()
 }
 
----
+--- selector-where-resolving-length ---
 // Test that resolving is *not* taken into account.
 #set line(start: (1em, 1em + 2pt))
 
@@ -73,7 +73,7 @@ Hello World!
 }
 
 
----
+--- selector-where-resolving-hyphenate ---
 // Test again that resolving is *not* taken into account.
 #set text(hyphenate: auto)
 

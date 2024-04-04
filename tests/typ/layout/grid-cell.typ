@@ -1,6 +1,6 @@
 // Test basic styling using the grid.cell element.
 
----
+--- grid-cell-override ---
 // Cell override
 #grid(
   align: left,
@@ -18,7 +18,7 @@
   [H], grid.cell(fill: blue)[J]
 )
 
----
+--- grid-cell-show ---
 // Cell show rule
 #show grid.cell: it => [Zz]
 
@@ -35,7 +35,7 @@
   align(horizon)[G], [A\ A\ A]
 )
 
----
+--- grid-cell-show-and-override ---
 #show grid.cell: it => (it.align, it.fill)
 #grid(
   align: left,
@@ -45,7 +45,7 @@
   grid.cell(fill: aqua)[B],
 )
 
----
+--- grid-cell-set ---
 // Cell set rules
 #set grid.cell(align: center)
 #show grid.cell: it => (it.align, it.fill, it.inset)
@@ -58,7 +58,7 @@
   grid.cell(fill: aqua)[B],
 )
 
----
+--- grid-cell-folding ---
 // Test folding per-cell properties (align and inset)
 #grid(
   columns: (1fr, 1fr),
@@ -70,7 +70,7 @@
   grid.cell(inset: (bottom: 0pt))[Bot], grid.cell(inset: (bottom: 0pt))[Bot]
 )
 
----
+--- grid-cell-align-override ---
 // Test overriding outside alignment
 #set align(bottom + right)
 #grid(
@@ -82,8 +82,7 @@
   grid.cell(align: left, fill: aqua)[BL], grid.cell(align: top, fill: red.lighten(50%))[TR]
 )
 
----
-// First doc example
+--- grid-cell-various-overrides ---
 #grid(
   columns: 2,
   fill: red,
@@ -95,7 +94,7 @@
   [G], grid.cell(inset: 0pt)[H]
 )
 
----
+--- grid-cell-show-emph ---
 #{
   show grid.cell: emph
   grid(
@@ -106,7 +105,7 @@
   )
 }
 
----
+--- grid-cell-show-based-on-position ---
 // Style based on position
 #{
   show grid.cell: it => {
@@ -128,6 +127,6 @@
   )
 }
 
----
+--- table-cell-in-grid ---
 // Error: 7-19 cannot use `table.cell` as a grid cell; use `grid.cell` instead
 #grid(table.cell[])

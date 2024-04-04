@@ -1,5 +1,4 @@
-
----
+--- query-before-after ---
 #set page(
   paper: "a7",
   numbering: "1 / 1",
@@ -47,8 +46,7 @@
 === Subsubsection 3
 == Subsection 3
 
----
-
+--- query-and-or ---
 #set page(
   paper: "a7",
   numbering: "1 / 1",

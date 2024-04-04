@@ -1,7 +1,6 @@
 // Test break and continue in loops.
-// Ref: false
 
----
+--- loop-break-basic ---
 // Test break.
 
 #let var = 0
@@ -18,7 +17,7 @@
 #test(var, 21)
 #test(error, false)
 
----
+--- loop-break-join-basic ---
 // Test joining with break.
 
 #let i = 0
@@ -33,7 +32,7 @@
 
 #test(x, "12345.")
 
----
+--- loop-continue-basic ---
 // Test continue.
 
 #let i = 0
@@ -50,7 +49,7 @@
 // If continue did not work, this would equal 10.
 #test(x, 12)
 
----
+--- loop-continue-join ---
 // Test joining with continue.
 
 #let x = for i in range(5) {
@@ -64,7 +63,7 @@
 
 #test(x, "a_a1a2a_a4")
 
----
+--- loop-break-outside-of-loop ---
 // Test break outside of loop.
 #let f() = {
   // Error: 3-8 cannot break outside of loop
@@ -75,7 +74,7 @@
   f()
 }
 
----
+--- loop-break-join-in-last-arg ---
 // Test break in function call.
 #let identity(x) = x
 #let out = for i in range(5) {
@@ -89,18 +88,17 @@
 
 #test(out, "AB")
 
----
+--- loop-continue-outside-of-loop-in-block ---
 // Test continue outside of loop.
 
 // Error: 12-20 cannot continue outside of loop
 #let x = { continue }
 
----
+--- loop-continue-outside-of-loop-in-markup ---
 // Error: 2-10 cannot continue outside of loop
 #continue
 
----
-// Ref: true
+--- loop-break-join-in-nested-blocks ---
 // Should output `Hello World 🌎`.
 #for _ in range(10) {
   [Hello ]
@@ -110,8 +108,7 @@
   }]
 }
 
----
-// Ref: true
+--- loop-break-join-set-and-show ---
 // Should output `Some` in red, `Some` in blue and `Last` in green.
 // Everything should be in smallcaps.
 #for color in (red, blue, green, yellow) [
@@ -125,8 +122,7 @@
   ])
 ]
 
----
-// Ref: true
+--- loop-break-join-in-set-rule-args ---
 // Test break in set rule.
 // Should output `Hi` in blue.
 #for i in range(10) {
@@ -135,9 +131,8 @@
   [Not happening]
 }
 
----
+--- loop-break-join-in-first-arg ---
 // Test second block during break flow.
-// Ref: true
 
 #for i in range(10) {
   table(
@@ -146,8 +141,7 @@
   )
 }
 
----
-// Ref: true
+--- loop-continue-during-destructuring ---
 // Test continue while destructuring.
 // Should output "one = I \ two = II \ one = I".
 #for num in (1, 2, 3, 1) {

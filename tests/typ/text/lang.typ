@@ -1,6 +1,6 @@
 // Test setting the document language.
 
----
+--- text-lang-hyphenate ---
 // Ensure that setting the language does have effects.
 #set text(hyphenate: true)
 #grid(
@@ -10,7 +10,7 @@
   text(lang: "de")["Eingabeaufforderung"],
 )
 
----
+--- text-lang-shaping ---
 // Test that the language passed to the shaper has an effect.
 #set text(font: "Ubuntu")
 
@@ -22,7 +22,7 @@
 #text(lang: "uk")[Бб]
 #text(lang: "sr")[Бб]
 
----
+--- text-lang-script-shaping ---
 // Verify that writing script/language combination has an effect
 #{
   set text(size:20pt)
@@ -34,26 +34,26 @@
   [Ş ]
 }
 
----
+--- text-script-bad-type ---
 // Error: 19-23 expected string or auto, found none
 #set text(script: none)
 
----
+--- text-script-bad-value ---
 // Error: 19-23 expected three or four letter script code (ISO 15924 or 'math')
 #set text(script: "ab")
 
----
+--- text-lang-bad-type ---
 // Error: 17-21 expected string, found none
 #set text(lang: none)
 
----
+--- text-lang-bad-value ---
 // Error: 17-20 expected two or three letter language code (ISO 639-1/2/3)
 #set text(lang: "ӛ")
 
----
+--- text-lang-bad-value-emoji ---
 // Error: 17-20 expected two or three letter language code (ISO 639-1/2/3)
 #set text(lang: "😃")
 
----
+--- text-region-bad-value ---
 // Error: 19-24 expected two letter region code (ISO 3166-1 alpha-2)
 #set text(region: "hey")

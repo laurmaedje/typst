@@ -1,10 +1,10 @@
 // Test the `rect` function.
 
----
+--- rect ---
 // Default rectangle.
 #rect()
 
----
+--- rect-customization ---
 #set page(width: 150pt)
 
 // Fit to text.
@@ -46,15 +46,15 @@
 #set rect(stroke: (right: red))
 #rect(width: 100%, fill: lime, stroke: (x: 5pt, y: 1pt))
 
----
+--- rect-radius-bad-key ---
 // Error: 15-38 unexpected key "cake", valid keys are "top-left", "top-right", "bottom-right", "bottom-left", "left", "top", "right", "bottom", and "rest"
 #rect(radius: (left: 10pt, cake: 5pt))
 
----
+--- red-stroke-bad-type ---
 // Error: 15-21 expected length, color, gradient, pattern, dictionary, stroke, none, or auto, found array
 #rect(stroke: (1, 2))
 
----
+--- issue-1825-rect-overflow ---
 #set page(width: 17.8cm)
 #lorem(100)
 #rect(lorem(100))
@@ -62,7 +62,7 @@
 #lorem(100)
 #rect(lorem(100))
 
----
+--- issue-3264-rect-negative-dimensions ---
 // Negative dimensions
 #rect(width: -1cm, fill: gradient.linear(red, blue))[Reverse left]
 
@@ -75,4 +75,3 @@
 #align(right, rect(width: -1cm, fill: gradient.linear(red, blue))[Reverse right])
 
 #align(right, rect(width: 1cm, fill: gradient.linear(red, blue))[Right])
-

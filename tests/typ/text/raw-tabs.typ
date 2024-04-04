@@ -1,6 +1,6 @@
 // Test tabs in raw code.
 
----
+--- raw-tab-size ---
 #set raw(tab-size: 8)
 
 ```tsv

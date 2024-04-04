@@ -1,7 +1,6 @@
 // Test field access.
-// Ref: false
 
----
+--- field-dict ---
 // Test field on dictionary.
 #let dict = (nothing: "ness", hello: "world")
 #test(dict.nothing, "ness")
@@ -12,7 +11,7 @@
   test(world, "world")
 }
 
----
+--- field-element ---
 // Test fields on elements.
 #show list: it => {
   test(it.children.len(), 3)
@@ -22,48 +21,48 @@
 - B
 - C
 
----
+--- field-function ---
 // Test fields on function scopes.
 #enum.item
 #assert.eq
 #assert.ne
 
----
+--- field-normal-function-invalid ---
 // Error: 9-16 function `assert` does not contain field `invalid`
 #assert.invalid
 
----
+--- field-elem-function-invalid ---
 // Error: 7-14 function `enum` does not contain field `invalid`
 #enum.invalid
 
----
+--- field-elem-function-invalid-call ---
 // Error: 7-14 function `enum` does not contain field `invalid`
 #enum.invalid()
 
----
+--- field-closure-invalid ---
 // Closures cannot have fields.
 #let f(x) = x
 // Error: 4-11 cannot access fields on user-defined functions
 #f.invalid
 
----
+--- field-dict-empty ---
 // Error: 6-13 dictionary does not contain key "invalid"
 #(:).invalid
 
----
+--- field-bool-invalid ---
 // Error: 8-10 cannot access fields on type boolean
 #false.ok
 
----
+--- field-element-unknown ---
 // Error: 25-28 content does not contain field "fun"
 #show heading: it => it.fun
 = A
 
----
+--- field-bool-keyword-invalid ---
 // Error: 9-13 cannot access fields on type boolean
 #{false.true}
 
----
+--- relative-fields ---
 // Test relative length fields.
 #test((100% + 2em + 2pt).ratio, 100%)
 #test((100% + 2em + 2pt).length, 2em + 2pt)
@@ -71,7 +70,7 @@
 #test((100% + 2pt - 2pt).length, 0pt)
 #test((56% + 2pt - 56%).ratio, 0%)
 
----
+--- length-fields ---
 // Test length fields.
 #test((1pt).em, 0.0)
 #test((1pt).abs, 1pt)
@@ -80,7 +79,7 @@
 #test((2em + 2pt).em, 2.0)
 #test((2em + 2pt).abs, 2pt)
 
----
+--- stroke-fields-simple ---
 // Test stroke fields for simple strokes.
 #test((1em + blue).paint, blue)
 #test((1em + blue).thickness, 1em)
@@ -89,7 +88,7 @@
 #test((1em + blue).dash, auto)
 #test((1em + blue).miter-limit, auto)
 
----
+--- stroke-fields-complex ---
 // Test complex stroke fields.
 #let r1 = rect(stroke: (paint: cmyk(1%, 2%, 3%, 4%), thickness: 4em + 2pt, cap: "round", join: "bevel", miter-limit: 5.0, dash: none))
 #let r2 = rect(stroke: (paint: cmyk(1%, 2%, 3%, 4%), thickness: 4em + 2pt, cap: "round", join: "bevel", miter-limit: 5.0, dash: (3pt, "dot", 4em)))
@@ -107,7 +106,7 @@
 #test(s2.dash, (array: (3pt, "dot", 4em), phase: 0pt))
 #test(s3.dash, (array: (3pt, "dot", 4em), phase: 5em))
 
----
+---  align-fields-x ---
 // Test 2d alignment 'horizontal' field.
 #test((start + top).x, start)
 #test((end + top).x, end)
@@ -128,7 +127,7 @@
 #test((bottom + end).x, end)
 #test((horizon + center).x, center)
 
----
+---  align-fields-y ---
 // Test 2d alignment 'vertical' field.
 #test((start + top).y, top)
 #test((end + top).y, top)
@@ -149,49 +148,49 @@
 #test((bottom + end).y, bottom)
 #test((horizon + center).y, horizon)
 
----
+--- symbol-fields-mutable-invalid ---
 #{
   let object = sym.eq.not
   // Error: 3-9 cannot mutate fields on symbol
   object.property = "value"
 }
 
----
+--- content-fields-mutable-invalid ---
 #{
   let object = [hi]
   // Error: 3-9 cannot mutate fields on content
   object.property = "value"
 }
 
----
+--- module-fields-mutable-invalid ---
 #{
   let object = calc
   // Error: 3-9 cannot mutate fields on module
   object.property = "value"
 }
 
----
+--- function-fields-mutable-invalid ---
 #{
   let object = calc.sin
   // Error: 3-9 cannot mutate fields on function
   object.property = "value"
 }
 
----
+--- none-fields-invalid ---
 #{
   let object = none
   // Error: 3-9 none does not have accessible fields
   object.property = "value"
 }
 
----
+--- int-fields-invalid ---
 #{
   let object = 10
   // Error: 3-9 integer does not have accessible fields
   object.property = "value"
 }
 
----
+--- stroke-fields-mutable-invalid ---
 #{
   let s = 1pt + red
   // Error: 3-4 fields on stroke are not yet mutable

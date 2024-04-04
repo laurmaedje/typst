@@ -1,6 +1,6 @@
 // Test iterative auto column shrinking.
 
----
+--- grid-auto-shrink ---
 #set page(width: 210mm - 2 * 2.5cm + 2 * 10pt)
 #set text(11pt)
 #table(

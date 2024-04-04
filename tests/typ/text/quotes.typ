@@ -1,6 +1,6 @@
 // Test smart quotes.
 
----
+--- smartquote ---
 #set page(width: 250pt)
 
 // Test simple quotations in various languages.
@@ -37,34 +37,34 @@
 #set text(lang: "ru")
 "Лошадь не ест салат из огурцов" - это была первая фраза, сказанная по 'телефону'.
 
----
+--- smartquote-empty ---
 // Test single pair of quotes.
 ""
 
----
+--- smartquote-apostrophe ---
 // Test sentences with numbers and apostrophes.
 The 5'11" 'quick' brown fox jumps over the "lazy" dog's ear.
 
 He said "I'm a big fella."
 
----
+--- smartquote-escape ---
 // Test escape sequences.
 The 5\'11\" 'quick\' brown fox jumps over the \"lazy" dog\'s ear.
 
----
+--- smartquote-disable ---
 // Test turning smart quotes off.
 He's told some books contain questionable "example text".
 
 #set smartquote(enabled: false)
 He's told some books contain questionable "example text".
 
----
+--- smartquote-disabled-temporarily ---
 // Test changing properties within text.
 "She suddenly started speaking french: #text(lang: "fr")['Je suis une banane.']" Roman told me.
 
 Some people's thought on this would be #[#set smartquote(enabled: false); "strange."]
 
----
+--- smartquote-nesting ---
 // Test nested double and single quotes.
 "'test statement'" \
 "'test' statement" \

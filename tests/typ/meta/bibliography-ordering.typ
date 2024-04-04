@@ -1,3 +1,4 @@
+--- bibliography-ordering ---
 #set page(width: 300pt)
 
 @mcintosh_anxiety

@@ -1,6 +1,6 @@
 // Test that grid base for auto rows makes sense.
 
----
+--- issue-grid-base-auto-row ---
 #set page(height: 150pt)
 #table(
   columns: (1.5cm, auto),
@@ -10,7 +10,7 @@
   rect(width: 100%, height: 50%, fill: green),
 )
 
----
+--- issue-grid-base-auto-row-list ---
 #rect(width: 100%, height: 1em)
 - #rect(width: 100%, height: 1em)
   - #rect(width: 100%, height: 1em)

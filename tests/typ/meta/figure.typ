@@ -1,6 +1,6 @@
 // Test figures.
 
----
+--- figure-basic ---
 #set page(width: 150pt)
 #set figure(numbering: "I")
 
@@ -23,8 +23,7 @@ We can clearly see that @fig-cylinder and
   caption: [The complex table.],
 ) <tab-complex>
 
----
-
+--- figure-table ---
 // Testing figures with tables.
 #figure(
   table(
@@ -35,8 +34,7 @@ We can clearly see that @fig-cylinder and
   caption: "A table containing images."
 ) <fig-image-in-table>
 
----
-
+--- figure-theorem ---
 // Testing show rules with figures with a simple theorem display
 #show figure.where(kind: "theorem"): it => {
   let name = none
@@ -94,14 +92,14 @@ We can clearly see that @fig-cylinder and
   caption: [Hello world in _rust_],
 )
 
----
+--- figure-breakable ---
 // Test breakable figures
 #set page(height: 6em)
 #show figure: set block(breakable: true)
 
 #figure(table[a][b][c][d][e], caption: [A table])
 
----
+--- figure-caption-separator ---
 // Test custom separator for figure caption
 #set figure.caption(separator: [ --- ])
 

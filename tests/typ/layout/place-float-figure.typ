@@ -1,6 +1,6 @@
 // Test floating figures.
 
----
+--- place-float-figure ---
 #set page(height: 250pt, width: 150pt)
 
 = Introduction

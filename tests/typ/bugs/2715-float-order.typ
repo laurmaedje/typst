@@ -1,3 +1,4 @@
+--- issue-2715-float-order ---
 #set page(height: 180pt)
 #set figure(placement: auto)
 

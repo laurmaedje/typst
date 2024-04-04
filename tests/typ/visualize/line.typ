@@ -1,6 +1,6 @@
 // Test lines.
 
----
+--- line-basic ---
 #set page(height: 60pt)
 #box({
   set line(stroke: 0.75pt)
@@ -11,7 +11,7 @@
 
 #line(end: (70%, 50%))
 
----
+--- line-positioning ---
 // Test the angle argument and positioning.
 
 #set page(fill: rgb("0B1026"))
@@ -40,12 +40,12 @@
   ..((star(20pt, stroke: 0.5pt),) * 9)
 ))
 
----
+--- line-bad-point-array ---
 // Test errors.
 
 // Error: 12-19 point array must contain exactly two entries
 #line(end: (50pt,))
 
----
+--- line-bad-point-component-type ---
 // Error: 14-26 expected relative length, found angle
 #line(start: (3deg, 10pt), length: 5cm)

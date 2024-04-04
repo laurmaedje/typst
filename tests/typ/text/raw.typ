@@ -1,19 +1,19 @@
 // Test raw blocks.
 
----
+--- raw-consecutive-single-backticks ---
 // No extra space.
 `A``B`
 
----
+--- raw-empty ---
 // Empty raw block.
 Empty raw block:``.
 
----
+--- raw-typst-lang ---
 // Typst syntax inside.
 ```typ #let x = 1``` \
 ```typ #f(1)```
 
----
+--- raw-block-no-parbreaks ---
 // Multiline block splits paragraphs.
 
 Text
@@ -22,13 +22,13 @@ fn code() {}
 ```
 Text
 
----
+--- raw-more-backticks ---
 // Lots of backticks inside.
 ````
 ```backticks```
 ````
 
----
+--- raw-trimming ---
 // Trimming.
 
 // Space between "rust" and "let" is trimmed.
@@ -41,18 +41,18 @@ The keyword ```rust let```.
 (``` trimmed ```) \
 (``` trimmed```) \
 
----
+--- raw-single-backtick-lang ---
 // Single ticks should not have a language.
 `rust let`
 
----
+--- raw-dedent-first-line ---
 // First line is not dedented and leading space is still possible.
      ```   A
         B
        C
      ```
 
----
+--- raw-dedent-empty-line ---
 // Do not take empty lines into account when computing dedent.
 ```
         A
@@ -60,7 +60,7 @@ The keyword ```rust let```.
         B
 ```
 
----
+--- raw-dedent-last-line ---
 // Take last line into account when computing dedent.
 ```
         A
@@ -68,12 +68,12 @@ The keyword ```rust let```.
         B
     ```
 
----
+--- raw-show-set ---
 // Text show rule
 #show raw: set text(font: "Roboto")
 `Roboto`
 
----
+--- raw-unclosed ---
 // Unterminated.
 // Error: 1-2:1 unclosed raw text
 `endless

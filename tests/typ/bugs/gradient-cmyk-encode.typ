@@ -1,6 +1,6 @@
 // Test that CMYK works on gradients
 
----
+--- issue-gradient-cmyk-encode ---
 #set page(margin: 0pt, width: 200pt, height: auto)
 
 #let violet = cmyk(75%, 80%, 0%, 0%)

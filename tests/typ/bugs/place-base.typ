@@ -1,6 +1,6 @@
 // Test that placement is relative to container and not itself.
 
----
+--- issue-place-base ---
 #set page(height: 80pt, margin: 0pt)
 #place(right, dx: -70%, dy: 20%, [First])
 #place(left, dx: 20%, dy: 60%, [Second])

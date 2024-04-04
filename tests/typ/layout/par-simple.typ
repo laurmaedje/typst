@@ -1,6 +1,6 @@
 // Test plain text.
 
----
+--- par-basic ---
 #set page(width: 250pt, height: 120pt)
 
 But, soft! what light through yonder window breaks? It is the east, and Juliet

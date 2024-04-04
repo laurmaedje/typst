@@ -3,7 +3,7 @@
 //
 // Issue: https://github.com/typst/typst/issues/1597
 
----
+--- issue-1597-cite-footnote ---
 #set page(height: 60pt)
 #lorem(4)
 

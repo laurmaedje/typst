@@ -1,6 +1,6 @@
 // Test list attaching.
 
----
+--- list-attached ---
 // Test basic attached list.
 Attached to:
 - the bottom
@@ -8,7 +8,7 @@ Attached to:
 
 Next paragraph.
 
----
+--- list-attached-above-spacing ---
 // Test that attached list isn't affected by block spacing.
 #show list: set block(above: 100pt)
 Hello
@@ -16,7 +16,7 @@ Hello
 World
 - B
 
----
+--- list-non-attached-followed-by-attached ---
 // Test non-attached list followed by attached list,
 // separated by only word.
 Hello
@@ -26,7 +26,7 @@ Hello
 World
 - B
 
----
+--- list-tight-non-attached-tight ---
 // Test non-attached tight list.
 #set block(spacing: 15pt)
 Hello
@@ -38,7 +38,7 @@ World
 
 More.
 
----
+--- list-wide-cannot-attach ---
 // Test that wide lists cannot be ...
 #set block(spacing: 15pt)
 Hello
@@ -47,7 +47,7 @@ Hello
 - B
 World
 
----
+--- list-wide-really-cannot-attach ---
 // ... even if forced to.
 Hello
 #list(tight: false)[A][B]

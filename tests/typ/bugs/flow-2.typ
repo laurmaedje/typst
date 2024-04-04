@@ -1,7 +1,7 @@
 // In this bug, the first part of the paragraph moved down to the second page
 // because trailing leading wasn't trimmed, resulting in an overlarge frame.
 
----
+--- issue-flow-trailing-leading ---
 #set page(height: 60pt)
 #v(19pt)
 #block[

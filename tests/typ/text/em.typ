@@ -1,6 +1,6 @@
 // Test font-relative sizing.
 
----
+--- text-size-em-nesting ---
 #set text(size: 5pt)
 A // 5pt
 #[
@@ -16,7 +16,7 @@ A // 5pt
 ]
 G // 5pt
 
----
+--- text-size-em ---
 // Test using ems in arbitrary places.
 #set text(size: 5pt)
 #set text(size: 2em)

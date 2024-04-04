@@ -2,7 +2,7 @@
 // the rest moved down. The reason was that the second block resulted in
 // overlarge frames because the region wasn't finished properly.
 
----
+--- issue-flow-overlarge-frames ---
 #set page(height: 70pt)
 #block[This file tests a bug where an almost empty page occurs.]
 #block[

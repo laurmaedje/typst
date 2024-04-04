@@ -1,9 +1,9 @@
 // Test shorthands for unicode codepoints.
 
----
+--- shorthand-nbsp-and-shy-hyphen ---
 The non-breaking space~does work, soft-?hyphen also does.
 
----
+--- shorthand-nbsp-width ---
 // Make sure non-breaking and normal space always
 // have the same width. Even if the font decided
 // differently.
@@ -11,15 +11,15 @@ The non-breaking space~does work, soft-?hyphen also does.
 a b \
 a~b
 
----
+--- shorthand-dashes ---
 - En dash: --
 - Em dash: ---
 
----
+--- shorthand-ellipsis ---
 #set text(font: "Roboto")
 A... vs #"A..."
 
----
+--- shorthands-math ---
 // Check all math shorthands
 $...$\
 $-$\

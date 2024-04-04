@@ -2,9 +2,8 @@
 // If this regresses, the test suite will not terminate, which is a bit
 // unfortunate compared to a good error, but at least we know something is up.
 //
-// Ref: false
 
----
+--- parser-backtracking-param-default-value ---
 #{
   let s = "(x: 1) => x"
   let pat = "(x: {}) => 1 + x()"
@@ -14,7 +13,7 @@
   test(eval(s)(), 51)
 }
 
----
+--- parser-backtracking-destructuring-assignment ---
 #{
   let s = "(x) = 1"
   let pat = "(x: {_}) = 1"
@@ -25,7 +24,7 @@
   eval(s)
 }
 
----
+--- parser-backtracking-destructuring-whitespace ---
 // Test whitespace after memoized part.
 #( (x: () => 1 ) => 1 )
 //     -------

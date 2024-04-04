@@ -1,10 +1,10 @@
 // Test t and b attachments, part 1.
 
----
+--- math-attach-postscripts ---
 // Test basics, postscripts.
 $f_x + t^b + V_1^2 + attach(A, t: alpha, b: beta)$
 
----
+--- math-attach-prescripts ---
 // Test basics, prescripts. Notably, the upper and lower prescripts' content need to be
 // aligned on the right edge of their bounding boxes, not on the left as in postscripts.
 $
@@ -12,7 +12,7 @@ attach(upright(O), bl: 8, tl: 16, br: 2, tr: 2-),
 attach("Pb", bl: 82, tl: 207) + attach(upright(e), bl: -1, tl: 0) + macron(v)_e \
 $
 
----
+--- math-attach-mixed ---
 // A mixture of attachment positioning schemes.
 $
 attach(a, tl: u),   attach(a, tr: v),   attach(a, bl: x),
@@ -41,12 +41,12 @@ attach(limits(a), t: t, b: b, tr: v, br: y),
 attach(a, tl: u, t: t, tr: v, bl: x, b: b, br: y)
 $
 
----
+--- math-attach-followed-by-func-call ---
 // Test function call after subscript.
 $pi_1(Y), a_f(x), a^zeta (x), a^abs(b)_sqrt(c) \
  a^subset.eq (x), a_(zeta(x)), pi_(1(Y)), a^(abs(b))_(sqrt(c))$
 
----
+--- math-attach-nested ---
 // Test associativity and scaling.
 $ 1/(V^2^3^4^5),
   frac(

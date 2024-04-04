@@ -1,6 +1,6 @@
 // Test whether `relative: "parent"` works correctly on radial gradients.
 
----
+--- gradient-radial-relative-parent ---
 // The image should look as if there is a single gradient that is being used for
 // both the page and the rectangles.
 #let grad = gradient.radial(red, blue, green, purple, relative: "parent");
@@ -14,7 +14,7 @@
 #place(top + right, my-rect)
 #place(bottom + center, rotate(45deg, my-rect))
 
----
+--- gradient-radial-relative-self ---
 // The image should look as if there are multiple gradients, one for each
 // rectangle.
 #let grad = gradient.radial(red, blue, green, purple, relative: "self");

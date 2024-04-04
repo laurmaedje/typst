@@ -1,7 +1,7 @@
 // Grid now skips a remaining region when one of the cells
 // doesn't fit into it at all.
 
----
+--- issue-grid-skip ---
 #set page(height: 100pt)
 #grid(
   columns: (2cm, auto),
@@ -14,7 +14,7 @@
   polygon(fill: red, (0%, 0%), (100%, 0%), (100%, 20%))
 )
 
----
+--- issue-grid-skip-list ---
 #set page(height: 60pt)
 #lorem(5)
 - #lorem(5)

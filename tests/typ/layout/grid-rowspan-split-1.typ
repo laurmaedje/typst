@@ -1,6 +1,6 @@
 // Rowspan split tests
 
----
+--- grid-rowspan-split-1 ---
 #set page(height: 10em)
 #table(
   columns: 2,
@@ -11,7 +11,7 @@
   [f]
 )
 
----
+--- grid-rowspan-split-2 ---
 #set page(height: 10em)
 #table(
   columns: 2,
@@ -23,7 +23,7 @@
   [f]
 )
 
----
+--- grid-rowspan-split-3 ---
 #set page(height: 5em)
 #table(
   columns: 2,
@@ -34,7 +34,7 @@
   [a], [b],
 )
 
----
+--- grid-rowspan-split-4 ---
 #set page(height: 5em)
 #table(
   columns: 2,
@@ -46,7 +46,7 @@
   [a], [b],
 )
 
----
+--- grid-rowspan-split-5 ---
 #set page(height: 5em)
 #table(
   columns: 2,
@@ -57,7 +57,7 @@
   [a], [b],
 )
 
----
+--- grid-rowspan-split-6 ---
 #set page(height: 5em)
 #table(
   columns: 2,
@@ -69,7 +69,7 @@
   [a], [b],
 )
 
----
+--- grid-rowspan-split-7 ---
 #set page(height: 5em)
 #grid(
   columns: 2,
@@ -78,7 +78,7 @@
   grid.cell(rowspan: 5)[a\ b\ c\ d\ e]
 )
 
----
+--- grid-rowspan-split-8 ---
 #set page(height: 5em)
 #table(
   columns: 2,

@@ -1,20 +1,20 @@
 // Test t and b attachments, part 3.
 
----
+--- math-attach-limit ---
 // Test limit.
 $ lim_(n->oo \ n "grows") sum_(k=0 \ k in NN)^n k $
 
----
+--- math-attach-force-scripts-and-limits ---
 // Test forcing scripts and limits.
 $ limits(A)_1^2 != A_1^2 $
 $ scripts(sum)_1^2 != sum_1^2 $
 $ limits(integral)_a^b != integral_a^b $
 
----
+--- issue-math-attach-realize-panic ---
 // Error: 25-29 unknown variable: oops
 $ attach(A, t: #context oops) $
 
----
+--- math-attach-show-limit ---
 // Show and let rules for limits and scripts
 #let eq = $ ∫_a^b iota_a^b $
 #eq
@@ -23,7 +23,7 @@ $ attach(A, t: #context oops) $
 #eq
 $iota_a^b$
 
----
+--- math-attach-default-placement ---
 // Test default of limit attachments on relations at all sizes
 #set page(width: auto)
 $ a =^"def" b quad a lt.eq_"really" b quad  a arrow.r.long.squiggly^"slowly" b $
@@ -31,12 +31,12 @@ $a =^"def" b quad a lt.eq_"really" b quad a arrow.r.long.squiggly^"slowly" b$
 
 $a scripts(=)^"def" b quad a scripts(lt.eq)_"really" b quad a scripts(arrow.r.long.squiggly)^"slowly" b$
 
----
+--- math-attach-integral ---
 // Test default of scripts attachments on integrals at display size
 $ integral.sect_a^b  quad \u{2a1b}_a^b quad limits(\u{2a1b})_a^b $
 $integral.sect_a^b quad \u{2a1b}_a^b quad limits(\u{2a1b})_a^b$
 
----
+--- math-attach-large-operator ---
 // Test default of limit attachments on large operators at display size only
 $ tack.t.big_0^1 quad \u{02A0A}_0^1 quad join_0^1 $
 $tack.t.big_0^1 quad \u{02A0A}_0^1 quad join_0^1$

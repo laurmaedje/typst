@@ -1,6 +1,6 @@
 // Test paragraph indent.
 
----
+--- par-first-line-indent ---
 #set par(first-line-indent: 12pt, leading: 5pt)
 #set block(spacing: 5pt)
 #show heading: set text(size: 10pt)
@@ -28,23 +28,23 @@ starts a paragraph, also with indent.
 
 ثم يصبح النص رطبًا وقابل للطرق ويبدو المستند رائعًا.
 
----
+--- par-spacing-and-first-line-indent ---
 // This is madness.
 #set par(first-line-indent: 12pt)
 Why would anybody ever ...
 
 ... want spacing and indent?
 
----
+--- par-hanging-indent ---
 // Test hanging indent.
 #set par(hanging-indent: 15pt, justify: true)
 #lorem(10)
 
----
+--- par-hanging-indent-manual-linebreak ---
 #set par(hanging-indent: 1em)
 Welcome \ here. Does this work well?
 
----
+--- par-hanging-indent-rtl ---
 #set par(hanging-indent: 2em)
 #set text(dir: rtl)
 لآن وقد أظلم الليل وبدأت النجوم

@@ -1,7 +1,6 @@
 // Minimal reproduction of #2902
-// Ref: false
 
----
+--- issue-2902-gradient-oklch-panic ---
 #set page(width: 15cm, height: auto, margin: 1em)
 #set block(width: 100%, height: 1cm, above: 2pt)
 
@@ -10,7 +9,7 @@
 #block(fill: gradient.linear(..color.map.rainbow, space: oklch))
 #block(fill: gradient.linear(..color.map.plasma, space: oklch))
 
----
+--- issue-2902-gradient-oklab-panic ---
 #set page(width: 15cm, height: auto, margin: 1em)
 #set block(width: 100%, height: 1cm, above: 2pt)
 

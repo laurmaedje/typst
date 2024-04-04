@@ -1,6 +1,6 @@
 // Test tables.
 
----
+--- table-newlines ---
 #set page(height: 70pt)
 #set table(fill: (x, y) => if calc.even(x + y) { rgb("aaa") })
 
@@ -10,10 +10,10 @@
   [A], [B], [C], [], [], [D \ E \ F \ \ \ G], [H],
 )
 
----
+--- table-fill-basic ---
 #table(columns: 3, stroke: none, fill: green, [A], [B], [C])
 
----
+--- table-align-array ---
 // Test alignment with array.
 #table(
   columns: (1fr, 1fr, 1fr),
@@ -29,7 +29,7 @@
   [A], [B], [C]
 )
 
----
+--- table-inset ---
 // Test inset.
 #table(
   columns: 3,
@@ -76,7 +76,7 @@
   [A], [B], [C],
 )
 
----
+--- table-inset-fold ---
 // Test inset folding
 #set table(inset: 10pt)
 #set table(inset: (left: 0pt))
@@ -87,7 +87,7 @@
   table.cell(inset: (top: 0pt))[a]
 )
 
----
+--- table-gutters ---
 // Test interaction with gutters.
 #table(
   columns: (3em, 3em),
@@ -132,10 +132,9 @@
   [G], [H]
 )
 
----
-// Ref: false
+--- table-empty ---
 #table()
 
----
+--- table-fill-bad ---
 // Error: 14-19 expected color, gradient, pattern, none, array, or function, found string
 #table(fill: "hey")

@@ -1,6 +1,6 @@
 // Tests outline 'indent' option.
 
----
+--- outline-indent-numbering ---
 // With heading numbering
 #set page(width: 200pt)
 #set heading(numbering: "1.a.")
@@ -27,7 +27,7 @@
 ==== General
 #lorem(10)
 
----
+--- outline-indent-no-numbering ---
 // Without heading numbering
 #set page(width: 200pt)
 #outline()
@@ -53,7 +53,7 @@
 ==== General
 #lorem(10)
 
----
+--- outline-indent-bad-type ---
 // Error: 2-35 expected relative length or content, found dictionary
 #outline(indent: n => (a: "dict"))
 

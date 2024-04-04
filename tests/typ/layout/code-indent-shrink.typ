@@ -2,7 +2,7 @@
 // as it would mess up the indentation of code
 // https://github.com/typst/typst/issues/3191
 
----
+--- issue-3191-code-indent-shrink ---
 #set par(justify: true)
 
 #show raw.where(block: true): block.with(
@@ -18,7 +18,7 @@
   ```
 )
 
----
+--- issue-3191-normal-paragraphs-still-shrink ---
 // In normal paragraphs, spaces should still be shrunk.
 // The first line here serves as a reference, while the second
 // uses non-breaking spaces to create an overflowing line

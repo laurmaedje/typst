@@ -1,6 +1,6 @@
 // Test that metadata of hidden stuff stays available.
 
----
+--- issue-622-hide-meta-cite ---
 #set cite(style: "chicago-notes")
 
 A pirate. @arrgh \
@@ -10,7 +10,7 @@ A pirate. @arrgh \
   #bibliography("/assets/bib/works.bib")
 ]
 
----
+--- issue-622-hide-meta-outline ---
 #set text(8pt)
 #outline()
 #set text(2pt)

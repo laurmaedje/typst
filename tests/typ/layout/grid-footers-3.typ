@@ -1,3 +1,4 @@
+--- grid-header-and-footer-lack-of-space ---
 // Test lack of space for header + text.
 #set page(height: 9em + 2.5em + 1.5em)
 
@@ -9,7 +10,7 @@
   table.footer[*Ok*][*Bye*],
 )
 
----
+--- grid-header-and-footer-orphan-prevention ---
 // Orphan header prevention test
 #set page(height: 13em)
 #v(8em)
@@ -27,7 +28,7 @@
   ),
 )
 
----
+--- grid-header-and-footer-empty ---
 // Empty footer should just be a repeated blank row
 #set page(height: 8em)
 #table(

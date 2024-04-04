@@ -1,6 +1,6 @@
 // Test pattern on strokes
 
----
+--- pattern-stroke ---
 #align(
   center + top,
   square(

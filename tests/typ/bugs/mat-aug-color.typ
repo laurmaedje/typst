@@ -1,5 +1,7 @@
 // https://github.com/typst/typst/issues/2268
 // The augment line should be of the same color as the text
+
+--- issue-2268-mat-augment-color ---
 #set text(
   font: "New Computer Modern",
   lang: "en",
