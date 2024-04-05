@@ -16,7 +16,7 @@
 
 --- include-file-not-found ---
 #{
-  // Error: 19-38 file not found (searched at typ/compiler/modules/chap3.typ)
+  // Error: 19-38 file not found (searched at tests/typ/compiler/modules/chap3.typ)
   let x = include "modules/chap3.typ"
 }
 

@@ -4,7 +4,6 @@ use std::ops::Range;
 use tiny_skia as sk;
 use typst::diag::SourceDiagnostic;
 use typst::eval::Tracer;
-use typst::foundations::Smart;
 use typst::introspection::Meta;
 use typst::layout::{Abs, Frame, FrameItem, Transform};
 use typst::model::Document;
@@ -12,7 +11,7 @@ use typst::visualize::Color;
 use typst::WorldExt;
 
 use crate::collect::{NoteKind, Test};
-use crate::compare::{Refs, TestHash, TestHashes};
+use crate::refs::{Refs, TestHash, TestHashes};
 use crate::world::TestWorld;
 
 /// Runs a single test.
@@ -39,9 +38,12 @@ impl TestResult {
 
 /// Write a line to the test's error log.
 macro_rules! errln {
+    (into: $sink:expr, $($tts:tt)*) => {
+        writeln!($sink, $($tts)*).unwrap();
+    };
     ($runner:expr, $($tts:tt)*) => {
         writeln!(&mut $runner.result.errors, $($tts)*).unwrap();
-    }
+    };
 }
 
 /// Runs a single test.
@@ -51,6 +53,7 @@ pub struct Runner<'a> {
     world: TestWorld,
     seen: Vec<bool>,
     result: TestResult,
+    not_annotated: String,
 }
 
 impl<'a> Runner<'a> {
@@ -62,6 +65,7 @@ impl<'a> Runner<'a> {
             world: TestWorld::new(test.source.clone()),
             seen: vec![false; test.notes.len()],
             result: TestResult { errors: String::new(), update: None },
+            not_annotated: String::new(),
         }
     }
 
@@ -83,6 +87,12 @@ impl<'a> Runner<'a> {
             self.check_diagnostic(NoteKind::Warning, &warning);
         }
 
+        if !self.not_annotated.is_empty() {
+            errln!(self, "  Not annotated");
+            self.result.errors.push_str(&self.not_annotated);
+        }
+
+        let mut first = true;
         for (note, &seen) in self.test.notes.iter().zip(&self.seen) {
             // TODO: Handle hints.
             if note.kind == NoteKind::Hint || seen {
@@ -90,14 +100,16 @@ impl<'a> Runner<'a> {
             }
             let base = note.pos.line - self.test.pos.line + 1;
             let note_range = self.format_range(&note.range, base);
+            if first {
+                errln!(self, "  Not emitted");
+                first = false;
+            }
             errln!(
                 self,
-                // TODO: Looks bad.
-                "  Not emitted ({}): {}: {:<10} {}",
-                note.pos,
+                "    {}: {note_range} {} ({})",
                 note.kind,
-                note_range,
-                note.message
+                note.message,
+                note.pos,
             );
         }
 
@@ -111,6 +123,18 @@ impl<'a> Runner<'a> {
 
             if hashes.render != reference.render {
                 errln!(self, "  Mismatched rendering");
+                errln!(
+                    self,
+                    "    Live      | {} ({})",
+                    hashes.render,
+                    hashes.render.path(&self.test.name).display(),
+                );
+                errln!(
+                    self,
+                    "    Tree      | {} ({})",
+                    reference.render,
+                    reference.render.path(&self.test.name).display(),
+                );
             }
 
             // TODO: Add back in once it's reproducible.
@@ -143,19 +167,19 @@ impl<'a> Runner<'a> {
     fn compute_hashes(&self, document: &Document) -> TestHashes {
         let pixmap = render(document);
         let png = pixmap.encode_png().unwrap();
-        let pdf = typst_pdf::pdf(document, Smart::Auto, None);
-        let svg = typst_svg::svg_merged(document, Abs::pt(5.0));
+        // let pdf = typst_pdf::pdf(document, Smart::Auto, None);
+        // let svg = typst_svg::svg_merged(document, Abs::pt(5.0));
 
         let hashes = TestHashes {
             render: TestHash::compute(pixmap.data()),
-            pdf: TestHash::compute(&pdf),
-            svg: TestHash::compute(&svg),
+            // pdf: TestHash::compute(&pdf),
+            // svg: TestHash::compute(&svg),
         };
 
         let name = &self.test.name;
         hashes.render.write(name, png.as_slice());
-        hashes.pdf.write(name, pdf.as_slice());
-        hashes.svg.write(name, svg.as_bytes());
+        // hashes.pdf.write(name, pdf.as_slice());
+        // hashes.svg.write(name, svg.as_bytes());
 
         hashes
     }
@@ -191,7 +215,7 @@ impl<'a> Runner<'a> {
         }) else {
             // Not even a close match, diagnostic is not annotated.
             let diag_range = self.format_range(&range, 0);
-            errln!(self, "  Not annotated: {kind}: {:<10} {}", diag_range, diag.message);
+            errln!(into: self.not_annotated, "    {kind}: {diag_range} {}", diag.message);
             return;
         };
 
@@ -207,15 +231,15 @@ impl<'a> Runner<'a> {
             let diag_text = self.text_for_range(&range);
             errln!(self, "  Mismatched range ({}):", note.pos);
             errln!(self, "    Message   | {}", note.message);
-            errln!(self, "    Annotated | {:<9} | {}", note_range, note_text);
-            errln!(self, "    Emitted   | {:<9} | {}", diag_range, diag_text);
+            errln!(self, "    Annotated | {note_range:<9} | {note_text}");
+            errln!(self, "    Emitted   | {diag_range:<9} | {diag_text}");
         }
 
         // Message is wrong.
         if message != note.message {
             errln!(self, "  Mismatched message ({}):", note.pos);
             errln!(self, "    Annotated | {}", note.message);
-            errln!(self, "    Emitted   | {}", message);
+            errln!(self, "    Emitted   | {message}");
         }
     }
 

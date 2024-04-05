@@ -433,6 +433,13 @@ impl<'a> ParBuilder<'a> {
                 .is_some_and(|elem| !elem.block(styles))
             || content.is::<BoxElem>()
         {
+            // TODO: Remove.
+            if let Some(text) = content.to_packed::<TextElem>() {
+                if text.text().contains("holzbaum") {
+                    loop {}
+                }
+            }
+
             self.0.push(content, styles);
             return true;
         }

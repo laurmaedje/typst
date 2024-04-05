@@ -14,7 +14,7 @@ use unscanny::Scanner;
 /// Returns:
 /// - the tests and the number of skipped tests in the success case.
 /// - parsing errors in the failure case.
-pub fn collect() -> Result<Vec<Test>, Vec<TestParseError>> {
+pub fn collect() -> Result<(Vec<Test>, usize), Vec<TestParseError>> {
     Collector::new().collect()
 }
 
@@ -95,6 +95,7 @@ struct Collector {
     tests: Vec<Test>,
     errors: Vec<TestParseError>,
     seen: HashSet<EcoString>,
+    skipped: usize,
 }
 
 impl Collector {
@@ -104,11 +105,12 @@ impl Collector {
             tests: vec![],
             errors: vec![],
             seen: HashSet::new(),
+            skipped: 0,
         }
     }
 
     /// Collects tests from all files.
-    fn collect(mut self) -> Result<Vec<Test>, Vec<TestParseError>> {
+    fn collect(mut self) -> Result<(Vec<Test>, usize), Vec<TestParseError>> {
         for entry in walkdir::WalkDir::new(crate::SUITE_PATH).sort_by_file_name() {
             let entry = entry.unwrap();
             let path = entry.path();
@@ -129,7 +131,7 @@ impl Collector {
         }
 
         if self.errors.is_empty() {
-            Ok(self.tests)
+            Ok((self.tests, self.skipped))
         } else {
             Err(self.errors)
         }
@@ -181,7 +183,6 @@ impl<'a> Parser<'a> {
             }
 
             if !self.collector.seen.insert(name.clone()) {
-                // TODO: Add back in.
                 self.error(format!("duplicate test {name}"));
             }
 
@@ -199,15 +200,8 @@ impl<'a> Parser<'a> {
                 }
             }
 
-            let pos = FilePos::new(self.path, self.test_start_line);
             if !filtered(&name) {
-                self.collector.tests.push(Test {
-                    pos,
-                    name,
-                    source: Source::detached(""),
-                    notes: vec![],
-                    skipped: true,
-                });
+                self.collector.skipped += 1;
                 continue;
             }
 

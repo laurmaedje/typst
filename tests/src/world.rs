@@ -144,7 +144,7 @@ impl FileSlot {
 /// The file system path for a file ID.
 fn system_path(id: FileId) -> FileResult<PathBuf> {
     let root: PathBuf = match id.package() {
-        Some(spec) => format!("packages/{}-{}", spec.name, spec.version).into(),
+        Some(spec) => format!("tests/packages/{}-{}", spec.name, spec.version).into(),
         None => PathBuf::new(),
     };
 

@@ -29,7 +29,7 @@
 #test(data.at(1).Species, "Tiger")
 
 --- csv-file-not-found ---
-// Error: 6-16 file not found (searched at typ/compute/nope.csv)
+// Error: 6-16 file not found (searched at tests/typ/compute/nope.csv)
 #csv("nope.csv")
 
 --- csv-invalid ---

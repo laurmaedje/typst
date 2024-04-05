@@ -2750,7 +2750,6 @@ dependencies = [
 name = "typst-tests"
 version = "0.11.0"
 dependencies = [
- "base64 0.22.0",
  "clap",
  "comemo",
  "ecow",
@@ -2758,6 +2757,8 @@ dependencies = [
  "open",
  "parking_lot",
  "rayon",
+ "serde",
+ "serde_json",
  "sha2",
  "tiny-skia",
  "ttf-parser",

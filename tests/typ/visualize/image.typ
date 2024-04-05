@@ -8,7 +8,7 @@
 
 // Load an RGB JPEG image.
 #set page(height: 60pt)
-#image("../../assets/images/tiger.jpg")
+#image("/assets/images/tiger.jpg")
 
 --- image-sizing ---
 // Test configuring the size and fitting behaviour of images.
@@ -50,7 +50,7 @@ A #box(image("/assets/images/tiger.jpg", height: 1cm, width: 80%)) B
 #image("/assets/images/pattern.svg")
 
 --- image-file-not-found ---
-// Error: 8-29 file not found (searched at typ/visualize/path/does/not/exist)
+// Error: 8-29 file not found (searched at tests/typ/visualize/path/does/not/exist)
 #image("path/does/not/exist")
 
 --- image-bad-format ---

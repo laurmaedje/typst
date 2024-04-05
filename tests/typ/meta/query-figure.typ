@@ -1,6 +1,6 @@
 // Test a list of figures.
 
---- query-list-offigures ---
+--- query-list-of-figures ---
 #set page(
   paper: "a7",
   numbering: "1 / 1",

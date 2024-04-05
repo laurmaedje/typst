@@ -7,7 +7,7 @@ desktop.ini
 
 # Tests and benchmarks
 tests/store
-tests/report.html
+tests/report.json
 tests/typ/**/*.pdf
 tests/fuzz/target
 tests/fuzz/corpus

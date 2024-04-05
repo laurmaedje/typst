@@ -182,11 +182,11 @@
 #import "" as x
 
 --- import-file-not-found-invalid ---
-// Error: 9-20 file not found (searched at typ/compiler/lib/0.2.1)
+// Error: 9-20 file not found (searched at tests/typ/compiler/lib/0.2.1)
 #import "lib/0.2.1"
 
 --- import-file-not-found-renamed-invalid ---
-// Error: 9-20 file not found (searched at typ/compiler/lib/0.2.1)
+// Error: 9-20 file not found (searched at tests/typ/compiler/lib/0.2.1)
 #import "lib/0.2.1" as x
 
 --- import-file-not-valid-utf-8 ---

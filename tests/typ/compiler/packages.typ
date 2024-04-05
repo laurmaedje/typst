@@ -64,5 +64,5 @@
 #import "@test/mypkg:0.3.": *
 
 --- import-from-file-package-lookalike ---
-// Error: 9-28 file not found (searched at typ/compiler/#test/mypkg:1.0.0)
+// Error: 9-28 file not found (searched at tests/typ/compiler/#test/mypkg:1.0.0)
 #import "#test/mypkg:1.0.0": *
