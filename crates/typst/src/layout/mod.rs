@@ -33,6 +33,7 @@ mod sides;
 mod size;
 mod spacing;
 mod stack;
+mod tab;
 mod transform;
 
 pub use self::abs::*;
@@ -65,6 +66,7 @@ pub use self::sides::*;
 pub use self::size::*;
 pub use self::spacing::*;
 pub use self::stack::*;
+pub use self::tab::*;
 pub use self::transform::*;
 
 pub(crate) use self::inline::*;
@@ -99,6 +101,7 @@ pub fn define(global: &mut Scope) {
     global.define_elem::<PagebreakElem>();
     global.define_elem::<VElem>();
     global.define_elem::<HElem>();
+    global.define_elem::<TabElem>();
     global.define_elem::<BoxElem>();
     global.define_elem::<BlockElem>();
     global.define_elem::<StackElem>();

@@ -180,6 +180,7 @@ mod tests {
     use std::num::NonZeroUsize;
 
     use typst::layout::{Abs, Point, Position};
+    use typst::utils::assert_approx_eq;
 
     use super::{jump_from_click, jump_from_cursor, Jump};
     use crate::tests::TestWorld;
@@ -197,12 +198,6 @@ mod tests {
             page: NonZeroUsize::new(page).unwrap(),
             point: point(x, y),
         })
-    }
-
-    macro_rules! assert_approx_eq {
-        ($l:expr, $r:expr) => {
-            assert!(($l.to_raw() - $r.to_raw()).abs() < 0.1, "{:?} ≉ {:?}", $l, $r);
-        };
     }
 
     #[track_caller]

@@ -162,7 +162,6 @@ pub fn line<'a>(
 
     // Slice out the relevant items.
     let (mut expanded, mut inner) = p.slice(range.clone());
-    let mut width = Abs::zero();
 
     // Weak space (`Absolute(_, true)`) is removed at the end of the line
     while let Some((Item::Absolute(_, true), before)) = inner.split_last() {
@@ -258,7 +257,6 @@ pub fn line<'a>(
                     }
                 }
 
-                width += reshaped.width;
                 last = Some(Item::Text(reshaped));
             }
 
@@ -286,7 +284,6 @@ pub fn line<'a>(
             // If the range is empty, we don't want to push an empty text item.
             if range.start < end {
                 let reshaped = shaped.reshape(engine, &p.spans, range.start..end);
-                width += reshaped.width;
                 first = Some(Item::Text(reshaped));
             }
 
@@ -297,9 +294,7 @@ pub fn line<'a>(
     if prepend_hyphen {
         let reshaped = first.as_mut().or(last.as_mut()).and_then(Item::text_mut);
         if let Some(reshaped) = reshaped {
-            let width_before = reshaped.width;
             reshaped.prepend_hyphen(engine, p.fallback);
-            width += reshaped.width - width_before;
         }
     }
 
@@ -315,7 +310,6 @@ pub fn line<'a>(
                     glyph.shrink_left(shrink_amount);
                     let amount_abs = shrink_amount.at(reshaped.size);
                     reshaped.width -= amount_abs;
-                    width -= amount_abs;
                 } else if p.cjk_latin_spacing
                     && first_glyph.is_cj_script()
                     && first_glyph.x_offset > Em::zero()
@@ -329,15 +323,25 @@ pub fn line<'a>(
                     glyph.adjustability.shrinkability.0 = Em::zero();
                     let amount_abs = shrink_amount.at(reshaped.size);
                     reshaped.width -= amount_abs;
-                    width -= amount_abs;
                 }
             }
         }
     }
 
-    // Measure the inner items.
-    for item in inner {
-        width += item.width();
+    // Measure the items. Technically, the width can be affected by reordering
+    // due to tabstops, but reordering here would be expensive, so we don't
+    // do it for now.
+    let mut width = Abs::zero();
+    let mut segment = Abs::zero();
+    for item in first.iter().chain(inner).chain(&last) {
+        match item {
+            Item::Text(shaped) => segment += shaped.width,
+            Item::Absolute(v, _) => segment += *v,
+            Item::Tab(stops, _) => width = stops.snap(width),
+            Item::Frame(frame, _) => segment += frame.width(),
+            Item::Fractional(_, _) => {}
+            Item::Tag(_) | Item::Skip(_) => {}
+        }
     }
 
     Line {
@@ -431,9 +435,16 @@ pub fn commit(
     let mut top = Abs::zero();
     let mut bottom = Abs::zero();
 
+    // Justification and fractional spacing/boxes are only handled when they
+    // occur after tab stops.
+    let last_tab = reordered
+        .iter()
+        .rposition(|item| matches!(item, Item::Tab(..)))
+        .unwrap_or(0);
+
     // Build the frames and determine the height and baseline.
     let mut frames = vec![];
-    for item in reordered {
+    for (i, item) in reordered.iter().enumerate() {
         let mut push = |offset: &mut Abs, frame: Frame| {
             let width = frame.width();
             top.set_max(frame.baseline());
@@ -447,6 +458,9 @@ pub fn commit(
                 offset += *v;
             }
             Item::Fractional(v, elem) => {
+                if i < last_tab {
+                    continue;
+                }
                 let amount = v.share(fr, remaining);
                 if let Some((elem, loc, styles)) = elem {
                     let region = Size::new(amount, full);
@@ -459,9 +473,15 @@ pub fn commit(
                     offset += amount;
                 }
             }
+            Item::Tab(stops, align) => {
+                let stop = stops.snap(offset);
+            }
             Item::Text(shaped) => {
-                let mut frame =
-                    shaped.build(engine, justification_ratio, extra_justification);
+                let mut frame = if i > last_tab {
+                    shaped.build(engine, justification_ratio, extra_justification)
+                } else {
+                    shaped.build(engine, 0.0, Abs::zero())
+                };
                 frame.post_process(shaped.styles);
                 push(&mut offset, frame);
             }

@@ -3,8 +3,8 @@ use crate::diag::bail;
 use crate::foundations::{Packed, Resolve};
 use crate::introspection::{Tag, TagElem};
 use crate::layout::{
-    Abs, AlignElem, BoxElem, Dir, Fr, Frame, HElem, InlineElem, InlineItem, Sizing,
-    Spacing,
+    Abs, AlignElem, BoxElem, Dir, FixedAlignment, Fr, Frame, HElem, InlineElem,
+    InlineItem, ResolvedTabStops, Sizing, Spacing, TabElem,
 };
 use crate::syntax::Span;
 use crate::text::{
@@ -35,6 +35,8 @@ pub enum Item<'a> {
     Absolute(Abs, bool),
     /// Fractional spacing between other items.
     Fractional(Fr, Option<(&'a Packed<BoxElem>, Locator<'a>, StyleChain<'a>)>),
+    /// A tab stop.
+    Tab(ResolvedTabStops, FixedAlignment),
     /// Layouted inline-level content.
     Frame(Frame, StyleChain<'a>),
     /// A tag.
@@ -66,8 +68,8 @@ impl<'a> Item<'a> {
     pub fn textual(&self) -> &str {
         match self {
             Self::Text(shaped) => shaped.text,
-            Self::Absolute(_, _) | Self::Fractional(_, _) => SPACING_REPLACE,
-            Self::Frame(_, _) => OBJ_REPLACE,
+            Self::Absolute(..) | Self::Fractional(..) | Self::Tab(..) => SPACING_REPLACE,
+            Self::Frame(..) => OBJ_REPLACE,
             Self::Tag(_) => "",
             Self::Skip(s) => s,
         }
@@ -79,13 +81,14 @@ impl<'a> Item<'a> {
     }
 
     /// The natural layouted width of the item.
-    pub fn width(&self) -> Abs {
+    pub fn natural_width(&self) -> Abs {
         match self {
             Self::Text(shaped) => shaped.width,
             Self::Absolute(v, _) => *v,
             Self::Frame(frame, _) => frame.width(),
-            Self::Fractional(_, _) | Self::Tag(_) => Abs::zero(),
-            Self::Skip(_) => Abs::zero(),
+            Self::Fractional(_, _) | Self::Tab(..) | Self::Tag(_) | Self::Skip(_) => {
+                Abs::zero()
+            }
         }
     }
 }
@@ -187,6 +190,10 @@ pub fn collect<'a>(
                     elem.weak(styles),
                 ),
             });
+        } else if let Some(elem) = child.to_packed::<TabElem>() {
+            let stops = elem.stops(styles).resolve(styles, region.x);
+            let align = elem.align(styles).resolve(styles);
+            collector.push_item(Item::Tab(stops, align));
         } else if let Some(elem) = child.to_packed::<LinebreakElem>() {
             collector
                 .push_text(if elem.justify(styles) { "\u{2028}" } else { "\n" }, styles);

@@ -47,3 +47,11 @@ macro_rules! assign_impl {
         }
     };
 }
+
+/// Approximately compares two `Abs`.
+#[macro_export]
+macro_rules! assert_approx_eq {
+    ($l:expr, $r:expr) => {
+        assert!(($l.to_raw() - $r.to_raw()).abs() < 0.1, "{:?} ≉ {:?}", $l, $r);
+    };
+}

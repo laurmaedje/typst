@@ -835,7 +835,7 @@ impl Estimates {
                     justifiables.push(byte_len, g.is_justifiable() as usize);
                 }
             } else {
-                widths.push(textual_len, item.width());
+                widths.push(textual_len, item.natural_width());
             }
 
             widths.adjust(after);

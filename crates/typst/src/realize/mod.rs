@@ -26,7 +26,7 @@ use crate::foundations::{
 use crate::introspection::{Locator, SplitLocator, TagElem};
 use crate::layout::{
     AlignElem, BlockElem, BoxElem, ColbreakElem, FlowElem, FlushElem, HElem, InlineElem,
-    PageElem, PagebreakElem, Parity, PlaceElem, VElem,
+    PageElem, PagebreakElem, Parity, PlaceElem, TabElem, VElem,
 };
 use crate::math::{EquationElem, LayoutMath};
 use crate::model::{
@@ -470,6 +470,7 @@ impl<'a> ParBuilder<'a> {
         } else if content.is::<SpaceElem>()
             || content.is::<TextElem>()
             || content.is::<HElem>()
+            || content.is::<TabElem>()
             || content.is::<LinebreakElem>()
             || content.is::<SmartQuoteElem>()
             || content.is::<InlineElem>()
