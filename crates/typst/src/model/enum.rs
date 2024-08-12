@@ -7,14 +7,14 @@ use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
     cast, elem, scope, Array, Content, Context, NativeElement, Packed, Show, Smart,
-    StyleChain, Styles,
+    StyleChain,
 };
 use crate::introspection::Locator;
 use crate::layout::{
     Alignment, Axes, BlockElem, Cell, CellGrid, Em, Fragment, GridLayouter, HAlignment,
     Length, Regions, Sizing, VAlignment, VElem,
 };
-use crate::model::{Numbering, NumberingPattern, ParElem};
+use crate::model::{Numbering, ListLike, NumberingPattern, ParElem};
 use crate::text::TextElem;
 
 /// A numbered list.
@@ -232,6 +232,14 @@ impl Show for Packed<EnumElem> {
     }
 }
 
+impl ListLike for EnumElem {
+    type Item = EnumItem;
+
+    fn create(children: Vec<Packed<EnumItem>>, tight: bool) -> Self {
+        Self::new(children).with_tight(tight)
+    }
+}
+
 /// Layout the enumeration.
 #[typst_macros::time(span = elem.span())]
 fn layout_enum(
@@ -323,14 +331,6 @@ pub struct EnumItem {
     /// The item's body.
     #[required]
     pub body: Content,
-}
-
-impl Packed<EnumItem> {
-    /// Apply styles to this enum item.
-    pub fn styled(mut self, styles: Styles) -> Self {
-        self.body.style_in_place(styles);
-        self
-    }
 }
 
 cast! {

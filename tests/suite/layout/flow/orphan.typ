@@ -7,6 +7,14 @@
 = Introduction
 This is the start and it goes on.
 
+--- flow-heading-no-orphan-list ---
+#set page(height: 100pt)
+#lorem(12)
+
+= Introduction
+- A
+- list
+
 --- flow-par-no-orphan-and-widow-lines ---
 // LARGE
 #set page("a8", height: 140pt)
@@ -29,3 +37,13 @@ This is the start and it goes on.
 // All three lines go to the next page.
 #set text(olive)
 #lorem(10)
+
+--- flow-widow-forced ---
+#set page(height: 50pt)
+#lorem(10)
+
+--- issue-1445-widow-orphan-unnecessary-skip ---
+// Ensure that widow/orphan prevention doesn't unnecessarily move things
+// to another page.
+#set page(width: 16cm)
+#block(height: 30pt, fill: aqua, columns(2, lorem(19)))

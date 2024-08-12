@@ -153,9 +153,10 @@ impl Construct for ParElem {
         let body = args.expect::<Content>("body")?;
         Ok(Content::sequence([
             ParbreakElem::new().pack(),
-            body.styled_with_map(styles),
+            body,
             ParbreakElem::new().pack(),
-        ]))
+        ])
+        .styled_with_map(styles))
     }
 }
 

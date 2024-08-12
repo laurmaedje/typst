@@ -7,7 +7,7 @@ use tiny_skia as sk;
 use typst::diag::{SourceDiagnostic, Warned};
 use typst::foundations::Smart;
 use typst::layout::{Abs, Frame, FrameItem, Page, Transform};
-use typst::model::Document;
+use typst::model::{Document, DocumentInfo};
 use typst::visualize::Color;
 use typst::WorldExt;
 
@@ -143,13 +143,9 @@ impl<'a> Runner<'a> {
             return;
         };
 
-        let skippable = match document.pages.as_slice() {
-            [page] => skippable(page),
-            _ => false,
-        };
-
         // Tests without visible output and no reference image don't need to be
         // compared.
+        let skippable = skippable(document);
         if skippable && !has_ref {
             std::fs::remove_file(&live_path).ok();
             return;
@@ -397,8 +393,17 @@ fn render_links(canvas: &mut sk::Pixmap, ts: sk::Transform, frame: &Frame) {
     }
 }
 
+/// Whether rendering of a document can be skipped.
+fn skippable(document: &Document) -> bool {
+    document.info == DocumentInfo::default()
+        && match document.pages.as_slice() {
+            [page] => skippable_page(page),
+            _ => false,
+        }
+}
+
 /// Whether rendering of a frame can be skipped.
-fn skippable(page: &Page) -> bool {
+fn skippable_page(page: &Page) -> bool {
     page.frame.width().approx_eq(Abs::pt(120.0))
         && page.frame.height().approx_eq(Abs::pt(20.0))
         && skippable_frame(&page.frame)

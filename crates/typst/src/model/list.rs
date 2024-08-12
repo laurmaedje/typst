@@ -4,7 +4,7 @@ use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
     cast, elem, scope, Array, Content, Context, Depth, Func, NativeElement, Packed, Show,
-    Smart, StyleChain, Styles, Value,
+    Smart, StyleChain, Value,
 };
 use crate::introspection::Locator;
 use crate::layout::{
@@ -156,6 +156,23 @@ impl Show for Packed<ListElem> {
     }
 }
 
+/// A trait for list like things --- lists, enums, and term lists.
+pub trait ListLike: NativeElement {
+    /// An item in a list.
+    type Item: NativeElement;
+
+    /// Create a list from its items and tightness.
+    fn create(children: Vec<Packed<Self::Item>>, tight: bool) -> Self;
+}
+
+impl ListLike for ListElem {
+    type Item = ListItem;
+
+    fn create(children: Vec<Packed<ListItem>>, tight: bool) -> Self {
+        Self::new(children).with_tight(tight)
+    }
+}
+
 /// Layout the list.
 #[typst_macros::time(span = elem.span())]
 fn layout_list(
@@ -216,14 +233,6 @@ pub struct ListItem {
     /// The item's body.
     #[required]
     pub body: Content,
-}
-
-impl Packed<ListItem> {
-    /// Apply styles to this list item.
-    pub fn styled(mut self, styles: Styles) -> Self {
-        self.body.style_in_place(styles);
-        self
-    }
 }
 
 cast! {

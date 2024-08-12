@@ -49,6 +49,9 @@ pub struct CliArguments {
     /// Prevents the terminal from being cleared of test names.
     #[arg(short, long)]
     pub verbose: bool,
+    /// Hides the concrete errors, only showing the failed tests.
+    #[arg(short, long)]
+    pub compact: bool,
     /// How many threads to spawn when running the tests.
     #[arg(short = 'j', long)]
     pub num_threads: Option<usize>,

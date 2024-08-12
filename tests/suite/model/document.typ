@@ -20,9 +20,8 @@ What's up?
 What's up?
 
 --- document-set-after-content ---
+// Document set rules can appear anywhere in top-level realization.
 Hello
-
-// Error: 2-30 document set rules must appear before any content
 #set document(title: [Hello])
 
 --- document-constructor ---

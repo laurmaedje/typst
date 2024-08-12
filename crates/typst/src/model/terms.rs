@@ -2,10 +2,9 @@ use crate::diag::{bail, SourceResult};
 use crate::engine::Engine;
 use crate::foundations::{
     cast, elem, scope, Array, Content, NativeElement, Packed, Show, Smart, StyleChain,
-    Styles,
 };
 use crate::layout::{Dir, Em, HElem, Length, Sides, StackChild, StackElem, VElem};
-use crate::model::ParElem;
+use crate::model::{ParElem, ListLike};
 use crate::text::TextElem;
 use crate::utils::Numeric;
 
@@ -158,6 +157,14 @@ impl Show for Packed<TermsElem> {
     }
 }
 
+impl ListLike for TermsElem {
+    type Item = TermItem;
+
+    fn create(children: Vec<Packed<TermItem>>, tight: bool) -> Self {
+        Self::new(children).with_tight(tight)
+    }
+}
+
 /// A term list item.
 #[elem(name = "item", title = "Term List Item")]
 pub struct TermItem {
@@ -168,15 +175,6 @@ pub struct TermItem {
     /// The description of the term.
     #[required]
     pub description: Content,
-}
-
-impl Packed<TermItem> {
-    /// Apply styles to this term item.
-    pub fn styled(mut self, styles: Styles) -> Self {
-        self.term.style_in_place(styles.clone());
-        self.description.style_in_place(styles);
-        self
-    }
 }
 
 cast! {

@@ -127,19 +127,28 @@ impl Styles {
     pub fn spanned(mut self, span: Span) -> Self {
         for entry in self.0.make_mut() {
             if let Style::Property(property) = &mut **entry {
-                property.span = Some(span);
+                property.span = span;
             }
         }
         self
     }
 
+    /// Whether there is a style for the given field of the given element.
+    pub fn has<T: NativeElement>(&self, field: u8) -> bool {
+        let elem = T::elem();
+        self.0
+            .iter()
+            .filter_map(|style| style.property())
+            .any(|property| property.is_of(elem) && property.id == field)
+    }
+
     /// Returns `Some(_)` with an optional span if this list contains
     /// styles for the given element.
-    pub fn interruption<T: NativeElement>(&self) -> Option<Option<Span>> {
+    pub fn interruption<T: NativeElement>(&self) -> Option<Span> {
         let elem = T::elem();
         self.0.iter().find_map(|entry| match &**entry {
             Style::Property(property) => property.is_of(elem).then_some(property.span),
-            Style::Recipe(recipe) => recipe.is_of(elem).then_some(Some(recipe.span)),
+            Style::Recipe(recipe) => recipe.is_of(elem).then_some(recipe.span),
             Style::Revocation(_) => None,
         })
     }
@@ -241,7 +250,7 @@ pub struct Property {
     /// The property's value.
     value: Block,
     /// The span of the set rule the property stems from.
-    span: Option<Span>,
+    span: Span,
 }
 
 impl Property {
@@ -255,7 +264,7 @@ impl Property {
             elem: E::elem(),
             id,
             value: Block::new(value),
-            span: None,
+            span: Span::detached(),
         }
     }
 

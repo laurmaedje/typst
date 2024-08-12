@@ -28,7 +28,7 @@
 
 --- page-set-in-container ---
 #box[
-  // Error: 4-18 page configuration is not allowed inside of containers
+  // Error: 4-18 pagebreaks are not allowed inside of containers
   #set page("a4")
 ]
 
@@ -268,7 +268,7 @@ Hi
 --- issue-4340-set-document-and-page ---
 // Test custom page fields being applied on the last page
 // if the document has custom fields.
-#set document(author: "")
+#set document(author: "Author")
 #set page(fill: gray)
 text
 #pagebreak()
