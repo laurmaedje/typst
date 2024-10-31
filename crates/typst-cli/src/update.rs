@@ -27,7 +27,7 @@ macro_rules! determine_asset {
             "x86_64-unknown-linux-gnu" => "x86_64-unknown-linux-musl",
             "aarch64-unknown-linux-gnu" => "aarch64-unknown-linux-musl",
             "armv7-unknown-linux-gnueabi" => "armv7-unknown-linux-musleabi",
-            "riscv64gc-unknown-linux-musl" => "riscv64gc-unknown-linux-gnu",
+            "riscv64gc-unknown-linux-gnu" => "riscv64gc-unknown-linux-musl",
         })
     };
 
