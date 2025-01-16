@@ -33,6 +33,9 @@ mod spacing;
 mod stack;
 mod transform;
 
+use comemo::Tracked;
+use ecow::EcoVec;
+
 pub use self::abs::*;
 pub use self::align::*;
 pub use self::angle::*;
@@ -64,7 +67,17 @@ pub use self::spacing::*;
 pub use self::stack::*;
 pub use self::transform::*;
 
-use crate::foundations::{category, Category, Scope};
+use crate::diag::SourceResult;
+use crate::engine::Engine;
+use crate::foundations::Content;
+use crate::foundations::NativeElement;
+use crate::foundations::Packed;
+use crate::foundations::Show;
+use crate::foundations::StyleChain;
+use crate::foundations::{category, elem, select_where, Category, Scope};
+use crate::introspection::Introspector;
+use crate::introspection::Locatable;
+use crate::introspection::Location;
 
 /// Arranging elements on the page in different ways.
 ///
@@ -101,6 +114,49 @@ pub fn define(global: &mut Scope) {
     global.define_elem::<RotateElem>();
     global.define_elem::<SkewElem>();
     global.define_elem::<HideElem>();
+    global.define_elem::<AlignBuddyElem>();
     global.define_func::<measure>();
     global.define_func::<layout>();
+}
+
+#[elem(Locatable, Show)]
+struct AlignBuddyElem {
+    #[required]
+    key: u64,
+}
+
+impl Show for Packed<AlignBuddyElem> {
+    fn show(&self, engine: &mut Engine, _: StyleChain) -> SourceResult<Content> {
+        let loc = self.location().unwrap();
+
+        let mut self_x = Abs::zero();
+        let mut max_x = Abs::zero();
+
+        for &(buddy_loc, x) in &buddy_sequence(engine.introspector, self.key) {
+            max_x = max_x.max(x);
+            if loc == buddy_loc {
+                self_x = x;
+            }
+        }
+
+        let delta = max_x - self_x;
+
+        Ok(HElem::new(delta.into()).pack())
+    }
+}
+
+#[comemo::memoize]
+fn buddy_sequence(
+    introspector: Tracked<Introspector>,
+    key: u64,
+) -> EcoVec<(Location, Abs)> {
+    introspector
+        .query(&select_where! { AlignBuddyElem, Key => key })
+        .iter()
+        .map(|buddy| {
+            let buddy_loc = buddy.location().unwrap();
+            let pos = introspector.position(buddy_loc);
+            (buddy_loc, pos.point.x)
+        })
+        .collect()
 }
