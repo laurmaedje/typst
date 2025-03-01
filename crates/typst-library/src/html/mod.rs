@@ -7,7 +7,10 @@ pub use self::dom::*;
 
 use ecow::EcoString;
 
-use crate::foundations::{elem, Content, Module, Scope};
+use crate::diag::SourceResult;
+use crate::engine::Engine;
+use crate::foundations::{elem, Bytes, Content, Module, Packed, Scope, Show, StyleChain};
+use crate::introspection::Locatable;
 
 /// Create a module with all HTML definitions.
 pub fn module() -> Module {
@@ -15,6 +18,8 @@ pub fn module() -> Module {
     html.start_category(crate::Category::Html);
     html.define_elem::<HtmlElem>();
     html.define_elem::<FrameElem>();
+    html.define_elem::<DocumentElem>();
+    html.define_elem::<AssetElem>();
     self::typed::define(&mut html);
     Module::new("html", html)
 }
@@ -82,4 +87,32 @@ pub struct FrameElem {
     #[positional]
     #[required]
     pub body: Content,
+}
+
+#[elem(Locatable)]
+pub struct DocumentElem {
+    #[positional]
+    #[required]
+    pub path: EcoString,
+
+    #[positional]
+    #[required]
+    pub body: Content,
+}
+
+#[elem(Show, Locatable)]
+pub struct AssetElem {
+    #[positional]
+    #[required]
+    pub path: EcoString,
+
+    #[positional]
+    #[required]
+    pub data: Bytes,
+}
+
+impl Show for Packed<AssetElem> {
+    fn show(&self, _: &mut Engine, _: StyleChain) -> SourceResult<Content> {
+        Ok(Content::empty())
+    }
 }

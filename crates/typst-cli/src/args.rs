@@ -246,6 +246,10 @@ pub struct CompileArgs {
     #[arg(long = "pdf-standard", value_delimiter = ',')]
     pub pdf_standard: Vec<PdfStandard>,
 
+    /// Which kind of HTML output that Typst can produce.
+    #[arg(long = "html-mode")]
+    pub html_mode: HtmlMode,
+
     /// The PPI (pixels per inch) to use for PNG export.
     #[arg(long = "ppi", default_value_t = 144.0)]
     pub ppi: f32,
@@ -510,7 +514,19 @@ pub enum PdfStandard {
 
 display_possible_values!(PdfStandard);
 
-// Output file format for query command
+/// Which kind of HTML output that Typst can produce.
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, ValueEnum)]
+pub enum HtmlMode {
+    /// A single file.
+    #[default]
+    File,
+    /// A directory of HTML files and assets.
+    Dir,
+}
+
+display_possible_values!(HtmlMode);
+
+// Output file format for query command.
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, ValueEnum)]
 pub enum SerializationFormat {
     #[default]

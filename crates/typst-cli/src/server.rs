@@ -39,7 +39,7 @@ impl HtmlServer {
         self.addr
     }
 
-    /// Updates the HTML, triggering a reload all connected browsers.
+    /// Updates the HTML, triggering a reload in all connected browsers.
     pub fn update(&self, html: String) {
         self.bucket.put(html);
     }
@@ -88,7 +88,7 @@ fn handle(req: Request, reload: bool, bucket: &Arc<Bucket<String>>) -> io::Resul
     let path = req.url();
     match path {
         "/" => handle_root(req, reload, bucket),
-        "/events" => handle_events(req, bucket.clone()),
+        "/__events" => handle_events(req, bucket.clone()),
         _ => req.respond(Response::new_empty(StatusCode(404))),
     }
 }
@@ -209,10 +209,10 @@ const PLACEHOLDER_HTML: &str = "\
 ";
 
 /// Reloads the page whenever it receives a "reload" server-sent event
-/// on the `/events` route.
+/// on the `/__events` route.
 const LIVE_RELOAD_SCRIPT: &str = "\
 <script>\
-  new EventSource(\"/events\")\
+  new EventSource(\"/__events\")\
     .addEventListener(\"reload\", () => location.reload())\
 </script>\
 ";

@@ -14,14 +14,14 @@ use typst::diag::{
     bail, At, Severity, SourceDiagnostic, SourceResult, StrResult, Warned,
 };
 use typst::foundations::{Datetime, Smart};
-use typst::html::HtmlDocument;
+use typst::html::{FileBody, HtmlBundle, HtmlDocument};
 use typst::layout::{Frame, Page, PageRanges, PagedDocument};
 use typst::syntax::{FileId, Lines, Span};
 use typst::WorldExt;
 use typst_pdf::{PdfOptions, PdfStandards, Timestamp};
 
 use crate::args::{
-    CompileArgs, CompileCommand, DiagnosticFormat, Input, Output, OutputFormat,
+    CompileArgs, CompileCommand, DiagnosticFormat, HtmlMode, Input, Output, OutputFormat,
     PdfStandard, WatchCommand,
 };
 #[cfg(feature = "http-server")]
@@ -67,6 +67,8 @@ pub struct CompileConfig {
     pub pdf_standards: PdfStandards,
     /// A path to write a Makefile rule describing the current compilation.
     pub make_deps: Option<PathBuf>,
+    /// Which kind of HTML output that Typst can produce.
+    pub html_mode: HtmlMode,
     /// The PPI (pixels per inch) to use for PNG export.
     pub ppi: f32,
     /// The export cache for images, used for caching output files in `typst
@@ -152,6 +154,7 @@ impl CompileConfig {
             pdf_standards,
             creation_timestamp: args.world.creation_timestamp,
             make_deps: args.make_deps.clone(),
+            html_mode: args.html_mode,
             ppi: args.ppi,
             diagnostic_format: args.process.diagnostic_format,
             open: args.open.clone(),
@@ -220,8 +223,20 @@ fn compile_and_export(
 ) -> Warned<SourceResult<Vec<Output>>> {
     match config.output_format {
         OutputFormat::Html => {
-            let Warned { output, warnings } = typst::compile::<HtmlDocument>(world);
-            let result = output.and_then(|document| export_html(&document, config));
+            let (warnings, result) = match config.html_mode {
+                HtmlMode::File => {
+                    let Warned { output, warnings } =
+                        typst::compile::<HtmlDocument>(world);
+                    (
+                        warnings,
+                        output.and_then(|document| export_html_file(&document, config)),
+                    )
+                }
+                HtmlMode::Dir => {
+                    let Warned { output, warnings } = typst::compile::<HtmlBundle>(world);
+                    (warnings, output.and_then(|bundle| export_html_dir(&bundle, config)))
+                }
+            };
             Warned {
                 output: result.map(|()| vec![config.output.clone()]),
                 warnings,
@@ -235,19 +250,54 @@ fn compile_and_export(
     }
 }
 
-/// Export to HTML.
-fn export_html(document: &HtmlDocument, config: &CompileConfig) -> SourceResult<()> {
-    let html = typst_html::html(document)?;
-    let result = config.output.write(html.as_bytes());
+/// Export to a single HTML file.
+fn export_html_file(document: &HtmlDocument, config: &CompileConfig) -> SourceResult<()> {
+    let html = typst_html::html(&document.root)?;
+
+    config
+        .output
+        .write(html.as_bytes())
+        .map_err(|err| eco_format!("failed to write HTML file ({err})"))
+        .at(Span::detached())?;
 
     #[cfg(feature = "http-server")]
     if let Some(server) = &config.server {
         server.update(html);
     }
 
-    result
-        .map_err(|err| eco_format!("failed to write HTML file ({err})"))
-        .at(Span::detached())
+    Ok(())
+}
+
+/// Export to an HTML directory.
+fn export_html_dir(bundle: &HtmlBundle, config: &CompileConfig) -> SourceResult<()> {
+    let Output::Path(path) = &config.output else {
+        bail!(Span::detached(), "cannot export directory to stdout");
+    };
+
+    for file in &bundle.files {
+        let buf;
+        let bytes = match &file.body {
+            FileBody::Html(file) => {
+                buf = typst_html::html(file)?;
+                buf.as_bytes()
+            }
+            FileBody::Asset(asset) => asset.as_slice(),
+        };
+
+        let full = path.join(file.path.as_str());
+        let parent = full.parent().unwrap();
+        std::fs::create_dir_all(parent).unwrap();
+        std::fs::write(full, bytes)
+            .map_err(|err| eco_format!("failed to write HTML file ({err})"))
+            .at(Span::detached())?;
+    }
+
+    // #[cfg(feature = "http-server")]
+    // if let Some(server) = &config.server {
+    //     server.update(html);
+    // }
+
+    Ok(())
 }
 
 /// Export to a paged target format.

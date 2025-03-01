@@ -5,10 +5,30 @@ use typst_syntax::Span;
 use typst_utils::{PicoStr, ResolvedPicoStr};
 
 use crate::diag::{bail, HintedStrResult, StrResult};
-use crate::foundations::{cast, Dict, Repr, Str};
+use crate::foundations::{cast, Bytes, Dict, Repr, Str};
 use crate::introspection::{Introspector, Tag};
 use crate::layout::Frame;
 use crate::model::DocumentInfo;
+
+/// A bundle of HTML and asset files.
+#[derive(Debug, Clone)]
+pub struct HtmlBundle {
+    pub info: DocumentInfo,
+    pub files: Vec<BundleFile>,
+    pub introspector: Introspector,
+}
+
+#[derive(Debug, Clone)]
+pub struct BundleFile {
+    pub path: EcoString,
+    pub body: FileBody,
+}
+
+#[derive(Debug, Clone)]
+pub enum FileBody {
+    Html(HtmlElement),
+    Asset(Bytes),
+}
 
 /// An HTML document.
 #[derive(Debug, Clone)]

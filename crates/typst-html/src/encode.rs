@@ -2,18 +2,16 @@ use std::fmt::Write;
 
 use typst_library::diag::{bail, At, SourceResult, StrResult};
 use typst_library::foundations::Repr;
-use typst_library::html::{
-    attr, charsets, tag, HtmlDocument, HtmlElement, HtmlNode, HtmlTag,
-};
+use typst_library::html::{attr, charsets, tag, HtmlElement, HtmlNode, HtmlTag};
 use typst_library::layout::Frame;
 use typst_syntax::Span;
 
 /// Encodes an HTML document into a string.
-pub fn html(document: &HtmlDocument) -> SourceResult<String> {
+pub fn html(root: &HtmlElement) -> SourceResult<String> {
     let mut w = Writer { pretty: true, ..Writer::default() };
     w.buf.push_str("<!DOCTYPE html>");
     write_indent(&mut w);
-    write_element(&mut w, &document.root)?;
+    write_element(&mut w, root)?;
     if w.pretty {
         w.buf.push('\n');
     }

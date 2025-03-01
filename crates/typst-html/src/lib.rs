@@ -7,9 +7,12 @@ pub use self::encode::html;
 use comemo::{Track, Tracked, TrackedMut};
 use typst_library::diag::{bail, warning, At, SourceResult};
 use typst_library::engine::{Engine, Route, Sink, Traced};
-use typst_library::foundations::{Content, StyleChain, Target, TargetElem};
+use typst_library::foundations::{
+    Content, NativeElement, StyleChain, Target, TargetElem,
+};
 use typst_library::html::{
-    attr, tag, FrameElem, HtmlDocument, HtmlElem, HtmlElement, HtmlNode,
+    attr, tag, AssetElem, BundleFile, FileBody, FrameElem, HtmlBundle, HtmlDocument,
+    HtmlElem, HtmlElement, HtmlNode,
 };
 use typst_library::introspection::{
     Introspector, Locator, LocatorLink, SplitLocator, TagElem,
@@ -20,6 +23,86 @@ use typst_library::routines::{Arenas, FragmentKind, Pair, RealizationKind, Routi
 use typst_library::text::{LinebreakElem, SmartQuoteElem, SpaceElem, TextElem};
 use typst_library::World;
 use typst_syntax::Span;
+
+/// Produce an HTML file tree from content.
+///
+/// This first performs root-level realization and then turns the resulting
+/// elements into an HTML file tree.
+#[typst_macros::time(name = "html document")]
+pub fn html_bundle(
+    engine: &mut Engine,
+    content: &Content,
+    styles: StyleChain,
+) -> SourceResult<HtmlBundle> {
+    html_bundle_impl(
+        engine.routines,
+        engine.world,
+        engine.introspector,
+        engine.traced,
+        TrackedMut::reborrow_mut(&mut engine.sink),
+        engine.route.track(),
+        content,
+        styles,
+    )
+}
+
+/// The internal implementation of `html_bundle`.
+#[comemo::memoize]
+#[allow(clippy::too_many_arguments)]
+fn html_bundle_impl(
+    routines: &Routines,
+    world: Tracked<dyn World + '_>,
+    introspector: Tracked<Introspector>,
+    traced: Tracked<Traced>,
+    sink: TrackedMut<Sink>,
+    route: Tracked<Route>,
+    content: &Content,
+    styles: StyleChain,
+) -> SourceResult<HtmlBundle> {
+    let mut locator = Locator::root().split();
+    let mut engine = Engine {
+        routines,
+        world,
+        introspector,
+        traced,
+        sink,
+        route: Route::extend(route).unnested(),
+    };
+
+    // Mark the external styles as "outside" so that they are valid at the page
+    // level.
+    let styles = styles.to_map().outside();
+    let styles = StyleChain::new(&styles);
+
+    let arenas = Arenas::default();
+    let mut info = DocumentInfo::default();
+    let children = (engine.routines.realize)(
+        RealizationKind::HtmlDocument(&mut info),
+        &mut engine,
+        &mut locator,
+        &arenas,
+        content,
+        styles,
+    )?;
+
+    let output = handle_list(&mut engine, &mut locator, children.iter().copied())?;
+    let introspector = Introspector::html(&output);
+
+    let mut files = vec![BundleFile {
+        path: "index.html".into(),
+        body: FileBody::Html(root_element(output, &info)?),
+    }];
+
+    for elem in introspector.query(&AssetElem::elem().select()) {
+        let asset = elem.to_packed::<AssetElem>().unwrap();
+        files.push(BundleFile {
+            path: asset.path.clone(),
+            body: FileBody::Asset(asset.data.clone()),
+        });
+    }
+
+    Ok(HtmlBundle { info, files, introspector })
+}
 
 /// Produce an HTML document from content.
 ///

@@ -47,7 +47,7 @@ use typst_library::diag::{
 };
 use typst_library::engine::{Engine, Route, Sink, Traced};
 use typst_library::foundations::{StyleChain, Styles, Value};
-use typst_library::html::HtmlDocument;
+use typst_library::html::{HtmlBundle, HtmlDocument};
 use typst_library::introspection::Introspector;
 use typst_library::layout::PagedDocument;
 use typst_library::routines::Routines;
@@ -282,8 +282,19 @@ impl Document for HtmlDocument {
     }
 }
 
+impl Document for HtmlBundle {
+    fn info(&self) -> &DocumentInfo {
+        &self.info
+    }
+
+    fn introspector(&self) -> &Introspector {
+        &self.introspector
+    }
+}
+
 mod sealed {
     use typst_library::foundations::{Content, Target};
+    use typst_library::html::HtmlBundle;
 
     use super::*;
 
@@ -318,6 +329,18 @@ mod sealed {
             styles: StyleChain,
         ) -> SourceResult<Self> {
             typst_html::html_document(engine, content, styles)
+        }
+    }
+
+    impl Sealed for HtmlBundle {
+        const TARGET: Target = Target::Html;
+
+        fn create(
+            engine: &mut Engine,
+            content: &Content,
+            styles: StyleChain,
+        ) -> SourceResult<Self> {
+            typst_html::html_bundle(engine, content, styles)
         }
     }
 }
