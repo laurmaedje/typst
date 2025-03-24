@@ -3117,6 +3117,8 @@ dependencies = [
  "parking_lot",
  "rayon",
  "regex",
+ "serde",
+ "serde_json",
  "tiny-skia",
  "typst",
  "typst-assets",

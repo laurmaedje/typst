@@ -46,6 +46,8 @@ oxipng = { workspace = true }
 parking_lot = { workspace = true }
 rayon = { workspace = true }
 regex = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 tiny-skia = { workspace = true }
 unscanny = { workspace = true }
 walkdir = { workspace = true }

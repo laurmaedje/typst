@@ -53,6 +53,7 @@ fn main() {
         None => test(),
         Some(Command::Clean) => clean(),
         Some(Command::Undangle) => undangle(),
+        Some(Command::Export) => export(),
     }
 }
 
@@ -76,16 +77,7 @@ fn setup() {
 }
 
 fn test() {
-    let (tests, skipped) = match crate::collect::collect() {
-        Ok(output) => output,
-        Err(errors) => {
-            eprintln!("failed to collect tests");
-            for error in errors {
-                eprintln!("❌ {error}");
-            }
-            std::process::exit(1);
-        }
-    };
+    let (tests, skipped) = crate::collect::collect_or_exit();
 
     let selected = tests.len();
     if ARGS.list {
@@ -166,6 +158,12 @@ fn undangle() {
             }
         }
     }
+}
+
+fn export() {
+    let (tests, _) = crate::collect::collect_or_exit();
+    let data = serde_json::to_vec(&tests).unwrap();
+    std::fs::write("tests.json", data).unwrap();
 }
 
 fn create_syntax_store(ref_path: Option<PathBuf>) -> (&'static Path, Option<PathBuf>) {

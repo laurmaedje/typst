@@ -6,6 +6,7 @@ use std::str::FromStr;
 use std::sync::LazyLock;
 
 use ecow::{eco_format, EcoString};
+use serde::{Serialize, Serializer};
 use typst_syntax::package::PackageVersion;
 use typst_syntax::{is_id_continue, is_ident, is_newline, FileId, Source, VirtualPath};
 use unscanny::Scanner;
@@ -19,11 +20,29 @@ pub fn collect() -> Result<(Vec<Test>, usize), Vec<TestParseError>> {
     Collector::new().collect()
 }
 
+/// Collects all test or prints and exists.
+pub fn collect_or_exit() -> (Vec<Test>, usize) {
+    match crate::collect::collect() {
+        Ok(output) => output,
+        Err(errors) => {
+            eprintln!("failed to collect tests");
+            for error in errors {
+                eprintln!("❌ {error}");
+            }
+            std::process::exit(1);
+        }
+    }
+}
+
 /// A single test.
+#[derive(Serialize)]
 pub struct Test {
+    #[serde(skip)]
     pub pos: FilePos,
     pub name: EcoString,
+    #[serde(skip)]
     pub attrs: Vec<Attr>,
+    #[serde(serialize_with = "serialize_source")]
     pub source: Source,
     pub notes: Vec<Note>,
 }
@@ -32,6 +51,23 @@ impl Display for Test {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{} ({})", self.name, self.pos)
     }
+}
+
+fn serialize_source<S>(source: &Source, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    source
+        .text()
+        .lines()
+        .filter(|line| {
+            !line.starts_with("// Error")
+                && !line.starts_with("// Warning")
+                && !line.starts_with("// Hint")
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        .serialize(serializer)
 }
 
 /// A position in a file.
@@ -75,7 +111,9 @@ impl Display for FileSize {
 }
 
 /// An annotation like `// Error: 2-6 message` in a test.
+#[derive(Serialize)]
 pub struct Note {
+    #[serde(skip)]
     pub pos: FilePos,
     pub kind: NoteKind,
     pub range: Option<Range<usize>>,
@@ -83,7 +121,8 @@ pub struct Note {
 }
 
 /// A kind of annotation in a test.
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum NoteKind {
     Error,
     Warning,

@@ -102,4 +102,6 @@ pub enum Command {
     Clean,
     /// Deletes all dangling reference output.
     Undangle,
+    /// Exports the test suite as JSON.
+    Export,
 }
